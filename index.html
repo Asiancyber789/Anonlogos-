@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AnonLogos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080810;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;max-width:480px;margin:0 auto}
+::-webkit-scrollbar{width:0;height:0}
+input,textarea,button{font-family:inherit}
+input::placeholder,textarea::placeholder{color:#2a2a45}
+button:active{transform:scale(.96)}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+
+const ADJ=["Silent","Shadow","Mystic","Ghost","Phantom","Cosmic","Neon","Stealth","Void","Cipher","Echo","Rogue","Nova","Blur","Spectre","Dark","Lunar","Storm","Frost","Blaze"];
+const NOUN=["Fox","Wolf","Hawk","Panda","Tiger","Eagle","Lynx","Raven","Cobra","Viper","Falcon","Bear","Shark","Owl","Deer","Snake","Lion","Crow","Mist","Flame"];
+const COLORS=["#7C3AED","#1D4ED8","#BE185D","#0F766E","#B45309","#6D28D9","#9D174D","#1E40AF","#7F1D1D","#064E3B"];
+const TAGS=["#মতামত","#রাজনীতি","#প্রযুক্তি","#জীবন","#বিনোদন","#হাস্যরস","#ভালোবাসা","#খেলাধুলা","#শিক্ষা","#খবর"];
+const TAG_C={"#মতামত":"#f59e0b","#রাজনীতি":"#ef4444","#প্রযুক্তি":"#3b82f6","#জীবন":"#10b981","#বিনোদন":"#ec4899","#হাস্যরস":"#f97316","#ভালোবাসা":"#f43f5e","#খেলাধুলা":"#84cc16","#শিক্ষা":"#06b6d4","#খবর":"#8b5cf6"};
+const REACTIONS=[["🔥","আগুন"],["😂","হাসি"],["😢","কষ্ট"],["😡","রাগ"],["👏","তালি"],["💯","একমত"]];
+const MOODS=["😊 ভালো","😔 মন খারাপ","😡 রাগান্বিত","🤔 চিন্তিত","🥳 মজায়","😴 বিরক্ত"];
+function genUser(){return ADJ[~~(Math.random()*ADJ.length)]+NOUN[~~(Math.random()*NOUN.length)]+(~~(Math.random()*900)+100);}
+function genId(){return Math.random().toString(36).substr(2,6).toUpperCase();}
+function genColor(){return COLORS[~~(Math.random()*COLORS.length)];}
+function avatarUrl(username){return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;}
+function timeAgo(ts){const d=~~((Date.now()-ts)/1000);if(d<60)return d+"s আগে";if(d<3600)return ~~(d/60)+"m আগে";if(d<86400)return ~~(d/3600)+"h আগে";return ~~(d/86400)+"d আগে";}
+
+// ── Demo Data ──────────────────────────────────────────────────────────────────
+const DEMO_USERS=[
+  {id:"reg1",username:"Rahim_X",email:"rahim@demo.com",password:"1234",color:"#7C3AED",bio:"চিন্তা করি, লিখি।",followers:["reg2"],following:[],joinedAt:Date.now()-8640000*30,verified:true,admin:true},
+  {id:"reg2",username:"Priya_Dev",email:"priya@demo.com",password:"1234",color:"#BE185D",bio:"প্রযুক্তি ভালোবাসি।",followers:[],following:["reg1"],joinedAt:Date.now()-8640000*15,verified:false,admin:false},
+];
+const DEMO_POSTS=[
+  {id:"p1",authorId:"reg1",username:"Rahim_X",isReg:true,verified:true,color:"#7C3AED",content:"AnonLogos-এ স্বাগতম! 🎭 ভেরিফাইড ইউজার হিসেবে পোস্ট করছি। চাইলে বেনামেও পোস্ট করা যায়!",tag:"#জীবন",mood:"😊 ভালো",ts:Date.now()-7200000,likes:["u1","u2","u3"],reactions:{"🔥":["u1","u2"]},comments:[{id:"c1",username:"GhostOwl512",isReg:false,color:"#1D4ED8",text:"দারুণ! 🎭",ts:Date.now()-3600000,likes:[],replyTo:null}],shares:12,views:342,bookmarks:["u1"],poll:null,pinned:true,image:null,edited:false},
+  {id:"p2",authorId:"guest_AX",username:"SilentFox247",isReg:false,verified:false,color:"#0F766E",content:"আমি গেস্ট। বেনামে পোস্ট করছি — কেউ জানবে না আমি কে! 🎭",tag:"#মতামত",mood:"😊 ভালো",ts:Date.now()-3600000,likes:["u1"],reactions:{"💯":["u1","u2"]},comments:[],shares:5,views:180,bookmarks:[],poll:{question:"বেনামি প্ল্যাটফর্ম দরকার?",options:[{text:"অবশ্যই",votes:["u1","u2","u3"]},{text:"না",votes:[]},{text:"মাঝামাঝি",votes:["u4"]}],voted:[]},pinned:false,image:null,edited:false},
+  {id:"p3",authorId:"reg2",username:"Priya_Dev",isReg:true,verified:false,color:"#BE185D",content:"প্রযুক্তি আমাদের জীবন বদলে দিচ্ছে। AnonLogos মানুষকে নির্ভয়ে কথা বলার সুযোগ দেবে। 💻",tag:"#প্রযুক্তি",mood:"🥳 মজায়",ts:Date.now()-1800000,likes:["u2"],reactions:{"👏":["u1"]},comments:[],shares:3,views:95,bookmarks:[],poll:null,pinned:false,image:null,edited:false},
+];
+const DEMO_MSGS=[{id:"m1",fromId:"reg2",fromName:"Priya_Dev",toId:"reg1",text:"হ্যালো! কেমন আছো?",ts:Date.now()-7200000,read:false}];
+const DEMO_NOTIFS=[
+  {id:"n1",type:"like",fromUsername:"CosmicWolf",text:"তোমার পোস্টে লাইক দিয়েছে ❤️",ts:Date.now()-1800000,read:false},
+  {id:"n2",type:"follow",fromUsername:"Priya_Dev",text:"তোমাকে ফলো করেছে 👤",ts:Date.now()-3600000,read:false},
+  {id:"n3",type:"comment",fromUsername:"GhostOwl512",text:"তোমার পোস্টে কমেন্ট করেছে 💬",ts:Date.now()-7200000,read:true},
+];
+const DEMO_ROOMS=[
+  {id:"room1",name:"সাধারণ আড্ডা 💬",ownerId:"reg1",ownerName:"Rahim_X",ts:Date.now()-86400000,messages:[
+    {id:"cm1",userId:"reg1",username:"Rahim_X",isReg:true,verified:true,color:"#7C3AED",text:"সবাইকে স্বাগতম! 🎉",ts:Date.now()-3600000},
+    {id:"cm2",userId:"guest_X",username:"GhostWolf123",isReg:false,verified:false,color:"#0F766E",text:"হ্যালো! 👋",ts:Date.now()-1800000},
+  ]},
+  {id:"room2",name:"প্রযুক্তি আলোচনা 💻",ownerId:"reg1",ownerName:"Rahim_X",ts:Date.now()-43200000,messages:[]},
+];
+
+function Av({username,color,size=40,verified=false,isReg=false}){
+  const [imgErr,setImgErr]=useState(false);
+  const showImg=isReg&&!imgErr;
+  return(
+    <div style={{position:"relative",flexShrink:0,width:size,height:size}}>
+      {showImg?(
+        <img
+          src={avatarUrl(username)}
+          alt={username}
+          onError={()=>setImgErr(true)}
+          style={{width:size,height:size,borderRadius:"50%",border:`2px solid ${color}66`,objectFit:"cover",background:"#1a1a2e",display:"block"}}
+        />
+      ):(
+        <div style={{width:size,height:size,borderRadius:"50%",background:`linear-gradient(135deg,${color},${color}88)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.36,fontWeight:800,color:"#fff",border:`2px solid ${color}66`}}>
+          {username.slice(0,2).toUpperCase()}
+        </div>
+      )}
+      {verified&&(
+        <div style={{position:"absolute",bottom:-1,right:-1,background:"#10b981",borderRadius:"50%",width:size*.34,height:size*.34,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.2,border:"2px solid #080810"}}>✅</div>
+      )}
+    </div>
+  );
+}
+
+// verified badge — সব জায়গায় নামের শেষে দেখাবে
+function VBadge(){return <span style={{background:"#10b98122",color:"#10b981",fontSize:11,padding:"1px 6px",borderRadius:6,border:"1px solid #10b98144",fontWeight:700,marginLeft:3}}>✅</span>;}
+function RegBadge(){return <span style={{background:"#7c3aed33",color:"#a855f7",fontSize:10,padding:"1px 5px",borderRadius:6,border:"1px solid #7c3aed55",fontWeight:700,marginLeft:2}}>🆅</span>;}
+
+function Toast({msg,type,onClose}){
+  useEffect(()=>{const t=setTimeout(onClose,2500);return()=>clearTimeout(t);},[]);
+  const bg=type==="error"?"linear-gradient(135deg,#ef4444,#b91c1c)":type==="success"?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#7c3aed,#3b82f6)";
+  return <div style={{position:"fixed",bottom:75,left:"50%",transform:"translateX(-50%)",background:bg,color:"#fff",padding:"11px 22px",borderRadius:30,fontSize:13,zIndex:9999,whiteSpace:"nowrap",fontWeight:600,boxShadow:"0 8px 28px #0008",animation:"fadeIn .3s"}}>{msg}</div>;
+}
+
+function Modal({title,onClose,children}){
+  return(
+    <div onClick={e=>e.target===e.currentTarget&&onClose()} style={{position:"fixed",inset:0,background:"#000000cc",zIndex:700,display:"flex",alignItems:"flex-end"}}>
+      <div style={{background:"#0d0d1e",borderRadius:"24px 24px 0 0",padding:"18px 15px 30px",width:"100%",maxWidth:480,margin:"0 auto",border:"1px solid #1e1e35",maxHeight:"92vh",overflowY:"auto",animation:"slideUp .25s ease"}}>
+        <div style={{width:40,height:4,background:"#2a2a40",borderRadius:2,margin:"0 auto 16px"}}/>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <h3 style={{color:"#c4b5fd",fontSize:17,fontWeight:800}}>{title}</h3>
+          <button onClick={onClose} style={{background:"#1a1a2e",border:"none",color:"#64748b",width:30,height:30,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── Auth ────────────────────────────────────────────────────────────────────────
+function AuthModal({onLogin,onRegister,onClose}){
+  const [mode,setMode]=useState("login");
+  const [email,setEmail]=useState("");
+  const [username,setUsername]=useState("");
+  const [pass,setPass]=useState("");
+  const [bio,setBio]=useState("");
+  const [err,setErr]=useState("");
+  const inp={width:"100%",background:"#080810",border:"1px solid #1e1e35",borderRadius:12,padding:"12px 14px",color:"#e2e8f0",fontSize:14,outline:"none",marginBottom:10};
+  const submit=()=>{
+    setErr("");
+    if(mode==="login"){if(!onLogin(email,pass))setErr("ইমেল বা পাসওয়ার্ড ভুল!");}
+    else{
+      if(username.length<3){setErr("ইউজারনেম কমপক্ষে ৩ অক্ষর!");return;}
+      if(!email.includes("@")){setErr("সঠিক ইমেল দাও!");return;}
+      if(pass.length<4){setErr("পাসওয়ার্ড কমপক্ষে ৪ অক্ষর!");return;}
+      if(!onRegister(email,username,pass,bio))setErr("এই ইমেল বা ইউজারনেম আগে আছে!");
+    }
+  };
+  return(
+    <Modal title={mode==="login"?"🔐 লগইন":"📝 রেজিস্ট্রেশন"} onClose={onClose}>
+      <div style={{display:"flex",gap:6,marginBottom:16,background:"#080810",borderRadius:14,padding:4}}>
+        {[["login","লগইন"],["register","রেজিস্ট্রেশন"]].map(([m,l])=>(
+          <button key={m} onClick={()=>{setMode(m);setErr("");}} style={{flex:1,background:mode===m?"linear-gradient(135deg,#7c3aed,#3b82f6)":"transparent",border:"none",borderRadius:11,padding:"9px",color:mode===m?"#fff":"#64748b",cursor:"pointer",fontWeight:700,fontSize:14}}>{l}</button>
+        ))}
+      </div>
+      {mode==="register"&&<input value={username} onChange={e=>setUsername(e.target.value)} placeholder="ইউজারনেম" style={inp}/>}
+      <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="ইমেল" type="email" style={inp}/>
+      <input value={pass} onChange={e=>setPass(e.target.value)} placeholder="পাসওয়ার্ড" type="password" style={inp}/>
+      {mode==="register"&&<textarea value={bio} onChange={e=>setBio(e.target.value.slice(0,150))} placeholder="বায়ো (ঐচ্ছিক)" rows={2} style={{...inp,resize:"none",lineHeight:1.5}}/>}
+      {err&&<p style={{color:"#ef4444",fontSize:12,marginBottom:10,background:"#ef444411",padding:"8px 12px",borderRadius:10}}>⚠️ {err}</p>}
+      <button onClick={submit} style={{width:"100%",background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"13px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:15,marginBottom:8}}>
+        {mode==="login"?"লগইন করো 🚀":"রেজিস্ট্রেশন করো ✨"}
+      </button>
+      <p style={{textAlign:"center",color:"#334155",fontSize:12}}>ডেমো: rahim@demo.com / 1234</p>
+    </Modal>
+  );
+}
+// ── Poll ────────────────────────────────────────────────────────────────────────
+function Poll({poll,postId,myId,onVote}){
+  const total=poll.options.reduce((a,o)=>a+o.votes.length,0);
+  const voted=poll.voted.includes(myId);
+  return(
+    <div style={{background:"#0a0a14",borderRadius:14,padding:12,border:"1px solid #1e1e35",marginBottom:12}}>
+      <p style={{color:"#c4b5fd",fontWeight:600,fontSize:13,marginBottom:10}}>📊 {poll.question}</p>
+      {poll.options.map((o,i)=>{
+        const pct=total?~~(o.votes.length/total*100):0;
+        const mine=o.votes.includes(myId);
+        return(
+          <div key={i} onClick={()=>!voted&&onVote(postId,i)} style={{marginBottom:8,cursor:voted?"default":"pointer"}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+              <span style={{color:mine?"#a855f7":"#94a3b8",fontSize:12,fontWeight:mine?700:400}}>{mine?"✓ ":""}{o.text}</span>
+              {voted&&<span style={{color:"#475569",fontSize:11}}>{pct}%</span>}
+            </div>
+            <div style={{height:6,background:"#1e1e35",borderRadius:3,overflow:"hidden"}}>
+              {voted&&<div style={{height:"100%",width:pct+"%",background:mine?"linear-gradient(90deg,#7c3aed,#3b82f6)":"#2a2a40",borderRadius:3,transition:"width .5s"}}/>}
+            </div>
+          </div>
+        );
+      })}
+      <p style={{color:"#334155",fontSize:11,marginTop:6}}>{total} ভোট{!voted&&" · ক্লিক করো"}</p>
+    </div>
+  );
+}
+
+// ── PostCard ────────────────────────────────────────────────────────────────────
+function PostCard({p,me,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVote,onEdit,onDelete,onMsgUser,onViewProfile,onFollow,onPin,onAuthRequired}){
+  const [showC,setShowC]=useState(false);
+  const [cText,setCText]=useState("");
+  const [replyTo,setReplyTo]=useState(null);
+  const [showReact,setShowReact]=useState(false);
+  const [showMenu,setShowMenu]=useState(false);
+  const [editing,setEditing]=useState(false);
+  const [editText,setEditText]=useState(p.content);
+  const [exp,setExp]=useState(false);
+  const liked=p.likes.includes(me.id);
+  const saved=p.bookmarks.includes(me.id);
+  const tc=TAG_C[p.tag]||"#7c3aed";
+  const isLong=p.content.length>160;
+  const totalR=Object.values(p.reactions||{}).reduce((a,v)=>a+v.length,0);
+  const isOwner=me.id===p.authorId;
+  const isFollowing=(me.following||[]).includes(p.authorId);
+  // পিন শুধু verified owner করতে পারবে
+  const canPin=isOwner&&me.type==="registered"&&me.verified===true;
+
+  const submitC=()=>{
+    if(!cText.trim())return;
+    onComment(p.id,{id:genId(),username:me.username,isReg:me.type==="registered",verified:me.verified||false,color:me.color,text:cText.trim(),ts:Date.now(),likes:[],replyTo});
+    setCText("");setReplyTo(null);
+  };
+
+  return(
+    <div style={{background:"linear-gradient(160deg,#0f0f1f,#0c0c18)",border:`1px solid ${p.pinned?"#10b98144":"#1e1e35"}`,borderRadius:20,marginBottom:12,overflow:"hidden"}}>
+      {p.pinned&&<div style={{background:"#10b98122",padding:"5px 14px",fontSize:11,color:"#10b981",borderBottom:"1px solid #10b98133"}}>📌 পিন করা পোস্ট</div>}
+      {p.tag&&<div style={{height:3,background:`linear-gradient(90deg,${tc},transparent)`}}/>}
+      <div style={{padding:"13px 13px 0"}}>
+        <div style={{display:"flex",gap:9,marginBottom:10,alignItems:"flex-start"}}>
+          <div onClick={()=>p.isReg&&onViewProfile(p.authorId)} style={{cursor:p.isReg?"pointer":"default"}}>
+            <Av username={p.username} color={p.color} size={38} verified={p.verified}/>
+          </div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}}>
+              <span onClick={()=>p.isReg&&onViewProfile(p.authorId)} style={{color:"#c4b5fd",fontWeight:700,fontSize:14,cursor:p.isReg?"pointer":"default",textDecoration:p.isReg?"underline dotted":"none",textUnderlineOffset:3}}>{p.username}</span>
+              {p.isReg&&<RegBadge/>}
+              {p.verified&&<VBadge/>}
+              {p.mood&&<span style={{fontSize:10,background:"#1a1a2e",padding:"2px 6px",borderRadius:8,color:"#64748b"}}>{p.mood}</span>}
+              {p.isReg&&!isOwner&&(
+                <button onClick={()=>me.type==="registered"?onFollow(p.authorId):onAuthRequired()} style={{background:isFollowing?"#1a1a2e":"#7c3aed22",border:`1px solid ${isFollowing?"#2a2a40":"#7c3aed55"}`,borderRadius:10,padding:"2px 8px",color:isFollowing?"#475569":"#a855f7",cursor:"pointer",fontSize:10,fontWeight:700}}>
+                  {isFollowing?"✓ ফলোয়িং":"+ ফলো"}
+                </button>
+              )}
+            </div>
+            <div style={{color:"#2a2a45",fontSize:11,marginTop:1}}>{timeAgo(p.ts)} · 👁 {p.views}{p.edited&&" · ✏️"}</div>
+          </div>
+          <div style={{display:"flex",gap:5,alignItems:"center"}}>
+            {p.tag&&<span style={{background:tc+"22",color:tc,fontSize:10,padding:"2px 7px",borderRadius:8,border:`1px solid ${tc}44`,fontWeight:600}}>{p.tag}</span>}
+            {me.type==="registered"&&!isOwner&&p.isReg&&(
+              <button onClick={()=>onMsgUser(p)} style={{background:"#7c3aed22",border:"1px solid #7c3aed44",borderRadius:10,padding:"4px 8px",color:"#a855f7",cursor:"pointer",fontSize:12}}>💌</button>
+            )}
+            <div style={{position:"relative"}}>
+              <button onClick={()=>setShowMenu(!showMenu)} style={{background:"#1a1a2e",border:"none",color:"#475569",cursor:"pointer",borderRadius:8,padding:"4px 8px",fontSize:14}}>⋯</button>
+              {showMenu&&(
+                <div style={{position:"absolute",right:0,top:32,background:"#111122",border:"1px solid #2a2a40",borderRadius:14,overflow:"hidden",zIndex:50,minWidth:145,boxShadow:"0 8px 24px #000a"}}>
+                  {isOwner&&<button onClick={()=>{setEditing(true);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:"#94a3b8",padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>✏️ এডিট</button>}
+                  {isOwner&&<button onClick={()=>{onDelete(p.id);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:"#ef4444",padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>🗑️ ডিলিট</button>}
+                  {canPin&&<button onClick={()=>{onPin(p.id);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:"#10b981",padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>{p.pinned?"📌 আনপিন করো":"📌 পিন করো"}</button>}
+                  <button onClick={()=>{onCopy(p.id);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:"#94a3b8",padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>🔗 লিংক কপি</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {editing?(
+          <div style={{marginBottom:10}}>
+            <textarea value={editText} onChange={e=>setEditText(e.target.value)} rows={3} style={{width:"100%",background:"#080810",border:"1px solid #7c3aed",borderRadius:12,padding:"10px",color:"#e2e8f0",fontSize:14,outline:"none",resize:"none"}}/>
+            <div style={{display:"flex",gap:8,marginTop:6}}>
+              <button onClick={()=>{onEdit(p.id,editText);setEditing(false);}} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:12,padding:"8px 16px",color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600}}>সেভ</button>
+              <button onClick={()=>{setEditing(false);setEditText(p.content);}} style={{background:"#1a1a2e",border:"none",borderRadius:12,padding:"8px 14px",color:"#64748b",cursor:"pointer",fontSize:13}}>বাতিল</button>
+            </div>
+          </div>
+        ):(
+          <p style={{color:"#cbd5e1",fontSize:14,lineHeight:1.75,marginBottom:10,wordBreak:"break-word"}}>
+            {isLong&&!exp?p.content.slice(0,160)+"...":p.content}
+            {isLong&&<span onClick={()=>setExp(!exp)} style={{color:"#7c3aed",cursor:"pointer",marginLeft:5,fontSize:12}}>{exp?"↑ কম":"↓ আরো"}</span>}
+          </p>
+        )}
+
+        {p.image&&(
+          <div style={{borderRadius:14,overflow:"hidden",marginBottom:10,border:"1px solid #1e1e35"}}>
+            <img src={p.image} alt="post" style={{width:"100%",maxHeight:300,objectFit:"cover",display:"block"}}/>
+          </div>
+        )}
+
+        {p.poll&&<Poll poll={p.poll} postId={p.id} myId={me.id} onVote={onVote}/>}
+
+        {totalR>0&&(
+          <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
+            {Object.entries(p.reactions||{}).filter(([,v])=>v.length>0).map(([r,v])=>(
+              <span key={r} onClick={()=>onReact(p.id,r)} style={{background:"#1a1a2e",border:`1px solid ${(p.reactions[r]||[]).includes(me.id)?"#7c3aed":"#2a2a40"}`,borderRadius:12,padding:"3px 9px",fontSize:12,cursor:"pointer",color:(p.reactions[r]||[]).includes(me.id)?"#a855f7":"#64748b"}}>
+                {r} {v.length}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{display:"flex",alignItems:"center",borderTop:"1px solid #1a1a2e",padding:"6px 4px",position:"relative"}}>
+        {[
+          {ic:liked?"❤️":"🤍",val:p.likes.length,fn:()=>onLike(p.id),active:liked,col:"#ec4899"},
+          {ic:"😄",val:totalR,fn:()=>setShowReact(!showReact),active:showReact,col:"#f59e0b"},
+          {ic:"💬",val:p.comments.length,fn:()=>setShowC(!showC),active:showC,col:"#3b82f6"},
+          {ic:"🔁",val:p.shares,fn:()=>onShare(p.id),active:false,col:"#10b981"},
+        ].map((a,i)=>(
+          <button key={i} onClick={a.fn} style={{flex:1,background:a.active?a.col+"18":"transparent",border:"none",color:a.active?a.col:"#3f3f5a",cursor:"pointer",padding:"7px 2px",borderRadius:10,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",gap:3,fontWeight:a.active?700:400}}>
+            {a.ic}<span style={{fontSize:11}}>{a.val}</span>
+          </button>
+        ))}
+        <button onClick={()=>onBookmark(p.id)} style={{flex:1,background:saved?"#f59e0b18":"transparent",border:"none",color:saved?"#f59e0b":"#3f3f5a",cursor:"pointer",padding:"7px 2px",borderRadius:10,fontSize:13}}>{saved?"🔖":"📌"}</button>
+        <button onClick={()=>onCopy(p.id)} style={{flex:1,background:"transparent",border:"none",color:"#3f3f5a",cursor:"pointer",padding:"7px 2px",borderRadius:10,fontSize:13}}>🔗</button>
+        {showReact&&(
+          <div style={{position:"absolute",bottom:46,left:"50%",transform:"translateX(-50%)",background:"#111122",border:"1px solid #2a2a40",borderRadius:20,padding:"8px 12px",display:"flex",gap:8,zIndex:50,boxShadow:"0 8px 28px #000a"}}>
+            {REACTIONS.map(([r])=>(
+              <button key={r} onClick={()=>{onReact(p.id,r);setShowReact(false);}} style={{background:"none",border:"none",fontSize:22,cursor:"pointer"}}>{r}</button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {showC&&(
+        <div style={{borderTop:"1px solid #1a1a2e",padding:"12px 13px"}}>
+          {p.comments.length===0&&<p style={{color:"#2a2a45",fontSize:12,textAlign:"center",marginBottom:10}}>প্রথম কমেন্ট করো! 💬</p>}
+          {p.comments.map(c=>(
+            <div key={c.id} style={{display:"flex",gap:8,marginBottom:10}}>
+              <Av username={c.username} color={c.color} size={28} verified={c.verified||false}/>
+              <div style={{flex:1}}>
+                <div style={{background:"#0a0a14",borderRadius:12,padding:"8px 11px",border:"1px solid #1a1a2e"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:3}}>
+                    <span style={{color:"#a78bfa",fontSize:12,fontWeight:700}}>{c.username}</span>
+                    {c.isReg&&<RegBadge/>}
+                    {c.verified&&<VBadge/>}
+                    <span style={{color:"#2a2a45",fontSize:10}}>{timeAgo(c.ts)}</span>
+                  </div>
+                  {c.replyTo&&<div style={{color:"#334155",fontSize:11,marginBottom:3}}>↩ @{c.replyTo}</div>}
+                  <p style={{color:"#94a3b8",fontSize:13,margin:0}}>{c.text}</p>
+                </div>
+                <button onClick={()=>setReplyTo(c.username)} style={{background:"none",border:"none",color:"#334155",cursor:"pointer",fontSize:11,marginTop:3,marginLeft:4}}>↩ রিপ্লাই</button>
+              </div>
+            </div>
+          ))}
+          {replyTo&&<div style={{background:"#1a1a2e",borderRadius:8,padding:"5px 10px",fontSize:12,color:"#7c3aed",marginBottom:6,display:"flex",justifyContent:"space-between"}}>↩ @{replyTo}<button onClick={()=>setReplyTo(null)} style={{background:"none",border:"none",color:"#64748b",cursor:"pointer"}}>✕</button></div>}
+          <div style={{display:"flex",gap:7,marginTop:4}}>
+            <Av username={me.username} color={me.color} size={28} verified={me.verified||false} isReg={me.type==="registered"}/>
+            <input value={cText} onChange={e=>setCText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submitC()} placeholder="কমেন্ট লিখুন..." style={{flex:1,background:"#0a0a14",border:"1px solid #1e1e35",borderRadius:18,padding:"8px 12px",color:"#e2e8f0",fontSize:13,outline:"none"}}/>
+            <button onClick={submitC} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:18,padding:"0 13px",color:"#fff",cursor:"pointer",fontSize:14}}>→</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+// ── Compose ─────────────────────────────────────────────────────────────────────
+function Compose({me,onPost,onClose}){
+  const [text,setText]=useState("");
+  const [tag,setTag]=useState(TAGS[0]);
+  const [mood,setMood]=useState("");
+  const [postAs,setPostAs]=useState("identified");
+  const [showPoll,setShowPoll]=useState(false);
+  const [pollQ,setPollQ]=useState("");
+  const [pollOpts,setPollOpts]=useState(["",""]);
+  const [image,setImage]=useState(null);
+  const fileRef=useRef();
+  const handleImg=e=>{
+    const f=e.target.files[0];if(!f)return;
+    if(f.size>5*1024*1024){alert("ছবি ৫MB এর বেশি হওয়া যাবে না!");return;}
+    const r=new FileReader();r.onload=ev=>setImage(ev.target.result);r.readAsDataURL(f);
+  };
+  const inp={width:"100%",background:"#080810",border:"1px solid #1e1e35",borderRadius:12,padding:"10px 13px",color:"#e2e8f0",fontSize:13,outline:"none",marginBottom:8};
+  const submit=()=>{
+    if(!text.trim()&&!image)return;
+    const isAnon=me.type==="guest"||(me.type==="registered"&&postAs==="anon");
+    const poll=showPoll&&pollQ.trim()&&pollOpts.filter(o=>o.trim()).length>=2?{question:pollQ,options:pollOpts.filter(o=>o.trim()).map(o=>({text:o,votes:[]})),voted:[]}:null;
+    onPost({text,tag,mood,poll,isAnon,image});onClose();
+  };
+  return(
+    <Modal title="✏️ নতুন পোস্ট" onClose={onClose}>
+      {me.type==="registered"&&(
+        <div style={{display:"flex",gap:6,marginBottom:12,background:"#080810",borderRadius:12,padding:4}}>
+          {[["identified","🆅 নিজের নামে"],["anon","🎭 বেনামে"]].map(([v,l])=>(
+            <button key={v} onClick={()=>setPostAs(v)} style={{flex:1,background:postAs===v?"linear-gradient(135deg,#7c3aed,#3b82f6)":"transparent",border:"none",borderRadius:10,padding:"8px",color:postAs===v?"#fff":"#64748b",cursor:"pointer",fontWeight:700,fontSize:12}}>{l}</button>
+          ))}
+        </div>
+      )}
+      <textarea value={text} onChange={e=>setText(e.target.value.slice(0,500))} placeholder="মনের কথা লিখো... 🎭" rows={4} style={{...inp,resize:"none",lineHeight:1.65,borderRadius:14,padding:12,marginBottom:10}}/>
+      {image&&(
+        <div style={{position:"relative",marginBottom:10,borderRadius:12,overflow:"hidden",border:"1px solid #1e1e35"}}>
+          <img src={image} style={{width:"100%",maxHeight:200,objectFit:"cover",display:"block"}}/>
+          <button onClick={()=>setImage(null)} style={{position:"absolute",top:6,right:6,background:"#000a",border:"none",color:"#fff",borderRadius:"50%",width:26,height:26,cursor:"pointer",fontSize:14}}>✕</button>
+        </div>
+      )}
+      <div style={{display:"flex",gap:7,marginBottom:10}}>
+        <button onClick={()=>fileRef.current.click()} style={{background:"#1a1a2e",border:"1px solid #2a2a40",borderRadius:12,padding:"7px 12px",color:"#64748b",cursor:"pointer",fontSize:13}}>📷 ছবি</button>
+        <button onClick={()=>setShowPoll(!showPoll)} style={{background:showPoll?"#7c3aed33":"#1a1a2e",border:`1px solid ${showPoll?"#7c3aed":"#2a2a40"}`,borderRadius:12,padding:"7px 12px",color:showPoll?"#a855f7":"#64748b",cursor:"pointer",fontSize:13}}>📊 পোল</button>
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleImg} style={{display:"none"}}/>
+      </div>
+      {showPoll&&(
+        <div style={{background:"#080810",borderRadius:14,padding:12,border:"1px solid #1e1e35",marginBottom:10}}>
+          <input value={pollQ} onChange={e=>setPollQ(e.target.value)} placeholder="প্রশ্ন লিখুন..." style={inp}/>
+          {pollOpts.map((o,i)=>(<input key={i} value={o} onChange={e=>{const n=[...pollOpts];n[i]=e.target.value;setPollOpts(n);}} placeholder={`বিকল্প ${i+1}`} style={inp}/>))}
+          {pollOpts.length<4&&<button onClick={()=>setPollOpts([...pollOpts,""])} style={{background:"none",border:"none",color:"#7c3aed",cursor:"pointer",fontSize:12}}>+ আরো</button>}
+        </div>
+      )}
+      <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:10,paddingBottom:2}}>
+        {MOODS.map(m=>(<button key={m} onClick={()=>setMood(mood===m?"":m)} style={{background:mood===m?"#7c3aed33":"#1a1a2e",border:`1px solid ${mood===m?"#7c3aed":"#2a2a40"}`,borderRadius:14,padding:"5px 10px",color:mood===m?"#a855f7":"#64748b",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>{m}</button>))}
+      </div>
+      <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:14,paddingBottom:2}}>
+        {TAGS.map(t=>{const c=TAG_C[t];const a=tag===t;return(<button key={t} onClick={()=>setTag(t)} style={{background:a?c+"33":"#1a1a2e",border:`1px solid ${a?c:"#2a2a40"}`,borderRadius:14,padding:"5px 10px",color:a?c:"#64748b",cursor:"pointer",fontSize:11,whiteSpace:"nowrap",fontWeight:a?700:400}}>{t}</button>);})}
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{color:500-text.length<50?"#ef4444":"#334155",fontSize:12}}>{500-text.length} বাকি</span>
+        <button onClick={submit} disabled={!text.trim()&&!image} style={{background:(text.trim()||image)?"linear-gradient(135deg,#7c3aed,#3b82f6)":"#1a1a2e",border:"none",borderRadius:16,padding:"11px 24px",color:(text.trim()||image)?"#fff":"#334155",cursor:(text.trim()||image)?"pointer":"default",fontWeight:700,fontSize:14}}>পোস্ট করো 🚀</button>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Inbox (Full Screen) ─────────────────────────────────────────────────────────
+function Inbox({me,messages,users,onSend,onClose}){
+  const [selected,setSelected]=useState(null);
+  const [text,setText]=useState("");
+  const msgEndRef=useRef();
+  const myMsgs=messages.filter(m=>m.toId===me.id||m.fromId===me.id);
+  const threads=[...new Set(myMsgs.map(m=>m.fromId===me.id?m.toId:m.fromId))];
+  const getUser=id=>users.find(u=>u.id===id);
+  const send=()=>{if(!text.trim()||!selected)return;onSend(selected,text);setText("");};
+  const selUser=selected?getUser(selected):null;
+  const threadMsgs=selected?myMsgs.filter(m=>(m.fromId===selected&&m.toId===me.id)||(m.fromId===me.id&&m.toId===selected)):[];
+  useEffect(()=>{msgEndRef.current?.scrollIntoView({behavior:"smooth"});},[selected,messages]);
+  return(
+    <div style={{position:"fixed",inset:0,background:"#080810",zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
+      <div style={{background:"rgba(8,8,16,.97)",borderBottom:"1px solid #1a1a2e",padding:"0 14px",height:54,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+        <button onClick={selected?()=>setSelected(null):onClose} style={{background:"#1a1a2e",border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+        {selUser&&(
+          <div style={{display:"flex",alignItems:"center",gap:8,flex:1}}>
+            <Av username={selUser.username} color={selUser.color} size={32} verified={selUser.verified||false} isReg={true}/>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:4}}>
+                <span style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{selUser.username}</span>
+                <RegBadge/>
+                {selUser.verified&&<VBadge/>}
+              </div>
+            </div>
+          </div>
+        )}
+          <span style={{color:"#c4b5fd",fontWeight:800,fontSize:17,flex:1}}>📬 ইনবক্স</span>
+        )}
+        {!selected&&<button onClick={onClose} style={{background:"#1a1a2e",border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>}
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"12px"}}>
+        {!selected?(
+          threads.length===0
+            ?<div style={{textAlign:"center",padding:"60px 0",color:"#334155"}}><div style={{fontSize:44,marginBottom:10}}>💌</div><p>কোনো মেসেজ নেই</p></div>
+            :threads.map(tid=>{
+              const u=getUser(tid);
+              const last=myMsgs.filter(m=>m.fromId===tid||m.toId===tid).pop();
+              const unread=myMsgs.filter(m=>m.fromId===tid&&m.toId===me.id&&!m.read).length>0;
+              return(
+                <div key={tid} onClick={()=>setSelected(tid)} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,cursor:"pointer",background:unread?"#7c3aed11":"#0f0f1e",border:`1px solid ${unread?"#7c3aed33":"#1e1e35"}`,marginBottom:10,alignItems:"center"}}>
+                  {u?<Av username={u.username} color={u.color} size={46} verified={u.verified||false}/>:<div style={{width:46,height:46,borderRadius:"50%",background:"#1a1a2e",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>🎭</div>}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{color:"#c4b5fd",fontWeight:unread?700:500,fontSize:15}}>{u?u.username:"অজানা"}</div>
+                    <div style={{color:"#475569",fontSize:13,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginTop:2}}>{last?.text}</div>
+                  </div>
+                  {unread&&<div style={{background:"#7c3aed",color:"#fff",borderRadius:"50%",width:20,height:20,fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>!</div>}
+                </div>
+              );
+            })
+        ):(
+          <div>
+            {threadMsgs.length===0&&<p style={{color:"#334155",textAlign:"center",padding:"40px 0"}}>কথা শুরু করো! 👋</p>}
+            {threadMsgs.map(m=>(
+              <div key={m.id} style={{display:"flex",justifyContent:m.fromId===me.id?"flex-end":"flex-start",marginBottom:12}}>
+                <div style={{background:m.fromId===me.id?"linear-gradient(135deg,#7c3aed,#3b82f6)":"#1a1a2e",borderRadius:m.fromId===me.id?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",maxWidth:"78%",border:m.fromId===me.id?"none":"1px solid #2a2a40"}}>
+                  {m.fromId!==me.id&&<div style={{color:"#a78bfa",fontSize:11,marginBottom:4}}>{m.fromName}</div>}
+                  <p style={{color:"#e2e8f0",fontSize:14,margin:0,lineHeight:1.5,wordBreak:"break-word"}}>{m.text}</p>
+                  <div style={{color:m.fromId===me.id?"#ffffff55":"#334155",fontSize:10,marginTop:4,textAlign:"right"}}>{timeAgo(m.ts)}</div>
+                </div>
+              </div>
+            ))}
+            <div ref={msgEndRef}/>
+          </div>
+        )}
+      </div>
+      {selected&&(
+        <div style={{borderTop:"1px solid #1a1a2e",padding:"10px 12px",background:"rgba(8,8,16,.97)",flexShrink:0}}>
+          <div style={{display:"flex",gap:8}}>
+            <input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="মেসেজ লিখুন..." style={{flex:1,background:"#1a1a2e",border:"1px solid #2a2a40",borderRadius:22,padding:"11px 16px",color:"#eee",fontSize:14,outline:"none"}}/>
+            <button onClick={send} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:"50%",width:46,height:46,color:"#fff",cursor:"pointer",fontSize:18,flexShrink:0}}>→</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Chat Rooms (Full Screen) ────────────────────────────────────────────────────
+function ChatRooms({me,rooms,onSendMsg,onCreateRoom,onDeleteRoom,onClose}){
+  const [activeRoom,setActiveRoom]=useState(null);
+  const [msgText,setMsgText]=useState("");
+  const [creating,setCreating]=useState(false);
+  const [roomName,setRoomName]=useState("");
+  const msgEndRef=useRef();
+
+  // ✅ শুধুমাত্র verified registered ইউজার রুম তৈরি করতে পারবে
+  const canCreate=(me.type==="registered"&&me.verified===true);
+
+  useEffect(()=>{msgEndRef.current?.scrollIntoView({behavior:"smooth"});},[activeRoom,rooms]);
+
+  const send=()=>{
+    if(!msgText.trim()||!activeRoom)return;
+    onSendMsg(activeRoom.id,{id:genId(),userId:me.id,username:me.username,isReg:me.type==="registered",verified:me.verified||false,color:me.color,text:msgText.trim(),ts:Date.now()});
+    setMsgText("");
+  };
+  const createRoom=()=>{
+    if(!canCreate||!roomName.trim())return;
+    onCreateRoom(roomName.trim());
+    setRoomName("");setCreating(false);
+  };
+  const room=activeRoom?rooms.find(r=>r.id===activeRoom.id):null;
+
+  return(
+    <div style={{position:"fixed",inset:0,background:"#080810",zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
+      <div style={{background:"rgba(8,8,16,.97)",borderBottom:"1px solid #1a1a2e",padding:"0 14px",height:54,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+        <button onClick={activeRoom?()=>setActiveRoom(null):onClose} style={{background:"#1a1a2e",border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+        <span style={{color:"#c4b5fd",fontWeight:800,fontSize:17,flex:1}}>{activeRoom?room?.name:"💬 চ্যাট রুম"}</span>
+        {!activeRoom&&<button onClick={onClose} style={{background:"#1a1a2e",border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>}
+      </div>
+
+      <div style={{flex:1,overflowY:"auto",padding:"12px"}}>
+        {!activeRoom?(
+          <div>
+            {/* ✅ শুধু verified ইউজার রুম তৈরি করতে পারবে */}
+            {canCreate?(
+              <button onClick={()=>setCreating(!creating)} style={{width:"100%",background:"linear-gradient(135deg,#10b981,#059669)",border:"none",borderRadius:14,padding:"12px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginBottom:12}}>
+                ✅ নতুন রুম তৈরি করো
+              </button>
+            ):(
+              <div style={{background:"#10b98111",border:"1px solid #10b98133",borderRadius:14,padding:"14px",marginBottom:12,textAlign:"center"}}>
+                <div style={{fontSize:28,marginBottom:6}}>🔒</div>
+                <p style={{color:"#10b981",fontSize:13,fontWeight:600}}>শুধুমাত্র ✅ গ্রিন ভেরিফাইড ইউজাররা রুম তৈরি করতে পারবে</p>
+                <p style={{color:"#475569",fontSize:11,marginTop:4}}>তুমি যেকোনো রুমে যোগ দিয়ে চ্যাট করতে পারবে</p>
+              </div>
+            )}
+
+            {/* Room create form — canCreate === true হলেই দেখাবে */}
+            {creating&&canCreate&&(
+              <div style={{background:"#0a0a14",borderRadius:14,padding:12,border:"1px solid #10b98144",marginBottom:12}}>
+                <input value={roomName} onChange={e=>setRoomName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&createRoom()} placeholder="রুমের নাম দাও..." style={{width:"100%",background:"#080810",border:"1px solid #1e1e35",borderRadius:12,padding:"10px 13px",color:"#eee",fontSize:13,outline:"none",marginBottom:8}}/>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={createRoom} style={{flex:1,background:"linear-gradient(135deg,#10b981,#059669)",border:"none",borderRadius:12,padding:"9px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>তৈরি করো ✓</button>
+                  <button onClick={()=>setCreating(false)} style={{background:"#1a1a2e",border:"none",borderRadius:12,padding:"9px 14px",color:"#64748b",cursor:"pointer",fontSize:13}}>বাতিল</button>
+                </div>
+              </div>
+            )}
+
+            {rooms.length===0&&(
+              <div style={{textAlign:"center",padding:"60px 0",color:"#334155"}}>
+                <div style={{fontSize:44,marginBottom:10}}>💬</div>
+                <p>কোনো রুম নেই এখনো</p>
+              </div>
+            )}
+            {rooms.map(r=>(
+              <div key={r.id} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,background:"#0f0f1e",border:"1px solid #1e1e35",marginBottom:10,alignItems:"center",cursor:"pointer"}} onClick={()=>setActiveRoom(r)}>
+                <div style={{width:46,height:46,borderRadius:"50%",background:"linear-gradient(135deg,#7c3aed,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>💬</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{r.name}</div>
+                  <div style={{color:"#475569",fontSize:12,marginTop:2}}>by {r.ownerName} · {r.messages.length} মেসেজ</div>
+                </div>
+                {/* শুধু owner রুম ডিলিট করতে পারবে */}
+                {me.id===r.ownerId&&(
+                  <button onClick={e=>{e.stopPropagation();onDeleteRoom(r.id);}} style={{background:"#ef444422",border:"1px solid #ef444444",borderRadius:10,padding:"6px 10px",color:"#ef4444",cursor:"pointer",fontSize:13,flexShrink:0}}>🗑️</button>
+                )}
+              </div>
+            ))}
+          </div>
+        ):(
+          <div>
+            {room?.messages.length===0&&<p style={{color:"#334155",textAlign:"center",padding:"40px 0"}}>কেউ এখনো কথা বলেনি। প্রথমে লিখো! 💬</p>}
+            {room?.messages.map(m=>(
+              <div key={m.id} style={{display:"flex",gap:8,marginBottom:12,flexDirection:m.userId===me.id?"row-reverse":"row"}}>
+                <Av username={m.username} color={m.color} size={32} verified={m.verified||false} isReg={m.isReg}/>
+                <div style={{maxWidth:"72%"}}>
+                  {m.userId!==me.id&&<div style={{color:"#a78bfa",fontSize:11,marginBottom:2,display:"flex",alignItems:"center",gap:3}}>{m.username}{m.isReg&&<RegBadge/>}{m.verified&&<VBadge/>}</div>}
+                  <div style={{background:m.userId===me.id?"linear-gradient(135deg,#7c3aed,#3b82f6)":"#1a1a2e",borderRadius:m.userId===me.id?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",border:m.userId===me.id?"none":"1px solid #2a2a40"}}>
+                    <p style={{color:"#e2e8f0",fontSize:14,margin:0,lineHeight:1.5,wordBreak:"break-word"}}>{m.text}</p>
+                  </div>
+                  <div style={{color:"#334155",fontSize:10,marginTop:3,textAlign:m.userId===me.id?"right":"left"}}>{timeAgo(m.ts)}</div>
+                </div>
+              </div>
+            ))}
+            <div ref={msgEndRef}/>
+          </div>
+        )}
+      </div>
+
+      {activeRoom&&(
+        <div style={{borderTop:"1px solid #1a1a2e",padding:"10px 12px",background:"rgba(8,8,16,.97)",flexShrink:0}}>
+          <div style={{display:"flex",gap:8}}>
+            <input value={msgText} onChange={e=>setMsgText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="মেসেজ লিখুন..." style={{flex:1,background:"#1a1a2e",border:"1px solid #2a2a40",borderRadius:22,padding:"11px 16px",color:"#eee",fontSize:14,outline:"none"}}/>
+            <button onClick={send} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:"50%",width:46,height:46,color:"#fff",cursor:"pointer",fontSize:18,flexShrink:0}}>→</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+// ── Notifications (Full Screen) ─────────────────────────────────────────────────
+function NotifPanel({notifs,onMarkAll,onClose}){
+  const icons={"like":"❤️","comment":"💬","follow":"👤","mention":"🏷️"};
+  return(
+    <div style={{position:"fixed",inset:0,background:"#080810",zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
+      <div style={{background:"rgba(8,8,16,.97)",borderBottom:"1px solid #1a1a2e",padding:"0 14px",height:54,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+        <button onClick={onClose} style={{background:"#1a1a2e",border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+        <span style={{color:"#c4b5fd",fontWeight:800,fontSize:17,flex:1}}>🔔 নোটিফিকেশন</span>
+        {notifs.some(n=>!n.read)&&(
+          <button onClick={onMarkAll} style={{background:"#7c3aed22",border:"1px solid #7c3aed44",borderRadius:12,padding:"6px 12px",color:"#a855f7",cursor:"pointer",fontSize:12,fontWeight:600}}>সব পড়া ✓</button>
+        )}
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"12px"}}>
+        {notifs.length===0&&(
+          <div style={{textAlign:"center",padding:"60px 0",color:"#334155"}}>
+            <div style={{fontSize:44,marginBottom:10}}>🔔</div>
+            <p>কোনো নোটিফিকেশন নেই</p>
+          </div>
+        )}
+        {[...notifs].sort((a,b)=>b.ts-a.ts).map(n=>(
+          <div key={n.id} style={{display:"flex",gap:10,padding:"13px",borderRadius:16,background:n.read?"#0f0f1e":"#7c3aed11",border:`1px solid ${n.read?"#1e1e35":"#7c3aed33"}`,marginBottom:10,alignItems:"center"}}>
+            <div style={{width:42,height:42,borderRadius:"50%",background:"#1a1a2e",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,border:"1px solid #2a2a40"}}>{icons[n.type]||"🔔"}</div>
+            <div style={{flex:1}}>
+              <span style={{color:"#a78bfa",fontWeight:700,fontSize:14}}>{n.fromUsername} </span>
+              <span style={{color:"#64748b",fontSize:13}}>{n.text}</span>
+              <div style={{color:"#334155",fontSize:11,marginTop:3}}>{timeAgo(n.ts)}</div>
+            </div>
+            {!n.read&&<div style={{width:9,height:9,borderRadius:"50%",background:"#7c3aed",flexShrink:0}}/>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── User Search (Full Screen) ───────────────────────────────────────────────────
+function UserSearch({users,me,onViewProfile,onFollow,onClose}){
+  const [q,setQ]=useState("");
+  const results=q.trim().length>0?users.filter(u=>u.username.toLowerCase().includes(q.toLowerCase())&&u.id!==me.id):[];
+  return(
+    <div style={{position:"fixed",inset:0,background:"#080810",zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
+      <div style={{background:"rgba(8,8,16,.97)",borderBottom:"1px solid #1a1a2e",padding:"0 14px",height:54,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+        <button onClick={onClose} style={{background:"#1a1a2e",border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+        <input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder="ইউজারনেম খোঁজো..." style={{flex:1,background:"#1a1a2e",border:"1px solid #7c3aed44",borderRadius:20,padding:"8px 14px",color:"#eee",fontSize:14,outline:"none"}}/>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"12px"}}>
+        {!q.trim()&&(
+          <div style={{textAlign:"center",padding:"60px 0",color:"#334155"}}>
+            <div style={{fontSize:44,marginBottom:10}}>👥</div>
+            <p>ইউজারনেম লিখলে রেজাল্ট দেখাবে</p>
+          </div>
+        )}
+        {q.trim()&&results.length===0&&(
+          <div style={{textAlign:"center",padding:"60px 0",color:"#334155"}}>
+            <div style={{fontSize:44,marginBottom:10}}>🔍</div>
+            <p>কোনো ইউজার পাওয়া যায়নি</p>
+          </div>
+        )}
+        {results.map(u=>{
+          const isF=(me.following||[]).includes(u.id);
+          return(
+            <div key={u.id} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,background:"#0f0f1e",border:"1px solid #1e1e35",marginBottom:10,alignItems:"center"}}>
+              <div onClick={()=>{onViewProfile(u.id);onClose();}} style={{cursor:"pointer",flexShrink:0}}>
+                <Av username={u.username} color={u.color} size={46} verified={u.verified||false} isReg={true}/>
+              </div>
+              <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>{onViewProfile(u.id);onClose();}}>
+                <div style={{display:"flex",alignItems:"center",gap:4}}>
+                  <span style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{u.username}</span>
+                  <RegBadge/>
+                  {u.verified&&<VBadge/>}
+                </div>
+                <div style={{color:"#475569",fontSize:12,marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.bio||"বায়ো নেই"}</div>
+                <div style={{color:"#334155",fontSize:11,marginTop:2}}>👥 {(u.followers||[]).length} ফলোয়ার</div>
+              </div>
+              {me.type==="registered"&&(
+                <button onClick={()=>onFollow(u.id)} style={{background:isF?"#1a1a2e":"#7c3aed22",border:`1px solid ${isF?"#2a2a40":"#7c3aed55"}`,borderRadius:12,padding:"7px 13px",color:isF?"#475569":"#a855f7",cursor:"pointer",fontSize:12,fontWeight:700,flexShrink:0}}>
+                  {isF?"✓ ফলোয়িং":"+ ফলো"}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Profile Page ────────────────────────────────────────────────────────────────
+function ProfilePage({user,posts,me,isOwn,onBack,onFollow,onMsgUser,onBioUpdate,onLogout,onCopyProfileLink,...cardProps}){
+  const userPosts=posts.filter(p=>p.authorId===user.id);
+  const isFollowing=(me.following||[]).includes(user.id);
+  const totalLikes=userPosts.reduce((a,p)=>a+p.likes.length,0);
+  const [editingBio,setEditingBio]=useState(false);
+  const [bioText,setBioText]=useState(user.bio||"");
+  return(
+    <div style={{paddingBottom:80}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 12px 0",position:"sticky",top:0,background:"rgba(8,8,16,.97)",zIndex:50}}>
+        <button onClick={onBack} style={{background:"#1a1a2e",border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+        <span style={{color:"#c4b5fd",fontWeight:700,fontSize:16}}>প্রোফাইল</span>
+      </div>
+      <div style={{background:"linear-gradient(160deg,#0f0f1f,#0c0c18)",border:"1px solid #1e1e35",borderRadius:20,padding:"24px 14px",textAlign:"center",margin:"10px 10px 14px"}}>
+        <div style={{display:"flex",justifyContent:"center",marginBottom:10}}>
+          <Av username={user.username} color={user.color} size={76} verified={user.verified||false} isReg={true}/>
+        </div>
+        <h2 style={{color:"#c4b5fd",fontSize:19,fontWeight:800}}>{user.username}<RegBadge/>{user.verified&&<VBadge/>}</h2>
+        <p style={{color:"#334155",fontSize:11,marginTop:4}}>{timeAgo(user.joinedAt)} আগে যোগ দিয়েছে</p>
+
+        {isOwn?(
+          <div style={{marginTop:8,maxWidth:300,margin:"8px auto 4px"}}>
+            {editingBio?(
+              <div>
+                <textarea value={bioText} onChange={e=>setBioText(e.target.value.slice(0,150))} rows={2} style={{width:"100%",background:"#080810",border:"1px solid #7c3aed",borderRadius:12,padding:"9px 12px",color:"#e2e8f0",fontSize:13,outline:"none",resize:"none",lineHeight:1.5}}/>
+                <div style={{display:"flex",justifyContent:"flex-end",gap:6,marginTop:5}}>
+                  <button onClick={()=>{setEditingBio(false);setBioText(user.bio||"");}} style={{background:"#1a1a2e",border:"none",borderRadius:10,padding:"6px 12px",color:"#64748b",cursor:"pointer",fontSize:12}}>বাতিল</button>
+                  <button onClick={()=>{onBioUpdate(bioText);setEditingBio(false);}} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:10,padding:"6px 14px",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}}>সেভ</button>
+                </div>
+              </div>
+            ):(
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:6}}>
+                <p style={{color:"#64748b",fontSize:13}}>{user.bio||"বায়ো যোগ করোনি..."}</p>
+                <button onClick={()=>setEditingBio(true)} style={{background:"#1a1a2e",border:"1px solid #2a2a40",borderRadius:8,padding:"3px 8px",color:"#475569",cursor:"pointer",fontSize:11}}>✏️</button>
+              </div>
+            )}
+          </div>
+        ):(
+          user.bio&&<p style={{color:"#64748b",fontSize:13,marginTop:6}}>{user.bio}</p>
+        )}
+
+        <div style={{display:"flex",justifyContent:"center",gap:0,marginTop:14,background:"#0a0a14",borderRadius:14,overflow:"hidden",border:"1px solid #1e1e35"}}>
+          {[["পোস্ট",userPosts.length,"#a855f7"],["লাইক",totalLikes,"#ec4899"],["ফলোয়ার",(user.followers||[]).length,"#3b82f6"]].map(([l,v,c],i,arr)=>(
+            <div key={l} style={{flex:1,padding:"12px 4px",textAlign:"center",borderRight:i<arr.length-1?"1px solid #1e1e35":"none"}}>
+              <div style={{fontSize:18,fontWeight:800,color:c}}>{v}</div>
+              <div style={{fontSize:10,color:"#475569"}}>{l}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{display:"flex",gap:8,marginTop:12,justifyContent:"center",flexWrap:"wrap"}}>
+          <button onClick={()=>onCopyProfileLink(user.id,user.username)} style={{background:"#1a1a2e",border:"1px solid #2a2a40",borderRadius:14,padding:"9px 14px",color:"#64748b",cursor:"pointer",fontWeight:600,fontSize:12}}>🔗 আইডি লিংক</button>
+          {!isOwn&&me.type==="registered"&&(
+            <>
+              <button onClick={()=>onFollow(user.id)} style={{background:isFollowing?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#3b82f6)",border:isFollowing?"1px solid #2a2a40":"none",borderRadius:14,padding:"9px 18px",color:isFollowing?"#64748b":"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>
+                {isFollowing?"✓ আনফলো":"+ ফলো"}
+              </button>
+              <button onClick={()=>onMsgUser({username:user.username,authorId:user.id})} style={{background:"#7c3aed22",border:"1px solid #7c3aed44",borderRadius:14,padding:"9px 14px",color:"#a855f7",cursor:"pointer",fontWeight:600,fontSize:13}}>💌 মেসেজ</button>
+            </>
+          )}
+          {isOwn&&<button onClick={onLogout} style={{background:"#1a1a2e",border:"1px solid #2a2a40",borderRadius:14,padding:"9px 18px",color:"#64748b",cursor:"pointer",fontWeight:600,fontSize:13}}>লগআউট</button>}
+        </div>
+      </div>
+      <div style={{padding:"0 10px"}}>
+        {userPosts.length===0
+          ?<p style={{textAlign:"center",color:"#334155",padding:36}}>কোনো পোস্ট নেই</p>
+          :userPosts.map(p=><PostCard key={p.id} p={p} me={me} onFollow={onFollow} onMsgUser={onMsgUser} {...cardProps}/>)
+        }
+      </div>
+    </div>
+  );
+}
+// ── Main App ────────────────────────────────────────────────────────────────────
+function App(){
+  const [users,setUsers]=useState(DEMO_USERS);
+  const [currentUser,setCurrentUser]=useState(null);
+  const [guest]=useState(()=>({type:"guest",username:genUser(),id:"guest_"+genId(),color:genColor(),following:[],verified:false}));
+  const me=currentUser||guest;
+
+  const [posts,setPosts]=useState(DEMO_POSTS);
+  const [messages,setMessages]=useState(DEMO_MSGS);
+  const [notifs,setNotifs]=useState(DEMO_NOTIFS);
+  const [rooms,setRooms]=useState(DEMO_ROOMS);
+  const [tab,setTab]=useState("feed");
+  const [activeTag,setActiveTag]=useState("সব");
+  const [sort,setSort]=useState("new");
+  const [compose,setCompose]=useState(false);
+  const [showAuth,setShowAuth]=useState(false);
+  const [showInbox,setShowInbox]=useState(false);
+  const [showRooms,setShowRooms]=useState(false);
+  const [showNotif,setShowNotif]=useState(false);
+  const [showUserSearch,setShowUserSearch]=useState(false);
+  const [viewProfile,setViewProfile]=useState(null);
+  const [search,setSearch]=useState(false);
+  const [q,setQ]=useState("");
+  const [toast,setToast]=useState(null);
+
+  const msg=(m,type="info")=>setToast({m,type});
+  const addNotif=(type,fromUsername,text)=>setNotifs(n=>[{id:genId(),type,fromUsername,text,ts:Date.now(),read:false},...n]);
+
+  const handleLogin=(email,pass)=>{
+    const u=users.find(u=>u.email===email&&u.password===pass);
+    if(!u)return false;
+    setCurrentUser({...u,type:"registered",following:u.following||[]});
+    msg("✅ লগইন সফল! স্বাগতম "+u.username,"success");
+    return true;
+  };
+  const handleRegister=(email,username,pass,bio)=>{
+    if(users.find(u=>u.email===email||u.username===username))return false;
+    const nu={id:"reg_"+genId(),username,email,password:pass,color:genColor(),bio:bio||"",followers:[],following:[],joinedAt:Date.now(),verified:false,admin:false};
+    setUsers(u=>[...u,nu]);
+    setCurrentUser({...nu,type:"registered"});
+    msg("🎉 রেজিস্ট্রেশন সফল!","success");
+    return true;
+  };
+  const handleLogout=()=>{setCurrentUser(null);setViewProfile(null);msg("👋 লগআউট হয়েছে");};
+
+  const addPost=({text,tag,mood,poll,isAnon,image})=>{
+    const useAnon=me.type==="guest"||isAnon;
+    setPosts(p=>[{
+      id:"p"+genId(),
+      authorId:useAnon?"guest_"+genId():me.id,
+      username:useAnon?genUser():me.username,
+      isReg:!useAnon&&me.type==="registered",
+      verified:!useAnon&&(me.verified||false),
+      color:useAnon?genColor():me.color,
+      content:text,tag,mood,
+      ts:Date.now(),likes:[],reactions:{},comments:[],
+      shares:0,views:1,bookmarks:[],
+      poll,pinned:false,image:image||null,edited:false
+    },...p]);
+    msg("✅ পোস্ট শেয়ার হয়েছে!","success");
+  };
+
+  const onLike=id=>{
+    setPosts(p=>p.map(x=>{
+      if(x.id!==id)return x;
+      const liked=x.likes.includes(me.id);
+      if(!liked&&x.authorId!==me.id)addNotif("like",me.username,"তোমার পোস্টে লাইক দিয়েছে ❤️");
+      return{...x,likes:liked?x.likes.filter(u=>u!==me.id):[...x.likes,me.id]};
+    }));
+  };
+  const onReact=(id,r)=>setPosts(p=>p.map(x=>{if(x.id!==id)return x;const rc={...x.reactions};if(!rc[r])rc[r]=[];rc[r]=rc[r].includes(me.id)?rc[r].filter(u=>u!==me.id):[...rc[r],me.id];return{...x,reactions:rc};}));
+  const onComment=(id,c)=>{
+    setPosts(p=>p.map(x=>{
+      if(x.id!==id)return x;
+      if(x.authorId!==me.id)addNotif("comment",me.username,"তোমার পোস্টে কমেন্ট করেছে 💬");
+      return{...x,comments:[...x.comments,c]};
+    }));
+  };
+  const onShare=id=>{
+    if(navigator.share){const p=posts.find(x=>x.id===id);navigator.share({title:"AnonLogos",text:p?.content?.slice(0,100),url:`${window.location.origin}?post=${id}`}).catch(()=>{});}
+    setPosts(p=>p.map(x=>x.id!==id?x:{...x,shares:x.shares+1}));
+    msg("🔁 শেয়ার হয়েছে!");
+  };
+  const onCopy=id=>{navigator.clipboard?.writeText(`${window.location.origin}?post=${id}`).catch(()=>{});msg("🔗 লিংক কপি হয়েছে!");};
+  const onBookmark=id=>setPosts(p=>p.map(x=>x.id!==id?x:{...x,bookmarks:x.bookmarks.includes(me.id)?x.bookmarks.filter(u=>u!==me.id):[...x.bookmarks,me.id]}));
+  const onVote=(id,i)=>setPosts(p=>p.map(x=>{if(x.id!==id||!x.poll||x.poll.voted.includes(me.id))return x;return{...x,poll:{...x.poll,options:x.poll.options.map((o,j)=>j===i?{...o,votes:[...o.votes,me.id]}:o),voted:[...x.poll.voted,me.id]}};}));
+  const onEdit=(id,text)=>setPosts(p=>p.map(x=>x.id!==id?x:{...x,content:text,edited:true}));
+  const onDelete=id=>{setPosts(p=>p.filter(x=>x.id!==id));msg("🗑️ ডিলিট হয়েছে!","success");};
+  const onPin=id=>{
+    // শুধু verified ইউজার পিন করতে পারবে
+    if(me.type!=="registered"||!me.verified){msg("📌 পিন করতে ✅ ভেরিফিকেশন লাগবে!","error");return;}
+    setPosts(p=>p.map(x=>x.id!==id?x:{...x,pinned:!x.pinned}));
+    msg("📌 পিন আপডেট হয়েছে!","success");
+  };
+  const onFollow=uid=>{
+    if(!uid||me.type!=="registered"){msg("🎭 ফলো করতে রেজিস্ট্রেশন করো!","error");setTimeout(()=>setShowAuth(true),600);return;}
+    const isF=(me.following||[]).includes(uid);
+    setCurrentUser(u=>({...u,following:isF?u.following.filter(i=>i!==uid):[...(u.following||[]),uid]}));
+    setUsers(us=>us.map(u=>u.id===uid?{...u,followers:isF?u.followers.filter(i=>i!==me.id):[...u.followers,me.id]}:u));
+    if(!isF)addNotif("follow",me.username,"তোমাকে ফলো করেছে 👤");
+    msg(isF?"আনফলো করা হয়েছে":"✅ ফলো করা হয়েছে!","success");
+  };
+  const onMsgUser=(p)=>{
+    if(me.type!=="registered"){msg("💌 মেসেজ করতে রেজিস্ট্রেশন করো!","error");setShowAuth(true);return;}
+    if(p.authorId===me.id){msg("নিজেকে মেসেজ করা যাবে না 😄");return;}
+    setMessages(m=>[...m,{id:genId(),fromId:me.id,fromName:me.username,toId:p.authorId,text:"👋 হ্যালো!",ts:Date.now(),read:false}]);
+    setShowInbox(true);msg("💌 মেসেজ পাঠানো হয়েছে!","success");
+  };
+  const onSendMsg=(toId,text)=>setMessages(m=>[...m,{id:genId(),fromId:me.id,fromName:me.username,toId,text,ts:Date.now(),read:false}]);
+  const onBioUpdate=(bio)=>{setCurrentUser(u=>({...u,bio}));setUsers(us=>us.map(u=>u.id===me.id?{...u,bio}:u));msg("✅ বায়ো আপডেট হয়েছে!","success");};
+  const onCopyProfileLink=(userId,username)=>{navigator.clipboard?.writeText(`${window.location.origin}?profile=${userId}`).catch(()=>{});msg(`🔗 @${username} এর প্রোফাইল লিংক কপি হয়েছে!`,"success");};
+  const onSendRoomMsg=(roomId,msgObj)=>setRooms(r=>r.map(rm=>rm.id!==roomId?rm:{...rm,messages:[...rm.messages,msgObj]}));
+  const onCreateRoom=(name)=>{
+    // Double check — শুধু verified
+    if(me.type!=="registered"||!me.verified){msg("🔒 শুধু ✅ ভেরিফাইড ইউজাররা রুম তৈরি করতে পারবে!","error");return;}
+    setRooms(r=>[{id:"room_"+genId(),name,ownerId:me.id,ownerName:me.username,ts:Date.now(),messages:[]},...r]);
+    msg("✅ রুম তৈরি হয়েছে!","success");
+  };
+  const onDeleteRoom=id=>{setRooms(r=>r.filter(rm=>rm.id!==id));msg("🗑️ রুম ডিলিট হয়েছে!","success");};
+
+  const unreadMsgs=messages.filter(m=>m.toId===me.id&&!m.read).length;
+  const unreadNotifs=notifs.filter(n=>!n.read).length;
+
+  let feed=[...posts]
+    .filter(p=>activeTag==="সব"||p.tag===activeTag)
+    .filter(p=>!q||p.content.includes(q))
+    .sort((a,b)=>{if(a.pinned&&!b.pinned)return -1;if(!a.pinned&&b.pinned)return 1;return sort==="new"?b.ts-a.ts:b.likes.length-a.likes.length;});
+
+  const mine=posts.filter(p=>p.authorId===me.id);
+  const saved=posts.filter(p=>p.bookmarks.includes(me.id));
+
+  const cardProps={onLike,onReact,onComment,onShare,onCopy,onBookmark,onVote,onEdit,onDelete,onPin,onMsgUser,onViewProfile:(id)=>setViewProfile(id),onFollow,onAuthRequired:()=>{msg("🎭 এই ফিচারের জন্য রেজিস্ট্রেশন করো!","error");setShowAuth(true);}};
+  const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"ট্রেন্ড"},{id:"saved",ic:"🔖",lb:"সেভড"},{id:"profile",ic:"👤",lb:"আমি"}];
+
+  // Profile view
+  if(viewProfile){
+    const pu=users.find(u=>u.id===viewProfile);
+    if(pu)return(
+      <div style={{minHeight:"100vh",background:"#080810"}}>
+        <ProfilePage user={pu} posts={posts} me={me} isOwn={me.id===pu.id} onBack={()=>setViewProfile(null)} onFollow={onFollow} onMsgUser={onMsgUser} onBioUpdate={onBioUpdate} onLogout={handleLogout} onCopyProfileLink={onCopyProfileLink} {...cardProps}/>
+        {toast&&<Toast msg={toast.m} type={toast.type} onClose={()=>setToast(null)}/>}
+      </div>
+    );
+  }
+
+  return(
+    <div style={{minHeight:"100vh",background:"#080810",position:"relative"}}>
+
+      {/* Topbar */}
+      <div style={{background:"rgba(8,8,16,.97)",backdropFilter:"blur(20px)",borderBottom:"1px solid #1a1a2e",padding:"0 12px",height:54,display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:100}}>
+        {search
+          ?<input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder="পোস্ট খোঁজো..." style={{flex:1,background:"#1a1a2e",border:"none",borderRadius:20,padding:"8px 14px",color:"#eee",fontSize:14,outline:"none"}}/>
+          :<span style={{fontWeight:900,fontSize:21,background:"linear-gradient(90deg,#a855f7,#3b82f6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-0.5px"}}>AnonLogos</span>
+        }
+        <div style={{display:"flex",gap:6,marginLeft:8,alignItems:"center"}}>
+          <button onClick={()=>{setSearch(!search);setQ("");}} style={{background:"#1a1a2e",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:14,color:"#64748b"}}>{search?"✕":"🔍"}</button>
+          <button onClick={()=>setShowUserSearch(true)} style={{background:"#1a1a2e",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:14,color:"#64748b"}}>👥</button>
+          <button onClick={()=>setShowRooms(true)} style={{background:"#1a1a2e",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:14,color:"#64748b"}}>💬</button>
+          {me.type==="registered"&&(
+            <>
+              <div style={{position:"relative"}}>
+                <button onClick={()=>setShowNotif(true)} style={{background:"#1a1a2e",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:14,color:"#64748b"}}>🔔</button>
+                {unreadNotifs>0&&<div style={{position:"absolute",top:-2,right:-2,background:"#ef4444",color:"#fff",borderRadius:"50%",width:16,height:16,fontSize:9,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unreadNotifs}</div>}
+              </div>
+              <div style={{position:"relative"}}>
+                <button onClick={()=>setShowInbox(true)} style={{background:"#1a1a2e",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:14,color:"#64748b"}}>💌</button>
+                {unreadMsgs>0&&<div style={{position:"absolute",top:-2,right:-2,background:"#7c3aed",color:"#fff",borderRadius:"50%",width:16,height:16,fontSize:9,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unreadMsgs}</div>}
+              </div>
+            </>
+          )}
+          {currentUser
+            ?<button onClick={()=>setViewProfile(currentUser.id)} style={{background:"none",border:"none",cursor:"pointer",padding:0}}>
+              <Av username={me.username} color={me.color} size={34} verified={me.verified||false} isReg={true}/>
+            </button>
+            :<button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:18,padding:"7px 14px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12}}>লগইন</button>
+          }
+        </div>
+      </div>
+
+      {/* Guest banner */}
+      {!currentUser&&(
+        <div style={{background:"linear-gradient(135deg,#7c3aed22,#3b82f622)",borderBottom:"1px solid #7c3aed33",padding:"9px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div>
+            <div style={{color:"#a78bfa",fontSize:13,fontWeight:600}}>🎭 গেস্ট মোডে আছো</div>
+            <div style={{color:"#475569",fontSize:11}}>রেজিস্ট্রেশন করলে পাবে ফলো, মেসেজ ও আরো!</div>
+          </div>
+          <button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"8px 14px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12,whiteSpace:"nowrap"}}>রেজিস্টার</button>
+        </div>
+      )}
+
+      {/* Tag + Sort */}
+      {tab==="feed"&&(
+        <div style={{background:"#0a0a14",borderBottom:"1px solid #1a1a2e"}}>
+          <div style={{display:"flex",gap:6,overflowX:"auto",padding:"8px 10px 5px"}}>
+            {["সব",...TAGS].map(t=>{const c=TAG_C[t]||"#7c3aed";const a=activeTag===t;return(<button key={t} onClick={()=>setActiveTag(t)} style={{background:a?(t==="সব"?"linear-gradient(135deg,#7c3aed,#3b82f6)":c+"33"):"#1a1a2e",border:`1px solid ${a?(t==="সব"?"#7c3aed":c):"#2a2a40"}`,borderRadius:16,padding:"5px 11px",color:a?(t==="সব"?"#fff":c):"#64748b",cursor:"pointer",fontSize:11,whiteSpace:"nowrap",fontWeight:a?700:400}}>{t}</button>);})}
+          </div>
+          <div style={{display:"flex",gap:6,padding:"0 10px 7px"}}>
+            {[["new","🕐 নতুন"],["top","🔥 জনপ্রিয়"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setSort(v)} style={{background:sort===v?"#7c3aed22":"transparent",border:`1px solid ${sort===v?"#7c3aed":"transparent"}`,borderRadius:10,padding:"3px 9px",color:sort===v?"#a855f7":"#475569",cursor:"pointer",fontSize:11,fontWeight:sort===v?700:400}}>{l}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      <div style={{padding:"10px 10px 80px"}}>
+        {tab==="feed"&&(feed.length===0
+          ?<div style={{textAlign:"center",padding:"60px 0",color:"#334155"}}><div style={{fontSize:44,marginBottom:10}}>🎭</div>কোনো পোস্ট নেই</div>
+          :feed.map(p=><PostCard key={p.id} p={p} me={me} {...cardProps}/>)
+        )}
+        {tab==="trending"&&[...posts].sort((a,b)=>b.likes.length-a.likes.length).map(p=><PostCard key={p.id} p={p} me={me} {...cardProps}/>)}
+        {tab==="saved"&&(saved.length===0
+          ?<div style={{textAlign:"center",padding:"60px 0",color:"#334155"}}><div style={{fontSize:44,marginBottom:10}}>🔖</div>সেভড পোস্ট নেই</div>
+          :saved.map(p=><PostCard key={p.id} p={p} me={me} {...cardProps}/>)
+        )}
+        {tab==="profile"&&(
+          <div>
+            <div style={{background:"linear-gradient(160deg,#0f0f1f,#0c0c18)",border:"1px solid #1e1e35",borderRadius:20,padding:"24px 14px",textAlign:"center",marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"center",marginBottom:10}}>
+                <Av username={me.username} color={me.color} size={72} verified={me.verified||false} isReg={me.type==="registered"}/>
+              </div>
+              <h2 style={{color:"#c4b5fd",fontSize:18,fontWeight:800}}>{me.username}{me.type==="registered"&&<RegBadge/>}{me.verified&&<VBadge/>}</h2>
+              <p style={{color:"#334155",fontSize:11,marginTop:4}}>#{me.id} · {me.type==="registered"?"রেজিস্টার্ড":"গেস্ট"}</p>
+              {me.type==="registered"&&(
+                <button onClick={()=>onCopyProfileLink(me.id,me.username)} style={{background:"#1a1a2e",border:"1px solid #2a2a40",borderRadius:12,padding:"7px 14px",color:"#64748b",cursor:"pointer",fontSize:12,marginTop:8}}>🔗 আমার প্রোফাইল লিংক</button>
+              )}
+              {me.type!=="registered"
+                ?<button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"10px 24px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginTop:14}}>🆅 রেজিস্ট্রেশন করো</button>
+                :(
+                  <div>
+                    <div style={{display:"flex",justifyContent:"center",gap:0,marginTop:14,background:"#0a0a14",borderRadius:14,overflow:"hidden",border:"1px solid #1e1e35"}}>
+                      {[["পোস্ট",mine.length,"#a855f7"],["লাইক",mine.reduce((a,p)=>a+p.likes.length,0),"#ec4899"],["সেভড",saved.length,"#f59e0b"],["ফলোয়ার",(currentUser.followers||[]).length,"#3b82f6"]].map(([l,v,c],i,arr)=>(
+                        <div key={l} style={{flex:1,padding:"11px 2px",textAlign:"center",borderRight:i<arr.length-1?"1px solid #1e1e35":"none"}}>
+                          <div style={{fontSize:17,fontWeight:800,color:c}}>{v}</div>
+                          <div style={{fontSize:9,color:"#475569"}}>{l}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <button onClick={handleLogout} style={{background:"#1a1a2e",border:"1px solid #2a2a40",borderRadius:14,padding:"9px 22px",color:"#64748b",cursor:"pointer",fontWeight:600,fontSize:13,marginTop:12}}>লগআউট</button>
+                  </div>
+                )
+              }
+            </div>
+            {mine.length===0
+              ?<p style={{textAlign:"center",color:"#334155",padding:36}}>এখনো পোস্ট করোনি!</p>
+              :mine.map(p=><PostCard key={p.id} p={p} me={me} {...cardProps}/>)
+            }
+          </div>
+        )}
+      </div>
+
+      {/* FAB */}
+      <button onClick={()=>setCompose(true)} style={{position:"fixed",bottom:68,right:14,width:52,height:52,background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:"50%",color:"#fff",fontSize:22,cursor:"pointer",boxShadow:"0 6px 24px #7c3aed66",zIndex:99,display:"flex",alignItems:"center",justifyContent:"center"}}>✏️</button>
+
+      {/* Bottom Nav */}
+      <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"rgba(8,8,16,.97)",backdropFilter:"blur(20px)",borderTop:"1px solid #1a1a2e",display:"flex",zIndex:100,height:56}}>
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:tab===t.id?"#a855f7":"#2a2a45"}}>
+            <span style={{fontSize:18,filter:tab===t.id?"drop-shadow(0 0 6px #a855f7)":"none"}}>{t.ic}</span>
+            <span style={{fontSize:9,fontWeight:tab===t.id?700:400}}>{t.lb}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Modals & Panels */}
+      {compose&&<Compose me={me} onPost={addPost} onClose={()=>setCompose(false)}/>}
+      {showAuth&&<AuthModal onLogin={handleLogin} onRegister={handleRegister} onClose={()=>setShowAuth(false)}/>}
+      {showInbox&&me.type==="registered"&&<Inbox me={me} messages={messages} users={users} onSend={onSendMsg} onClose={()=>setShowInbox(false)}/>}
+      {showRooms&&<ChatRooms me={me} rooms={rooms} onSendMsg={onSendRoomMsg} onCreateRoom={onCreateRoom} onDeleteRoom={onDeleteRoom} onClose={()=>setShowRooms(false)}/>}
+      {showNotif&&<NotifPanel notifs={notifs} onMarkAll={()=>setNotifs(n=>n.map(x=>({...x,read:true})))} onClose={()=>setShowNotif(false)}/>}
+      {showUserSearch&&<UserSearch users={users} me={me} onViewProfile={(id)=>setViewProfile(id)} onFollow={onFollow} onClose={()=>setShowUserSearch(false)}/>}
+      {toast&&<Toast msg={toast.m} type={toast.type} onClose={()=>setToast(null)}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
