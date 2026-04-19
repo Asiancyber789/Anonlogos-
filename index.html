@@ -525,10 +525,14 @@ function Rooms({me,tc,onClose,isGroup=false}){
   const [groupPic,setGroupPic]=useState(null);
   const [groupPicPreview,setGroupPicPreview]=useState(null);
   const [loading,setLoading]=useState(true);
+  const [showMemberModal,setShowMemberModal]=useState(false);
+  const [selectedGroup,setSelectedGroup]=useState(null);
+  const [friends,setFriends]=useState([]);
   const fileRef=useRef();
 
+  // ✅ সঠিক নিয়ম: গ্রুপ সব রেজিস্টার্ড, রুম শুধু ভেরিফাইড
   const canCreate = isGroup 
-    ? (me.type === "registered")  // গ্রুপ: সব রেজিস্টার্ড ইউজার
+    ? (me.type === "registered")  // গ্রুপ: যেকোনো রেজিস্টার্ড ইউজার
     : (me.type === "registered" && me.verified === true); // রুম: শুধু ভেরিফাইড
 
   useEffect(()=>{load();const i=setInterval(()=>{if(active)loadMsgs(active.id);else load();},8000);return()=>clearInterval(i);},[active]);
@@ -544,6 +548,12 @@ function Rooms({me,tc,onClose,isGroup=false}){
     }
     setLoading(false);
   };
+  
+  const loadFriends=async()=>{
+    const{data}=await sb.from("users").select("id,username,color,verified").neq("id",me.id);
+    if(data)setFriends(data);
+  };
+  
   const loadMsgs=async(id)=>{
     const table=isGroup?"group_messages":"room_messages";
     const{data}=await sb.from(table).select("*").eq(isGroup?"group_id":"room_id",id).order("created_at");
@@ -575,13 +585,17 @@ function Rooms({me,tc,onClose,isGroup=false}){
       if(data){setRooms(r=>[data,...r]);setRname("");setCreating(false);}
     }
   };
-  const addMember=async(groupId,userId)=>{
-    const grp=rooms.find(r=>r.id===groupId);
-    if(!grp||grp.admin_id!==me.id)return;
-    const newMembers=[...(grp.members||[]),userId];
-    await sb.from("groups").update({members:newMembers}).eq("id",groupId);
-    load();
+  
+  const addMember = async (groupId, userId) => {
+    const grp = rooms.find(r => r.id === groupId);
+    if (!grp || grp.admin_id !== me.id) return;
+    if (grp.members?.includes(userId)) return;
+    const newMembers = [...(grp.members || []), userId];
+    await sb.from("groups").update({ members: newMembers }).eq("id", groupId);
+    await load();
+    setShowMemberModal(false);
   };
+  
   const leaveGroup=async(groupId)=>{
     const grp=rooms.find(r=>r.id===groupId);
     if(!grp)return;
@@ -601,7 +615,8 @@ function Rooms({me,tc,onClose,isGroup=false}){
     const{data}=await sb.from(table).insert({[idField]:active.id,user_id:me.id,username:me.username,is_reg:me.type==="registered",verified:me.verified||false,color:me.color,content:text}).select().single();
     if(data)setMsgs(m=>[...m,data]);
   };
-if(active)return <ChatUI me={me} tc={tc} title={active.name} onBack={()=>setActive(null)} onClose={onClose} messages={msgs} onSend={send}/>;
+
+  if(active)return <ChatUI me={me} tc={tc} title={active.name} onBack={()=>setActive(null)} onClose={onClose} messages={msgs} onSend={send}/>;
 
   return(
     <FullScreen title={isGroup?"👥 প্রাইভেট গ্রুপ":"💬 পাবলিক রুম"} onBack={null} onClose={onClose} tc={tc}>
@@ -647,7 +662,7 @@ if(active)return <ChatUI me={me} tc={tc} title={active.name} onBack={()=>setActi
             {isGroup?<div style={{color:tc.sub,fontSize:11,marginTop:2}}>👥 {r.members?.length||0} সদস্য</div>:<div style={{color:tc.sub,fontSize:12,marginTop:2}}>by {r.owner_name}</div>}
           </div>
           {isGroup&&r.admin_id===me.id&&(
-            <button onClick={e=>{e.stopPropagation();/* add member logic */}} style={{background:"#3b82f622",border:"1px solid #3b82f644",borderRadius:10,padding:"6px 10px",color:"#3b82f6",cursor:"pointer",fontSize:12,flexShrink:0}}>👥 +</button>
+            <button onClick={async(e)=>{e.stopPropagation();await loadFriends();setSelectedGroup(r);setShowMemberModal(true);}} style={{background:"#3b82f622",border:"1px solid #3b82f644",borderRadius:10,padding:"6px 10px",color:"#3b82f6",cursor:"pointer",fontSize:12,flexShrink:0}}>👥 +</button>
           )}
           {isGroup&&r.members?.includes(me.id)&&r.admin_id!==me.id&&(
             <button onClick={e=>{e.stopPropagation();leaveGroup(r.id);}} style={{background:"#ef444422",border:"1px solid #ef444444",borderRadius:10,padding:"6px 10px",color:"#ef4444",cursor:"pointer",fontSize:12,flexShrink:0}}>🚪 লিভ</button>
@@ -655,6 +670,23 @@ if(active)return <ChatUI me={me} tc={tc} title={active.name} onBack={()=>setActi
           {!isGroup&&me.id===r.owner_id&&<button onClick={e=>{e.stopPropagation();del(r.id);}} style={{background:"#ef444422",border:"1px solid #ef444444",borderRadius:10,padding:"6px 10px",color:"#ef4444",cursor:"pointer",fontSize:13,flexShrink:0}}>🗑️</button>}
         </div>
       ))}
+      
+      {/* সদস্য যোগ করার মডাল */}
+      {showMemberModal && (
+        <div onClick={()=>setShowMemberModal(false)} style={{position:"fixed",inset:0,background:"#000000cc",zIndex:1000,display:"flex",alignItems:"flex-end"}}>
+          <div style={{background:tc.modal,borderRadius:"24px 24px 0 0",padding:"20px",width:"100%",maxWidth:480,margin:"0 auto"}}>
+            <h3 style={{color:"#c4b5fd",marginBottom:15}}>👥 সদস্য যোগ করো</h3>
+            {friends.filter(f=>!selectedGroup?.members?.includes(f.id)).map(f=>(
+              <div key={f.id} onClick={()=>addMember(selectedGroup.id,f.id)} style={{display:"flex",alignItems:"center",gap:10,padding:10,borderRadius:12,cursor:"pointer",background:tc.input,marginBottom:8}}>
+                <Av u={f.username} color={f.color} size={36} verified={f.verified||false} isReg={true}/>
+                <span style={{color:tc.text}}>{f.username}</span>
+              </div>
+            ))}
+            {friends.filter(f=>!selectedGroup?.members?.includes(f.id)).length===0&&<p style={{color:tc.dim,textAlign:"center",padding:20}}>আর কোনো বন্ধু যোগ করার নেই</p>}
+            <button onClick={()=>setShowMemberModal(false)} style={{width:"100%",background:tc.input,border:"none",borderRadius:14,padding:12,marginTop:10,color:tc.sub,cursor:"pointer"}}>বন্ধ করুন</button>
+          </div>
+        </div>
+      )}
     </FullScreen>
   );
 }
