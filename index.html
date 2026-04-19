@@ -1174,6 +1174,7 @@ const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"�
       {showAuth&&<AuthModal onSuccess={p=>{setProfile(p);setShowAuth(false);msg("✅ স্বাগতম "+p.username,"success");}} onClose={()=>setShowAuth(false)} tc={TC}/>}
       {showInbox&&profile&&<Inbox me={me} tc={TC} onClose={()=>setShowInbox(false)} setShowGroups={setShowGroups} />}
       {showRooms&&<Rooms me={me} tc={TC} onClose={()=>setShowRooms(false)} isGroup={false}/>}
+      {showGroups&&<Rooms me={me} tc={TC} onClose={()=>setShowGroups(false)} isGroup={true}/>}
       {showNotif&&profile&&<Notifs me={me} tc={TC} onClose={()=>setShowNotif(false)}/>}
       {showSearch&&<UserSearch me={me} tc={TC} onViewProfile={setViewProfile} onFollow={onFollow} onClose={()=>setShowSearch(false)}/>}
       {showSettings&&<Settings theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} tc={TC} onClose={()=>setShowSettings(false)}/>}
