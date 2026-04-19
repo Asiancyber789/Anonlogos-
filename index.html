@@ -11,13 +11,13 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#080810;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;max-width:480px;margin:0 auto;transition:background .3s,color .3s}
-body.light{background:#f8fafc;color:#1e293b}
+body.light{background:#f8fafc !important;color:#1e293b !important}
 ::-webkit-scrollbar{width:0;height:0}
 input,textarea,button{font-family:inherit}
+input::placeholder,textarea::placeholder{color:#2a2a45}
 @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 </style>
 </head>
 <body>
@@ -25,12 +25,14 @@ input,textarea,button{font-family:inherit}
 <script type="text/babel">
 const {useState,useEffect,useRef,useCallback}=React;
 
+// ── Supabase ──────────────────────────────────────────────────────────────────
 const SUPA_URL="https://stfxqkrotaffyafwatdp.supabase.co";
 const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0Znhxa3JvdGFmZnlhZndhdGRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MDQwNTcsImV4cCI6MjA5MjA4MDA1N30.m2U9ubKElKndq3lVvWbPRtu6mIuEHmis3V6nnNX4ySM";
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
-const ADJ=["Silent","Shadow","Mystic","Ghost","Phantom","Cosmic","Neon","Stealth","Void","Cipher","Echo","Rogue","Nova","Blur","Spectre","Dark","Lunar","Storm","Frost","Blaze"];
-const NOUN=["Fox","Wolf","Hawk","Panda","Tiger","Eagle","Lynx","Raven","Cobra","Viper","Falcon","Bear","Shark","Owl","Deer","Snake","Lion","Crow","Mist","Flame"];
+// ── Constants ─────────────────────────────────────────────────────────────────
+const ADJ=["Silent","Shadow","Mystic","Ghost","Phantom","Cosmic","Neon","Stealth","Void","Cipher","Echo","Rogue","Nova","Blur","Spectre"];
+const NOUN=["Fox","Wolf","Hawk","Panda","Tiger","Eagle","Lynx","Raven","Cobra","Viper","Falcon","Bear","Shark","Owl","Deer"];
 const COLORS=["#7C3AED","#1D4ED8","#BE185D","#0F766E","#B45309","#6D28D9","#9D174D","#1E40AF","#7F1D1D","#064E3B"];
 const TAGS=["#মতামত","#রাজনীতি","#প্রযুক্তি","#জীবন","#বিনোদন","#হাস্যরস","#ভালোবাসা","#খেলাধুলা","#শিক্ষা","#খবর"];
 const TAG_C={"#মতামত":"#f59e0b","#রাজনীতি":"#ef4444","#প্রযুক্তি":"#3b82f6","#জীবন":"#10b981","#বিনোদন":"#ec4899","#হাস্যরস":"#f97316","#ভালোবাসা":"#f43f5e","#খেলাধুলা":"#84cc16","#শিক্ষা":"#06b6d4","#খবর":"#8b5cf6"};
@@ -38,50 +40,64 @@ const REACTIONS=[["🔥","আগুন"],["😂","হাসি"],["😢","কষ
 const MOODS=["😊 ভালো","😔 মন খারাপ","😡 রাগান্বিত","🤔 চিন্তিত","🥳 মজায়","😴 বিরক্ত"];
 const PAGE_SIZE=10;
 
-function genUser(){return ADJ[~~(Math.random()*ADJ.length)]+NOUN[~~(Math.random()*NOUN.length)]+(~~(Math.random()*900)+100);}
+function rnd(a){return a[~~(Math.random()*a.length)];}
+function genUser(){return rnd(ADJ)+rnd(NOUN)+(~~(Math.random()*900)+100);}
 function genId(){return Math.random().toString(36).substr(2,8);}
-function genColor(){return COLORS[~~(Math.random()*COLORS.length)];}
+function genColor(){return rnd(COLORS);}
 function avatarUrl(u){return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(u)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;}
-function timeAgo(ts){const d=~~((Date.now()-new Date(ts).getTime())/1000);if(d<60)return d+"s";if(d<3600)return ~~(d/60)+"m";if(d<86400)return ~~(d/3600)+"h";return ~~(d/86400)+"d";}
+function timeAgo(ts){
+  if(!ts)return "";
+  const d=~~((Date.now()-new Date(ts).getTime())/1000);
+  if(d<60)return d+"s";if(d<3600)return ~~(d/60)+"m";if(d<86400)return ~~(d/3600)+"h";return ~~(d/86400)+"d";
+}
 
-// ── Smart Feed Algorithm ────────────────────────────────────────────────────
-// pinned ইউজারের পোস্ট মাঝে মাঝে inject করে
-function buildSmartFeed(posts){
-  const pinned=posts.filter(p=>p.pinned);
-  const normal=posts.filter(p=>!p.pinned);
-  // shuffle normal posts (random+latest mix)
-  const latest=normal.slice(0,Math.ceil(normal.length*0.6));
-  const older=normal.slice(Math.ceil(normal.length*0.6));
-  const shuffled=[...older].sort(()=>Math.random()-.5);
-  const mixed=[...latest,...shuffled];
-  // inject pinned every 5 posts
-  const result=[];
-  let pi=0;
-  mixed.forEach((p,i)=>{
-    if(i>0&&i%5===0&&pi<pinned.length){result.push(pinned[pi++]);}
-    result.push(p);
-  });
+// Smart feed: mix latest + random, inject pinned every 5
+function buildSmartFeed(all){
+  const pinned=all.filter(p=>p.pinned);
+  const normal=all.filter(p=>!p.pinned);
+  const half=Math.ceil(normal.length*.6);
+  const mixed=[...normal.slice(0,half),...normal.slice(half).sort(()=>Math.random()-.5)];
+  const result=[];let pi=0;
+  mixed.forEach((p,i)=>{if(i>0&&i%5===0&&pi<pinned.length)result.push(pinned[pi++]);result.push(p);});
   return result;
 }
 
-// ── UI Helpers ──────────────────────────────────────────────────────────────
-function Spinner(){return <div style={{display:"flex",justifyContent:"center",padding:30}}><div style={{width:32,height:32,border:"3px solid #1e1e35",borderTop:"3px solid #7c3aed",borderRadius:"50%",animation:"spin 1s linear infinite"}}/></div>;}
+// ── Theme helpers ──────────────────────────────────────────────────────────────
+function getTC(theme){
+  const d=theme==="dark";
+  return{
+    bg:d?"#080810":"#f8fafc",
+    card:d?"#0f0f1e":"#ffffff",
+    modal:d?"#0d0d1e":"#ffffff",
+    border:d?"#1e1e35":"#e2e8f0",
+    nav:d?"rgba(8,8,16,.97)":"rgba(248,250,252,.97)",
+    input:d?"#0a0a14":"#f1f5f9",
+    text:d?"#e2e8f0":"#1e293b",
+    sub:d?"#64748b":"#475569",
+    dim:d?"#2a2a45":"#94a3b8",
+    strip:d?"#0a0a14":"#f1f5f9",
+  };
+}
 
-function Av({username,color,size=40,verified=false,isReg=false}){
+// ── Small UI Helpers ───────────────────────────────────────────────────────────
+function Spin(){return <div style={{display:"flex",justifyContent:"center",padding:30}}><div style={{width:32,height:32,border:"3px solid #1e1e35",borderTop:"3px solid #7c3aed",borderRadius:"50%",animation:"spin 1s linear infinite"}}/></div>;}
+
+function Av({u,color,size=40,verified=false,isReg=false}){
   const [err,setErr]=useState(false);
+  const initials=(u||"?").slice(0,2).toUpperCase();
   return(
     <div style={{position:"relative",flexShrink:0,width:size,height:size}}>
       {isReg&&!err
-        ?<img src={avatarUrl(username)} onError={()=>setErr(true)} alt={username} style={{width:size,height:size,borderRadius:"50%",border:`2px solid ${color}66`,objectFit:"cover",background:"#1a1a2e",display:"block"}}/>
-        :<div style={{width:size,height:size,borderRadius:"50%",background:`linear-gradient(135deg,${color},${color}88)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.34,fontWeight:800,color:"#fff",border:`2px solid ${color}66`}}>{username.slice(0,2).toUpperCase()}</div>
+        ?<img src={avatarUrl(u)} onError={()=>setErr(true)} alt={u} style={{width:size,height:size,borderRadius:"50%",border:`2px solid ${color}66`,objectFit:"cover",background:"#1a1a2e",display:"block"}}/>
+        :<div style={{width:size,height:size,borderRadius:"50%",background:`linear-gradient(135deg,${color},${color}88)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.34,fontWeight:800,color:"#fff",border:`2px solid ${color}66`}}>{initials}</div>
       }
-      {verified&&<div style={{position:"absolute",bottom:-1,right:-1,background:"#10b981",borderRadius:"50%",width:size*.34,height:size*.34,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.2,border:"2px solid var(--bg,#080810)"}}>✅</div>}
+      {verified&&<div style={{position:"absolute",bottom:-1,right:-1,background:"#10b981",borderRadius:"50%",width:size*.34,height:size*.34,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.18,border:"2px solid #080810"}}>✅</div>}
     </div>
   );
 }
 
 function VBadge(){return <span style={{background:"#10b98122",color:"#10b981",fontSize:10,padding:"1px 6px",borderRadius:6,border:"1px solid #10b98144",fontWeight:700,marginLeft:3}}>✅</span>;}
-function RegBadge(){return <span style={{background:"#7c3aed33",color:"#a855f7",fontSize:10,padding:"1px 5px",borderRadius:6,border:"1px solid #7c3aed55",fontWeight:700,marginLeft:2}}>🆅</span>;}
+function RBadge(){return <span style={{background:"#7c3aed33",color:"#a855f7",fontSize:10,padding:"1px 5px",borderRadius:6,border:"1px solid #7c3aed55",fontWeight:700,marginLeft:2}}>🆅</span>;}
 
 function Toast({msg,type,onClose}){
   useEffect(()=>{const t=setTimeout(onClose,2500);return()=>clearTimeout(t);},[]);
@@ -89,74 +105,85 @@ function Toast({msg,type,onClose}){
   return <div style={{position:"fixed",bottom:75,left:"50%",transform:"translateX(-50%)",background:bg,color:"#fff",padding:"11px 22px",borderRadius:30,fontSize:13,zIndex:9999,whiteSpace:"nowrap",fontWeight:600,boxShadow:"0 8px 28px #0008",animation:"fadeIn .3s"}}>{msg}</div>;
 }
 
-function Modal({title,onClose,children,tc}){
+function BottomSheet({title,onClose,tc,children}){
   return(
     <div onClick={e=>e.target===e.currentTarget&&onClose()} style={{position:"fixed",inset:0,background:"#000000cc",zIndex:700,display:"flex",alignItems:"flex-end"}}>
-      <div style={{background:tc?.modal||"#0d0d1e",borderRadius:"24px 24px 0 0",padding:"18px 15px 30px",width:"100%",maxWidth:480,margin:"0 auto",border:`1px solid ${tc?.border||"#1e1e35"}`,maxHeight:"92vh",overflowY:"auto",animation:"slideUp .25s ease"}}>
+      <div style={{background:tc.modal,borderRadius:"24px 24px 0 0",padding:"18px 15px 30px",width:"100%",maxWidth:480,margin:"0 auto",border:`1px solid ${tc.border}`,maxHeight:"92vh",overflowY:"auto",animation:"slideUp .25s ease"}}>
         <div style={{width:40,height:4,background:"#2a2a40",borderRadius:2,margin:"0 auto 16px"}}/>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
           <h3 style={{color:"#c4b5fd",fontSize:17,fontWeight:800}}>{title}</h3>
-          <button onClick={onClose} style={{background:"#1a1a2e",border:"none",color:"#64748b",width:30,height:30,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>
+          <button onClick={onClose} style={{background:tc.input,border:"none",color:"#64748b",width:30,height:30,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>
         </div>
         {children}
       </div>
     </div>
   );
 }
-// ── Auth ─────────────────────────────────────────────────────────────────────
-function AuthModal({onSuccess,onClose,tc,t}){
-  const [mode,setMode]=useState("login");
-  const [email,setEmail]=useState("");
-  const [username,setUsername]=useState("");
-  const [pass,setPass]=useState("");
-  const [bio,setBio]=useState("");
-  const [err,setErr]=useState("");
-  const [loading,setLoading]=useState(false);
-  const inp={width:"100%",background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"12px 14px",color:tc.text,fontSize:14,outline:"none",marginBottom:10};
-
-  const submit=async()=>{
-    setErr("");setLoading(true);
-    try{
-      if(mode==="login"){
-        const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
-        if(error)throw error;
-        const{data:profile}=await sb.from("users").select("*").eq("id",data.user.id).single();
-        onSuccess(profile);
-      } else {
-        if(username.length<3){setErr(t("ইউজারনেম কমপক্ষে ৩ অক্ষর!","Username must be at least 3 chars!"));setLoading(false);return;}
-        if(!email.includes("@")){setErr(t("সঠিক ইমেল দাও!","Enter valid email!"));setLoading(false);return;}
-        if(pass.length<6){setErr(t("পাসওয়ার্ড কমপক্ষে ৬ অক্ষর!","Password must be at least 6 chars!"));setLoading(false);return;}
-        const{data:ex}=await sb.from("users").select("id").eq("username",username).single();
-        if(ex){setErr(t("এই ইউজারনেম আগে থেকে আছে!","Username already taken!"));setLoading(false);return;}
-        const{data,error}=await sb.auth.signUp({email,password:pass});
-        if(error)throw error;
-        const{data:profile}=await sb.from("users").insert({id:data.user.id,username,email,bio:bio||"",color:genColor(),verified:false,admin:false,followers:[],following:[]}).select().single();
-        onSuccess(profile);
-      }
-    }catch(e){setErr(e.message);}
-    setLoading(false);
-  };
-
+function FullScreen({title,onBack,onClose,tc,children,footer}){
   return(
-    <Modal title={mode==="login"?t("🔐 লগইন","🔐 Login"):t("📝 রেজিস্ট্রেশন","📝 Register")} onClose={onClose} tc={tc}>
-      <div style={{display:"flex",gap:6,marginBottom:16,background:tc.input,borderRadius:14,padding:4}}>
-        {[["login",t("লগইন","Login")],["register",t("রেজিস্ট্রেশন","Register")]].map(([m,l])=>(
-          <button key={m} onClick={()=>{setMode(m);setErr("");}} style={{flex:1,background:mode===m?"linear-gradient(135deg,#7c3aed,#3b82f6)":"transparent",border:"none",borderRadius:11,padding:"9px",color:mode===m?"#fff":"#64748b",cursor:"pointer",fontWeight:700,fontSize:14}}>{l}</button>
-        ))}
+    <div style={{position:"fixed",inset:0,background:tc.bg,zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
+      <div style={{background:tc.nav,borderBottom:`1px solid ${tc.border}`,padding:"0 14px",height:54,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+        <button onClick={onBack||onClose} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
+        <span style={{color:"#c4b5fd",fontWeight:800,fontSize:17,flex:1}}>{title}</span>
+        {onBack&&onClose&&<button onClick={onClose} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>}
       </div>
-      {mode==="register"&&<input value={username} onChange={e=>setUsername(e.target.value)} placeholder={t("ইউজারনেম","Username")} style={inp}/>}
-      <input value={email} onChange={e=>setEmail(e.target.value)} placeholder={t("ইমেল","Email")} type="email" style={inp}/>
-      <input value={pass} onChange={e=>setPass(e.target.value)} placeholder={t("পাসওয়ার্ড","Password")} type="password" style={inp}/>
-      {mode==="register"&&<textarea value={bio} onChange={e=>setBio(e.target.value.slice(0,150))} placeholder={t("বায়ো (ঐচ্ছিক)","Bio (optional)")} rows={2} style={{...inp,resize:"none",lineHeight:1.5}}/>}
-      {err&&<p style={{color:"#ef4444",fontSize:12,marginBottom:10,background:"#ef444411",padding:"8px 12px",borderRadius:10}}>⚠️ {err}</p>}
-      <button onClick={submit} disabled={loading} style={{width:"100%",background:loading?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"13px",color:"#fff",cursor:loading?"default":"pointer",fontWeight:700,fontSize:15}}>
-        {loading?t("লোড হচ্ছে...","Loading..."):mode==="login"?t("লগইন করো 🚀","Login 🚀"):t("রেজিস্ট্রেশন করো ✨","Register ✨")}
-      </button>
-    </Modal>
+      <div style={{flex:1,overflowY:"auto",padding:"12px",background:tc.bg}}>{children}</div>
+      {footer&&<div style={{borderTop:`1px solid ${tc.border}`,padding:"10px 12px",background:tc.nav,flexShrink:0}}>{footer}</div>}
+    </div>
   );
 }
 
-// ── Poll ─────────────────────────────────────────────────────────────────────
+// ── Auth ───────────────────────────────────────────────────────────────────────
+function AuthModal({onSuccess,onClose,tc}){
+  const [mode,setMode]=useState("login");
+  const [f,setF]=useState({email:"",username:"",pass:"",bio:""});
+  const [err,setErr]=useState("");
+  const [busy,setBusy]=useState(false);
+  const inp={width:"100%",background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"12px 14px",color:tc.text,fontSize:14,outline:"none",marginBottom:10};
+
+  const submit=async()=>{
+    setErr("");setBusy(true);
+    try{
+      if(mode==="login"){
+        const{data,error}=await sb.auth.signInWithPassword({email:f.email,password:f.pass});
+        if(error)throw error;
+        const{data:p}=await sb.from("users").select("*").eq("id",data.user.id).single();
+        onSuccess(p);
+      } else {
+        if(f.username.length<3){setErr("ইউজারনেম কমপক্ষে ৩ অক্ষর!");setBusy(false);return;}
+        if(!f.email.includes("@")){setErr("সঠিক ইমেল দাও!");setBusy(false);return;}
+        if(f.pass.length<6){setErr("পাসওয়ার্ড কমপক্ষে ৬ অক্ষর!");setBusy(false);return;}
+        const{data:ex}=await sb.from("users").select("id").eq("username",f.username).maybeSingle();
+        if(ex){setErr("এই ইউজারনেম আগে থেকে আছে!");setBusy(false);return;}
+        const{data,error}=await sb.auth.signUp({email:f.email,password:f.pass});
+        if(error)throw error;
+        const{data:p}=await sb.from("users").insert({id:data.user.id,username:f.username,email:f.email,bio:f.bio||"",color:genColor(),verified:false,admin:false,followers:[],following:[]}).select().single();
+        onSuccess(p);
+      }
+    }catch(e){setErr(e.message||"সমস্যা হয়েছে!");}
+    setBusy(false);
+  };
+
+  return(
+    <BottomSheet title={mode==="login"?"🔐 লগইন":"📝 রেজিস্ট্রেশন"} onClose={onClose} tc={tc}>
+      <div style={{display:"flex",gap:6,marginBottom:16,background:tc.input,borderRadius:14,padding:4}}>
+        {[["login","লগইন"],["register","রেজিস্ট্রেশন"]].map(([m,l])=>(
+          <button key={m} onClick={()=>{setMode(m);setErr("");}} style={{flex:1,background:mode===m?"linear-gradient(135deg,#7c3aed,#3b82f6)":"transparent",border:"none",borderRadius:11,padding:"9px",color:mode===m?"#fff":"#64748b",cursor:"pointer",fontWeight:700,fontSize:14}}>{l}</button>
+        ))}
+      </div>
+      {mode==="register"&&<input value={f.username} onChange={e=>setF({...f,username:e.target.value})} placeholder="ইউজারনেম" style={inp}/>}
+      <input value={f.email} onChange={e=>setF({...f,email:e.target.value})} placeholder="ইমেল" type="email" style={inp}/>
+      <input value={f.pass} onChange={e=>setF({...f,pass:e.target.value})} placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" type="password" style={inp}/>
+      {mode==="register"&&<textarea value={f.bio} onChange={e=>setF({...f,bio:e.target.value.slice(0,150)})} placeholder="বায়ো (ঐচ্ছিক)" rows={2} style={{...inp,resize:"none",lineHeight:1.5}}/>}
+      {err&&<p style={{color:"#ef4444",fontSize:12,marginBottom:10,background:"#ef444411",padding:"8px 12px",borderRadius:10}}>⚠️ {err}</p>}
+      <button onClick={submit} disabled={busy} style={{width:"100%",background:busy?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"13px",color:"#fff",cursor:busy?"default":"pointer",fontWeight:700,fontSize:15}}>
+        {busy?"লোড হচ্ছে...":mode==="login"?"লগইন করো 🚀":"রেজিস্ট্রেশন করো ✨"}
+      </button>
+    </BottomSheet>
+  );
+}
+
+// ── Poll ───────────────────────────────────────────────────────────────────────
 function Poll({poll,postId,myId,onVote,tc}){
   if(!poll)return null;
   const total=poll.options.reduce((a,o)=>a+(o.votes||[]).length,0);
@@ -170,7 +197,7 @@ function Poll({poll,postId,myId,onVote,tc}){
         return(
           <div key={i} onClick={()=>!voted&&onVote(postId,i)} style={{marginBottom:8,cursor:voted?"default":"pointer"}}>
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
-              <span style={{color:mine?"#a855f7":tc.subText,fontSize:12,fontWeight:mine?700:400}}>{mine?"✓ ":""}{o.text}</span>
+              <span style={{color:mine?"#a855f7":tc.sub,fontSize:12,fontWeight:mine?700:400}}>{mine?"✓ ":""}{o.text}</span>
               {voted&&<span style={{color:"#475569",fontSize:11}}>{pct}%</span>}
             </div>
             <div style={{height:6,background:"#1e1e35",borderRadius:3,overflow:"hidden"}}>
@@ -179,30 +206,27 @@ function Poll({poll,postId,myId,onVote,tc}){
           </div>
         );
       })}
-      <p style={{color:"#334155",fontSize:11,marginTop:6}}>{total} {voted?"ভোট":"ভোট · ক্লিক করো"}</p>
+      <p style={{color:"#334155",fontSize:11,marginTop:6}}>{total} ভোট{!voted&&" · ক্লিক করো"}</p>
     </div>
   );
 }
-// ── PostCard ─────────────────────────────────────────────────────────────────
-function PostCard({p,me,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVote,onEdit,onDelete,onMsgUser,onViewProfile,onFollow,onPin,onAuthRequired,comments=[],tc,t,localLike}){
+// ── PostCard ───────────────────────────────────────────────────────────────────
+function PostCard({p,me,tc,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVote,onEdit,onDelete,onMsgUser,onViewProfile,onFollow,onPin,onAuthReq,comments=[],localLike}){
   const [showC,setShowC]=useState(false);
   const [cText,setCText]=useState("");
   const [replyTo,setReplyTo]=useState(null);
   const [showReact,setShowReact]=useState(false);
   const [showMenu,setShowMenu]=useState(false);
   const [editing,setEditing]=useState(false);
-  const [editText,setEditText]=useState(p.content);
+  const [editText,setEditText]=useState(p.content||"");
   const [exp,setExp]=useState(false);
 
-  // ✅ বাগ ফিক্স: localLike দিয়ে optimistic update
   const liked=localLike!==undefined?localLike:(p.likes||[]).includes(me.id);
-  const likeCount=localLike!==undefined
-    ?(localLike?(p.likes||[]).includes(me.id)?(p.likes||[]).length:(p.likes||[]).length+1:(p.likes||[]).includes(me.id)?(p.likes||[]).length-1:(p.likes||[]).length)
-    :(p.likes||[]).length;
-
+  const rawCount=(p.likes||[]).length;
+  const likeCount=localLike!==undefined?(localLike?(p.likes||[]).includes(me.id)?rawCount:rawCount+1:(p.likes||[]).includes(me.id)?rawCount-1:rawCount):rawCount;
   const saved=(p.bookmarks||[]).includes(me.id);
   const tc2=TAG_C[p.tag]||"#7c3aed";
-  const isLong=p.content&&p.content.length>160;
+  const isLong=(p.content||"").length>160;
   const totalR=Object.values(p.reactions||{}).reduce((a,v)=>a+(Array.isArray(v)?v.length:0),0);
   const isOwner=me.id===p.author_id;
   const isFollowing=(me.following||[]).includes(p.author_id);
@@ -214,31 +238,29 @@ function PostCard({p,me,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVot
     setCText("");setReplyTo(null);
   };
 
-  const cardBg=tc.card;
-  const cardBorder=p.pinned?"#10b98144":tc.border;
-
   return(
-    <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:20,marginBottom:12,overflow:"hidden"}}>
-      {p.pinned&&<div style={{background:"#10b98122",padding:"5px 14px",fontSize:11,color:"#10b981",borderBottom:"1px solid #10b98133"}}>📌 {t("পিন করা পোস্ট","Pinned Post")}</div>}
+    <div style={{background:tc.card,border:`1px solid ${p.pinned?"#10b98144":tc.border}`,borderRadius:20,marginBottom:12,overflow:"hidden"}}>
+      {p.pinned&&<div style={{background:"#10b98122",padding:"5px 14px",fontSize:11,color:"#10b981",borderBottom:"1px solid #10b98133"}}>📌 পিন করা পোস্ট</div>}
       {p.tag&&<div style={{height:3,background:`linear-gradient(90deg,${tc2},transparent)`}}/>}
       <div style={{padding:"13px 13px 0"}}>
+        {/* Header */}
         <div style={{display:"flex",gap:9,marginBottom:10,alignItems:"flex-start"}}>
           <div onClick={()=>p.is_reg&&onViewProfile(p.author_id)} style={{cursor:p.is_reg?"pointer":"default"}}>
-            <Av username={p.username} color={p.color} size={38} verified={p.verified||false} isReg={p.is_reg}/>
+            <Av u={p.username} color={p.color} size={38} verified={p.verified||false} isReg={p.is_reg}/>
           </div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}}>
               <span onClick={()=>p.is_reg&&onViewProfile(p.author_id)} style={{color:"#c4b5fd",fontWeight:700,fontSize:14,cursor:p.is_reg?"pointer":"default",textDecoration:p.is_reg?"underline dotted":"none",textUnderlineOffset:3}}>{p.username}</span>
-              {p.is_reg&&<RegBadge/>}
+              {p.is_reg&&<RBadge/>}
               {p.verified&&<VBadge/>}
-              {p.mood&&<span style={{fontSize:10,background:tc.input,padding:"2px 6px",borderRadius:8,color:tc.subText}}>{p.mood}</span>}
+              {p.mood&&<span style={{fontSize:10,background:tc.input,padding:"2px 6px",borderRadius:8,color:tc.sub}}>{p.mood}</span>}
               {p.is_reg&&!isOwner&&(
-                <button onClick={()=>me.type==="registered"?onFollow(p.author_id):onAuthRequired()} style={{background:isFollowing?"#1a1a2e":"#7c3aed22",border:`1px solid ${isFollowing?"#2a2a40":"#7c3aed55"}`,borderRadius:10,padding:"2px 8px",color:isFollowing?"#475569":"#a855f7",cursor:"pointer",fontSize:10,fontWeight:700}}>
-                  {isFollowing?t("✓ ফলোয়িং","✓ Following"):t("+ ফলো","+ Follow")}
+                <button onClick={()=>me.type==="registered"?onFollow(p.author_id):onAuthReq()} style={{background:isFollowing?"#1a1a2e":"#7c3aed22",border:`1px solid ${isFollowing?"#2a2a40":"#7c3aed55"}`,borderRadius:10,padding:"2px 8px",color:isFollowing?"#475569":"#a855f7",cursor:"pointer",fontSize:10,fontWeight:700}}>
+                  {isFollowing?"✓ ফলোয়িং":"+ ফলো"}
                 </button>
               )}
             </div>
-            <div style={{color:tc.dimText,fontSize:11,marginTop:1}}>{timeAgo(p.created_at)} · 👁 {p.views||0}{p.edited&&" · ✏️"}</div>
+            <div style={{color:tc.dim,fontSize:11,marginTop:1}}>{timeAgo(p.created_at)} · 👁 {p.views||0}{p.edited&&" · ✏️"}</div>
           </div>
           <div style={{display:"flex",gap:5,alignItems:"center"}}>
             {p.tag&&<span style={{background:tc2+"22",color:tc2,fontSize:10,padding:"2px 7px",borderRadius:8,border:`1px solid ${tc2}44`,fontWeight:600}}>{p.tag}</span>}
@@ -246,29 +268,30 @@ function PostCard({p,me,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVot
             <div style={{position:"relative"}}>
               <button onClick={()=>setShowMenu(!showMenu)} style={{background:tc.input,border:"none",color:"#475569",cursor:"pointer",borderRadius:8,padding:"4px 8px",fontSize:14}}>⋯</button>
               {showMenu&&(
-                <div style={{position:"absolute",right:0,top:32,background:tc.modal||"#111122",border:`1px solid ${tc.border}`,borderRadius:14,overflow:"hidden",zIndex:50,minWidth:145,boxShadow:"0 8px 24px #000a"}}>
-                  {isOwner&&<button onClick={()=>{setEditing(true);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:tc.subText,padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>✏️ {t("এডিট","Edit")}</button>}
-                  {isOwner&&<button onClick={()=>{onDelete(p.id);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:"#ef4444",padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>🗑️ {t("ডিলিট","Delete")}</button>}
-                  {canPin&&<button onClick={()=>{onPin(p.id,!p.pinned);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:"#10b981",padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>{p.pinned?t("📌 আনপিন","📌 Unpin"):t("📌 পিন করো","📌 Pin")}</button>}
-                  <button onClick={()=>{onCopy(p.id);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:tc.subText,padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>🔗 {t("লিংক কপি","Copy Link")}</button>
+                <div style={{position:"absolute",right:0,top:32,background:tc.modal,border:`1px solid ${tc.border}`,borderRadius:14,overflow:"hidden",zIndex:50,minWidth:145,boxShadow:"0 8px 24px #000a"}}>
+                  {isOwner&&<button onClick={()=>{setEditing(true);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:tc.sub,padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>✏️ এডিট</button>}
+                  {isOwner&&<button onClick={()=>{onDelete(p.id);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:"#ef4444",padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>🗑️ ডিলিট</button>}
+                  {canPin&&<button onClick={()=>{onPin(p.id,!p.pinned);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:"#10b981",padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>{p.pinned?"📌 আনপিন":"📌 পিন করো"}</button>}
+                  <button onClick={()=>{onCopy(p.id);setShowMenu(false);}} style={{width:"100%",background:"none",border:"none",color:tc.sub,padding:"11px 14px",cursor:"pointer",textAlign:"left",fontSize:13}}>🔗 লিংক কপি</button>
                 </div>
               )}
             </div>
           </div>
         </div>
 
+        {/* Content */}
         {editing?(
           <div style={{marginBottom:10}}>
             <textarea value={editText} onChange={e=>setEditText(e.target.value)} rows={3} style={{width:"100%",background:tc.input,border:"1px solid #7c3aed",borderRadius:12,padding:"10px",color:tc.text,fontSize:14,outline:"none",resize:"none"}}/>
             <div style={{display:"flex",gap:8,marginTop:6}}>
-              <button onClick={()=>{onEdit(p.id,editText);setEditing(false);}} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:12,padding:"8px 16px",color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600}}>{t("সেভ","Save")}</button>
-              <button onClick={()=>{setEditing(false);setEditText(p.content);}} style={{background:tc.input,border:"none",borderRadius:12,padding:"8px 14px",color:"#64748b",cursor:"pointer",fontSize:13}}>{t("বাতিল","Cancel")}</button>
+              <button onClick={()=>{onEdit(p.id,editText);setEditing(false);}} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:12,padding:"8px 16px",color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600}}>সেভ</button>
+              <button onClick={()=>{setEditing(false);setEditText(p.content||"");}} style={{background:tc.input,border:"none",borderRadius:12,padding:"8px 14px",color:"#64748b",cursor:"pointer",fontSize:13}}>বাতিল</button>
             </div>
           </div>
         ):(
-          <p style={{color:tc.text==="light"?"#334155":"#cbd5e1",fontSize:14,lineHeight:1.75,marginBottom:10,wordBreak:"break-word"}}>
-            {isLong&&!exp?p.content.slice(0,160)+"...":p.content}
-            {isLong&&<span onClick={()=>setExp(!exp)} style={{color:"#7c3aed",cursor:"pointer",marginLeft:5,fontSize:12}}>{exp?t("↑ কম","↑ Less"):t("↓ আরো","↓ More")}</span>}
+          <p style={{color:tc.text,fontSize:14,lineHeight:1.75,marginBottom:10,wordBreak:"break-word"}}>
+            {isLong&&!exp?(p.content||"").slice(0,160)+"...":(p.content||"")}
+            {isLong&&<span onClick={()=>setExp(!exp)} style={{color:"#7c3aed",cursor:"pointer",marginLeft:5,fontSize:12}}>{exp?"↑ কম":"↓ আরো"}</span>}
           </p>
         )}
 
@@ -278,12 +301,13 @@ function PostCard({p,me,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVot
         {totalR>0&&(
           <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
             {Object.entries(p.reactions||{}).filter(([,v])=>Array.isArray(v)&&v.length>0).map(([r,v])=>(
-              <span key={r} onClick={()=>onReact(p.id,r)} style={{background:tc.input,border:`1px solid ${v.includes(me.id)?"#7c3aed":tc.border}`,borderRadius:12,padding:"3px 9px",fontSize:12,cursor:"pointer",color:v.includes(me.id)?"#a855f7":tc.subText}}>{r} {v.length}</span>
+              <span key={r} onClick={()=>onReact(p.id,r)} style={{background:tc.input,border:`1px solid ${v.includes(me.id)?"#7c3aed":tc.border}`,borderRadius:12,padding:"3px 9px",fontSize:12,cursor:"pointer",color:v.includes(me.id)?"#a855f7":tc.sub}}>{r} {v.length}</span>
             ))}
           </div>
         )}
       </div>
 
+      {/* Actions */}
       <div style={{display:"flex",alignItems:"center",borderTop:`1px solid ${tc.border}`,padding:"6px 4px",position:"relative"}}>
         {[
           {ic:liked?"❤️":"🤍",val:likeCount,fn:()=>onLike(p.id,liked),active:liked,col:"#ec4899"},
@@ -298,36 +322,37 @@ function PostCard({p,me,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVot
         <button onClick={()=>onBookmark(p.id,saved)} style={{flex:1,background:saved?"#f59e0b18":"transparent",border:"none",color:saved?"#f59e0b":"#3f3f5a",cursor:"pointer",padding:"7px 2px",borderRadius:10,fontSize:13}}>{saved?"🔖":"📌"}</button>
         <button onClick={()=>onCopy(p.id)} style={{flex:1,background:"transparent",border:"none",color:"#3f3f5a",cursor:"pointer",padding:"7px 2px",borderRadius:10,fontSize:13}}>🔗</button>
         {showReact&&(
-          <div style={{position:"absolute",bottom:46,left:"50%",transform:"translateX(-50%)",background:tc.modal||"#111122",border:`1px solid ${tc.border}`,borderRadius:20,padding:"8px 12px",display:"flex",gap:8,zIndex:50,boxShadow:"0 8px 28px #000a"}}>
+          <div style={{position:"absolute",bottom:46,left:"50%",transform:"translateX(-50%)",background:tc.modal,border:`1px solid ${tc.border}`,borderRadius:20,padding:"8px 12px",display:"flex",gap:8,zIndex:50,boxShadow:"0 8px 28px #000a"}}>
             {REACTIONS.map(([r])=>(<button key={r} onClick={()=>{onReact(p.id,r);setShowReact(false);}} style={{background:"none",border:"none",fontSize:22,cursor:"pointer"}}>{r}</button>))}
           </div>
         )}
       </div>
 
+      {/* Comments */}
       {showC&&(
         <div style={{borderTop:`1px solid ${tc.border}`,padding:"12px 13px"}}>
-          {comments.length===0&&<p style={{color:tc.dimText,fontSize:12,textAlign:"center",marginBottom:10}}>{t("প্রথম কমেন্ট করো! 💬","Be the first to comment! 💬")}</p>}
+          {comments.length===0&&<p style={{color:tc.dim,fontSize:12,textAlign:"center",marginBottom:10}}>প্রথম কমেন্ট করো! 💬</p>}
           {comments.map(c=>(
             <div key={c.id} style={{display:"flex",gap:8,marginBottom:10}}>
-              <Av username={c.username} color={c.color} size={28} verified={c.verified||false} isReg={c.is_reg}/>
+              <Av u={c.username} color={c.color} size={28} verified={c.verified||false} isReg={c.is_reg}/>
               <div style={{flex:1}}>
                 <div style={{background:tc.input,borderRadius:12,padding:"8px 11px",border:`1px solid ${tc.border}`}}>
                   <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:3}}>
                     <span style={{color:"#a78bfa",fontSize:12,fontWeight:700}}>{c.username}</span>
-                    {c.is_reg&&<RegBadge/>}{c.verified&&<VBadge/>}
-                    <span style={{color:tc.dimText,fontSize:10}}>{timeAgo(c.created_at)}</span>
+                    {c.is_reg&&<RBadge/>}{c.verified&&<VBadge/>}
+                    <span style={{color:tc.dim,fontSize:10}}>{timeAgo(c.created_at)}</span>
                   </div>
                   {c.reply_to&&<div style={{color:"#334155",fontSize:11,marginBottom:3}}>↩ @{c.reply_to}</div>}
-                  <p style={{color:tc.subText,fontSize:13,margin:0}}>{c.content}</p>
+                  <p style={{color:tc.sub,fontSize:13,margin:0}}>{c.content}</p>
                 </div>
-                <button onClick={()=>setReplyTo(c.username)} style={{background:"none",border:"none",color:tc.dimText,cursor:"pointer",fontSize:11,marginTop:3,marginLeft:4}}>↩ {t("রিপ্লাই","Reply")}</button>
+                <button onClick={()=>setReplyTo(c.username)} style={{background:"none",border:"none",color:tc.dim,cursor:"pointer",fontSize:11,marginTop:3,marginLeft:4}}>↩ রিপ্লাই</button>
               </div>
             </div>
           ))}
           {replyTo&&<div style={{background:tc.input,borderRadius:8,padding:"5px 10px",fontSize:12,color:"#7c3aed",marginBottom:6,display:"flex",justifyContent:"space-between"}}>↩ @{replyTo}<button onClick={()=>setReplyTo(null)} style={{background:"none",border:"none",color:"#64748b",cursor:"pointer"}}>✕</button></div>}
           <div style={{display:"flex",gap:7,marginTop:4}}>
-            <Av username={me.username} color={me.color} size={28} verified={me.verified||false} isReg={me.type==="registered"}/>
-            <input value={cText} onChange={e=>setCText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submitC()} placeholder={t("কমেন্ট লিখুন...","Write a comment...")} style={{flex:1,background:tc.input,border:`1px solid ${tc.border}`,borderRadius:18,padding:"8px 12px",color:tc.text,fontSize:13,outline:"none"}}/>
+            <Av u={me.username} color={me.color} size={28} verified={me.verified||false} isReg={me.type==="registered"}/>
+            <input value={cText} onChange={e=>setCText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submitC()} placeholder="কমেন্ট লিখুন..." style={{flex:1,background:tc.input,border:`1px solid ${tc.border}`,borderRadius:18,padding:"8px 12px",color:tc.text,fontSize:13,outline:"none"}}/>
             <button onClick={submitC} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:18,padding:"0 13px",color:"#fff",cursor:"pointer",fontSize:14}}>→</button>
           </div>
         </div>
@@ -335,79 +360,52 @@ function PostCard({p,me,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVot
     </div>
   );
 }
-
-// ── Settings Modal ────────────────────────────────────────────────────────────
-function SettingsModal({theme,setTheme,lang,setLang,onClose,tc,t}){
-  return(
-    <Modal title={t("⚙️ সেটিংস","⚙️ Settings")} onClose={onClose} tc={tc}>
-      {/* Theme */}
-      <p style={{color:tc.subText,fontSize:13,fontWeight:600,marginBottom:10}}>🎨 {t("থিম","Theme")}</p>
-      <div style={{display:"flex",gap:8,marginBottom:20}}>
-        {[["dark",t("🌙 ডার্ক","🌙 Dark")],["light",t("☀️ লাইট","☀️ Light")]].map(([v,l])=>(
-          <button key={v} onClick={()=>{setTheme(v);localStorage.setItem("al_theme",v);document.body.className=v==="light"?"light":"";}} style={{flex:1,background:theme===v?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,border:`1px solid ${theme===v?"#7c3aed":tc.border}`,borderRadius:14,padding:"14px",color:theme===v?"#fff":tc.subText,cursor:"pointer",fontWeight:theme===v?700:400,fontSize:14}}>{l}</button>
-        ))}
-      </div>
-
-      {/* Language */}
-      <p style={{color:tc.subText,fontSize:13,fontWeight:600,marginBottom:10}}>🌐 {t("ভাষা","Language")}</p>
-      <div style={{display:"flex",gap:8,marginBottom:20}}>
-        {[["bn","🇧🇩 বাংলা"],["en","🇬🇧 English"]].map(([v,l])=>(
-          <button key={v} onClick={()=>{setLang(v);localStorage.setItem("al_lang",v);}} style={{flex:1,background:lang===v?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,border:`1px solid ${lang===v?"#7c3aed":tc.border}`,borderRadius:14,padding:"14px",color:lang===v?"#fff":tc.subText,cursor:"pointer",fontWeight:lang===v?700:400,fontSize:14}}>{l}</button>
-        ))}
-      </div>
-
-      <div style={{background:tc.input,borderRadius:14,padding:12,border:`1px solid ${tc.border}`}}>
-        <p style={{color:tc.subText,fontSize:12,textAlign:"center"}}>{t("সেটিংস অটো সেভ হয়","Settings are saved automatically")}</p>
-      </div>
-    </Modal>
-  );
-}
-// ── Compose ───────────────────────────────────────────────────────────────────
-function Compose({me,onPost,onClose,tc,t}){
+// ── Compose ────────────────────────────────────────────────────────────────────
+function Compose({me,tc,onPost,onClose}){
   const [text,setText]=useState("");
   const [tag,setTag]=useState(TAGS[0]);
   const [mood,setMood]=useState("");
-  const [postAs,setPostAs]=useState("identified");
+  const [postAs,setPostAs]=useState("me");
   const [showPoll,setShowPoll]=useState(false);
-  const [pollQ,setPollQ]=useState("");
-  const [pollOpts,setPollOpts]=useState(["",""]);
+  const [pq,setPq]=useState("");
+  const [popts,setPopts]=useState(["",""]);
   const [imgFile,setImgFile]=useState(null);
   const [imgPrev,setImgPrev]=useState(null);
-  const [loading,setLoading]=useState(false);
+  const [busy,setBusy]=useState(false);
   const fileRef=useRef();
 
   const handleImg=e=>{
     const f=e.target.files[0];if(!f)return;
-    if(f.size>5*1024*1024){alert(t("ছবি ৫MB এর বেশি হওয়া যাবে না!","Image must be under 5MB!"));return;}
+    if(f.size>5*1024*1024){alert("ছবি ৫MB এর বেশি হওয়া যাবে না!");return;}
     setImgFile(f);const r=new FileReader();r.onload=ev=>setImgPrev(ev.target.result);r.readAsDataURL(f);
   };
 
   const submit=async()=>{
     if(!text.trim()&&!imgFile)return;
-    setLoading(true);
+    setBusy(true);
     const isAnon=me.type==="guest"||(me.type==="registered"&&postAs==="anon");
     let image_url=null;
     if(imgFile){
       const fname=`${genId()}.${imgFile.name.split('.').pop()}`;
-      const{data,error}=await sb.storage.from("post-images").upload(fname,imgFile);
+      const{error}=await sb.storage.from("post-images").upload(fname,imgFile);
       if(!error){const{data:u}=sb.storage.from("post-images").getPublicUrl(fname);image_url=u.publicUrl;}
     }
-    const poll=showPoll&&pollQ.trim()&&pollOpts.filter(o=>o.trim()).length>=2?{question:pollQ,options:pollOpts.filter(o=>o.trim()).map(o=>({text:o,votes:[]})),voted:[]}:null;
+    const poll=showPoll&&pq.trim()&&popts.filter(o=>o.trim()).length>=2?{question:pq,options:popts.filter(o=>o.trim()).map(o=>({text:o,votes:[]})),voted:[]}:null;
     await onPost({author_id:isAnon?"anon_"+genId():me.id,username:isAnon?genUser():me.username,is_reg:!isAnon&&me.type==="registered",verified:!isAnon&&(me.verified||false),color:isAnon?genColor():me.color,content:text,tag,mood,image_url,poll,likes:[],reactions:{},shares:0,views:1,bookmarks:[],pinned:false,edited:false});
-    setLoading(false);onClose();
+    setBusy(false);onClose();
   };
 
   const inp={width:"100%",background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"10px 13px",color:tc.text,fontSize:13,outline:"none",marginBottom:8};
   return(
-    <Modal title={t("✏️ নতুন পোস্ট","✏️ New Post")} onClose={onClose} tc={tc}>
+    <BottomSheet title="✏️ নতুন পোস্ট" onClose={onClose} tc={tc}>
       {me.type==="registered"&&(
         <div style={{display:"flex",gap:6,marginBottom:12,background:tc.input,borderRadius:12,padding:4}}>
-          {[["identified",t("🆅 নিজের নামে","🆅 As Myself")],["anon",t("🎭 বেনামে","🎭 Anonymous")]].map(([v,l])=>(
+          {[["me","🆅 নিজের নামে"],["anon","🎭 বেনামে"]].map(([v,l])=>(
             <button key={v} onClick={()=>setPostAs(v)} style={{flex:1,background:postAs===v?"linear-gradient(135deg,#7c3aed,#3b82f6)":"transparent",border:"none",borderRadius:10,padding:"8px",color:postAs===v?"#fff":"#64748b",cursor:"pointer",fontWeight:700,fontSize:12}}>{l}</button>
           ))}
         </div>
       )}
-      <textarea value={text} onChange={e=>setText(e.target.value.slice(0,500))} placeholder={t("মনের কথা লিখো... 🎭","Write your thoughts... 🎭")} rows={4} style={{...inp,resize:"none",lineHeight:1.65,borderRadius:14,padding:12,marginBottom:10}}/>
+      <textarea value={text} onChange={e=>setText(e.target.value.slice(0,500))} placeholder="মনের কথা লিখো... 🎭" rows={4} style={{...inp,resize:"none",lineHeight:1.65,borderRadius:14,padding:12,marginBottom:10}}/>
       {imgPrev&&(
         <div style={{position:"relative",marginBottom:10,borderRadius:12,overflow:"hidden",border:`1px solid ${tc.border}`}}>
           <img src={imgPrev} style={{width:"100%",maxHeight:200,objectFit:"cover",display:"block"}}/>
@@ -415,204 +413,329 @@ function Compose({me,onPost,onClose,tc,t}){
         </div>
       )}
       <div style={{display:"flex",gap:7,marginBottom:10}}>
-        <button onClick={()=>fileRef.current.click()} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"7px 12px",color:tc.subText,cursor:"pointer",fontSize:13}}>{t("📷 ছবি","📷 Photo")}</button>
-        <button onClick={()=>setShowPoll(!showPoll)} style={{background:showPoll?"#7c3aed33":tc.input,border:`1px solid ${showPoll?"#7c3aed":tc.border}`,borderRadius:12,padding:"7px 12px",color:showPoll?"#a855f7":tc.subText,cursor:"pointer",fontSize:13}}>📊 {t("পোল","Poll")}</button>
+        <button onClick={()=>fileRef.current.click()} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"7px 12px",color:tc.sub,cursor:"pointer",fontSize:13}}>📷 ছবি</button>
+        <button onClick={()=>setShowPoll(!showPoll)} style={{background:showPoll?"#7c3aed33":tc.input,border:`1px solid ${showPoll?"#7c3aed":tc.border}`,borderRadius:12,padding:"7px 12px",color:showPoll?"#a855f7":tc.sub,cursor:"pointer",fontSize:13}}>📊 পোল</button>
         <input ref={fileRef} type="file" accept="image/*" onChange={handleImg} style={{display:"none"}}/>
       </div>
       {showPoll&&(
         <div style={{background:tc.input,borderRadius:14,padding:12,border:`1px solid ${tc.border}`,marginBottom:10}}>
-          <input value={pollQ} onChange={e=>setPollQ(e.target.value)} placeholder={t("প্রশ্ন লিখুন...","Enter question...")} style={inp}/>
-          {pollOpts.map((o,i)=>(<input key={i} value={o} onChange={e=>{const n=[...pollOpts];n[i]=e.target.value;setPollOpts(n);}} placeholder={t(`বিকল্প ${i+1}`,`Option ${i+1}`)} style={inp}/>))}
-          {pollOpts.length<4&&<button onClick={()=>setPollOpts([...pollOpts,""])} style={{background:"none",border:"none",color:"#7c3aed",cursor:"pointer",fontSize:12}}>+ {t("আরো","More")}</button>}
+          <input value={pq} onChange={e=>setPq(e.target.value)} placeholder="প্রশ্ন লিখুন..." style={inp}/>
+          {popts.map((o,i)=>(<input key={i} value={o} onChange={e=>{const n=[...popts];n[i]=e.target.value;setPopts(n);}} placeholder={`বিকল্প ${i+1}`} style={inp}/>))}
+          {popts.length<4&&<button onClick={()=>setPopts([...popts,""])} style={{background:"none",border:"none",color:"#7c3aed",cursor:"pointer",fontSize:12}}>+ আরো</button>}
         </div>
       )}
       <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:10,paddingBottom:2}}>
-        {MOODS.map(m=>(<button key={m} onClick={()=>setMood(mood===m?"":m)} style={{background:mood===m?"#7c3aed33":tc.input,border:`1px solid ${mood===m?"#7c3aed":tc.border}`,borderRadius:14,padding:"5px 10px",color:mood===m?"#a855f7":tc.subText,cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>{m}</button>))}
+        {MOODS.map(m=>(<button key={m} onClick={()=>setMood(mood===m?"":m)} style={{background:mood===m?"#7c3aed33":tc.input,border:`1px solid ${mood===m?"#7c3aed":tc.border}`,borderRadius:14,padding:"5px 10px",color:mood===m?"#a855f7":tc.sub,cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>{m}</button>))}
       </div>
       <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:14,paddingBottom:2}}>
-        {TAGS.map(t2=>{const c=TAG_C[t2];const a=tag===t2;return(<button key={t2} onClick={()=>setTag(t2)} style={{background:a?c+"33":tc.input,border:`1px solid ${a?c:tc.border}`,borderRadius:14,padding:"5px 10px",color:a?c:tc.subText,cursor:"pointer",fontSize:11,whiteSpace:"nowrap",fontWeight:a?700:400}}>{t2}</button>);})}
+        {TAGS.map(t=>{const c=TAG_C[t];const a=tag===t;return(<button key={t} onClick={()=>setTag(t)} style={{background:a?c+"33":tc.input,border:`1px solid ${a?c:tc.border}`,borderRadius:14,padding:"5px 10px",color:a?c:tc.sub,cursor:"pointer",fontSize:11,whiteSpace:"nowrap",fontWeight:a?700:400}}>{t}</button>);})}
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span style={{color:500-text.length<50?"#ef4444":tc.dimText,fontSize:12}}>{500-text.length} {t("বাকি","left")}</span>
-        <button onClick={submit} disabled={loading||(!text.trim()&&!imgFile)} style={{background:(!loading&&(text.trim()||imgFile))?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,border:"none",borderRadius:16,padding:"11px 24px",color:(!loading&&(text.trim()||imgFile))?"#fff":tc.subText,cursor:(!loading&&(text.trim()||imgFile))?"pointer":"default",fontWeight:700,fontSize:14}}>
-          {loading?t("আপলোড হচ্ছে...","Uploading..."):t("পোস্ট করো 🚀","Post 🚀")}
+        <span style={{color:500-text.length<50?"#ef4444":tc.dim,fontSize:12}}>{500-text.length} বাকি</span>
+        <button onClick={submit} disabled={busy||(!text.trim()&&!imgFile)} style={{background:(!busy&&(text.trim()||imgFile))?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,border:"none",borderRadius:16,padding:"11px 24px",color:(!busy&&(text.trim()||imgFile))?"#fff":tc.sub,cursor:(!busy&&(text.trim()||imgFile))?"pointer":"default",fontWeight:700,fontSize:14}}>
+          {busy?"আপলোড হচ্ছে...":"পোস্ট করো 🚀"}
         </button>
       </div>
-    </Modal>
+    </BottomSheet>
   );
 }
 
-// ── Inbox, ChatRooms, Notif, UserSearch same as before (passing tc,t) ─────────
-function Inbox({me,onClose,tc,t}){
+// ── Messaging (reusable chat UI) ───────────────────────────────────────────────
+function ChatUI({me,tc,title,onBack,onClose,messages,onSend,loading=false}){
+  const [text,setText]=useState("");
+  const endRef=useRef();
+  useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"});},[messages]);
+  const send=()=>{if(!text.trim())return;onSend(text);setText("");};
+  return(
+    <FullScreen title={title} onBack={onBack} onClose={onClose} tc={tc}
+      footer={<div style={{display:"flex",gap:8}}><input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="মেসেজ লিখুন..." style={{flex:1,background:tc.input,border:`1px solid ${tc.border}`,borderRadius:22,padding:"11px 16px",color:tc.text,fontSize:14,outline:"none"}}/><button onClick={send} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:"50%",width:46,height:46,color:"#fff",cursor:"pointer",fontSize:18,flexShrink:0}}>→</button></div>}
+    >
+      {loading&&<Spin/>}
+      {!loading&&messages.length===0&&<div style={{textAlign:"center",padding:"40px 0",color:tc.dim}}><div style={{fontSize:40,marginBottom:8}}>💬</div><p>কথা শুরু করো! 👋</p></div>}
+      {messages.map((m,i)=>{
+        const isMe=m.user_id===me.id||m.from_id===me.id;
+        return(
+          <div key={m.id||i} style={{display:"flex",gap:8,marginBottom:12,flexDirection:isMe?"row-reverse":"row"}}>
+            {!isMe&&<Av u={m.username||m.from_name} color={m.color||"#7c3aed"} size={30} verified={m.verified||false} isReg={m.is_reg||false}/>}
+            <div style={{maxWidth:"75%"}}>
+              {!isMe&&<div style={{color:"#a78bfa",fontSize:11,marginBottom:2,display:"flex",alignItems:"center",gap:3}}>{m.username||m.from_name}{m.is_reg&&<RBadge/>}{m.verified&&<VBadge/>}</div>}
+              <div style={{background:isMe?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,borderRadius:isMe?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",border:isMe?"none":`1px solid ${tc.border}`}}>
+                <p style={{color:"#e2e8f0",fontSize:14,margin:0,lineHeight:1.5,wordBreak:"break-word"}}>{m.content||m.text}</p>
+              </div>
+              <div style={{color:tc.dim,fontSize:10,marginTop:3,textAlign:isMe?"right":"left"}}>{timeAgo(m.created_at)}</div>
+            </div>
+          </div>
+        );
+      })}
+      <div ref={endRef}/>
+    </FullScreen>
+  );
+}
+
+// ── Inbox ──────────────────────────────────────────────────────────────────────
+function Inbox({me,tc,onClose}){
   const [threads,setThreads]=useState([]);
   const [selected,setSelected]=useState(null);
   const [msgs,setMsgs]=useState([]);
-  const [text,setText]=useState("");
   const [users,setUsers]=useState({});
-  const msgEndRef=useRef();
-  useEffect(()=>{loadThreads();const i=setInterval(()=>{if(selected)loadMsgs(selected);else loadThreads();},8000);return()=>clearInterval(i);},[selected]);
-  useEffect(()=>{msgEndRef.current?.scrollIntoView({behavior:"smooth"});},[msgs]);
-  const loadThreads=async()=>{
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{load();const i=setInterval(()=>{if(selected)loadMsgs(selected);else load();},8000);return()=>clearInterval(i);},[selected]);
+
+  const load=async()=>{
     const{data}=await sb.from("messages").select("*").or(`from_id.eq.${me.id},to_id.eq.${me.id}`).order("created_at",{ascending:false});
-    if(!data)return;
+    if(!data){setLoading(false);return;}
     const ids=[...new Set(data.map(m=>m.from_id===me.id?m.to_id:m.from_id))];
     setThreads(ids.map(tid=>({tid,last:data.find(m=>m.from_id===tid||m.to_id===tid),unread:data.filter(m=>m.from_id===tid&&m.to_id===me.id&&!m.read).length})));
     if(ids.length>0){const{data:ud}=await sb.from("users").select("id,username,color,verified").in("id",ids);if(ud){const um={};ud.forEach(u=>um[u.id]=u);setUsers(um);}}
+    setLoading(false);
   };
   const loadMsgs=async(tid)=>{const{data}=await sb.from("messages").select("*").or(`and(from_id.eq.${me.id},to_id.eq.${tid}),and(from_id.eq.${tid},to_id.eq.${me.id})`).order("created_at");if(data)setMsgs(data);};
-  const send=async()=>{if(!text.trim()||!selected)return;const{data}=await sb.from("messages").insert({from_id:me.id,from_name:me.username,to_id:selected,content:text,read:false}).select().single();if(data)setMsgs(m=>[...m,data]);setText("");};
-  const selUser=selected?users[selected]:null;
+  const send=async(text)=>{const{data}=await sb.from("messages").insert({from_id:me.id,from_name:me.username,to_id:selected,content:text,read:false}).select().single();if(data)setMsgs(m=>[...m,data]);};
+
+  if(selected){
+    const u=users[selected];
+    return <ChatUI me={me} tc={tc} title={u?u.username:"ইনবক্স"} onBack={()=>setSelected(null)} onClose={onClose} messages={msgs.map(m=>({...m,user_id:m.from_id,username:m.from_name}))} onSend={send}/>;
+  }
+
   return(
-    <div style={{position:"fixed",inset:0,background:tc.bg,zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
-      <div style={{background:tc.nav,borderBottom:`1px solid ${tc.border}`,padding:"0 14px",height:54,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-        <button onClick={selected?()=>setSelected(null):onClose} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-        {selUser?<div style={{display:"flex",alignItems:"center",gap:8,flex:1}}><Av username={selUser.username} color={selUser.color} size={32} verified={selUser.verified||false} isReg={true}/><span style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{selUser.username}</span></div>:<span style={{color:"#c4b5fd",fontWeight:800,fontSize:17,flex:1}}>📬 {t("ইনবক্স","Inbox")}</span>}
-        {!selected&&<button onClick={onClose} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>}
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"12px",background:tc.bg}}>
-        {!selected?(threads.length===0?<div style={{textAlign:"center",padding:"60px 0",color:tc.dimText}}><div style={{fontSize:44,marginBottom:10}}>💌</div><p>{t("কোনো মেসেজ নেই","No messages yet")}</p></div>:threads.map(({tid,last,unread})=>{const u=users[tid];return(<div key={tid} onClick={()=>{setSelected(tid);loadMsgs(tid);}} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,cursor:"pointer",background:unread>0?"#7c3aed11":tc.card,border:`1px solid ${unread>0?"#7c3aed33":tc.border}`,marginBottom:10,alignItems:"center"}}>{u?<Av username={u.username} color={u.color} size={46} verified={u.verified||false} isReg={true}/>:<div style={{width:46,height:46,borderRadius:"50%",background:tc.input,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>🎭</div>}<div style={{flex:1,minWidth:0}}><div style={{color:"#c4b5fd",fontWeight:unread>0?700:500,fontSize:15}}>{u?u.username:t("অজানা","Unknown")}</div><div style={{color:tc.subText,fontSize:13,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginTop:2}}>{last?.content}</div></div>{unread>0&&<div style={{background:"#7c3aed",color:"#fff",borderRadius:"50%",width:20,height:20,fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unread}</div>}</div>);})):(
-          <div>{msgs.length===0&&<p style={{color:tc.dimText,textAlign:"center",padding:"40px 0"}}>{t("কথা শুরু করো! 👋","Start chatting! 👋")}</p>}{msgs.map(m=>(<div key={m.id} style={{display:"flex",justifyContent:m.from_id===me.id?"flex-end":"flex-start",marginBottom:12}}><div style={{background:m.from_id===me.id?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,borderRadius:m.from_id===me.id?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",maxWidth:"78%",border:m.from_id===me.id?"none":`1px solid ${tc.border}`}}>{m.from_id!==me.id&&<div style={{color:"#a78bfa",fontSize:11,marginBottom:4}}>{m.from_name}</div>}<p style={{color:"#e2e8f0",fontSize:14,margin:0,lineHeight:1.5,wordBreak:"break-word"}}>{m.content}</p><div style={{color:m.from_id===me.id?"#ffffff55":tc.dimText,fontSize:10,marginTop:4,textAlign:"right"}}>{timeAgo(m.created_at)}</div></div></div>))}<div ref={msgEndRef}/></div>
-        )}
-      </div>
-      {selected&&<div style={{borderTop:`1px solid ${tc.border}`,padding:"10px 12px",background:tc.nav,flexShrink:0}}><div style={{display:"flex",gap:8}}><input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder={t("মেসেজ লিখুন...","Type a message...")} style={{flex:1,background:tc.input,border:`1px solid ${tc.border}`,borderRadius:22,padding:"11px 16px",color:tc.text,fontSize:14,outline:"none"}}/><button onClick={send} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:"50%",width:46,height:46,color:"#fff",cursor:"pointer",fontSize:18,flexShrink:0}}>→</button></div></div>}
-    </div>
+    <FullScreen title="📬 ইনবক্স" onBack={null} onClose={onClose} tc={tc}>
+      {loading&&<Spin/>}
+      {!loading&&threads.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>💌</div><p>কোনো মেসেজ নেই</p></div>}
+      {threads.map(({tid,last,unread})=>{
+        const u=users[tid];
+        return(
+          <div key={tid} onClick={()=>{setSelected(tid);loadMsgs(tid);}} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,cursor:"pointer",background:unread>0?"#7c3aed11":tc.card,border:`1px solid ${unread>0?"#7c3aed33":tc.border}`,marginBottom:10,alignItems:"center"}}>
+            {u?<Av u={u.username} color={u.color} size={46} verified={u.verified||false} isReg={true}/>:<div style={{width:46,height:46,borderRadius:"50%",background:tc.input,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>🎭</div>}
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{color:"#c4b5fd",fontWeight:unread>0?700:500,fontSize:15}}>{u?u.username:"অজানা"}</div>
+              <div style={{color:tc.sub,fontSize:13,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginTop:2}}>{last?.content}</div>
+            </div>
+            {unread>0&&<div style={{background:"#7c3aed",color:"#fff",borderRadius:"50%",width:20,height:20,fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unread}</div>}
+          </div>
+        );
+      })}
+    </FullScreen>
   );
 }
-function ChatRooms({me,onClose,tc,t}){
+// ── Chat Rooms ─────────────────────────────────────────────────────────────────
+function Rooms({me,tc,onClose,isGroup=false}){
   const [rooms,setRooms]=useState([]);
-  const [activeRoom,setActiveRoom]=useState(null);
-  const [roomMsgs,setRoomMsgs]=useState([]);
-  const [msgText,setMsgText]=useState("");
+  const [active,setActive]=useState(null);
+  const [msgs,setMsgs]=useState([]);
   const [creating,setCreating]=useState(false);
-  const [roomName,setRoomName]=useState("");
-  const msgEndRef=useRef();
-  const canCreate=me.type==="registered"&&me.verified===true;
-  useEffect(()=>{loadRooms();const i=setInterval(()=>{if(activeRoom)loadRoomMsgs(activeRoom.id);else loadRooms();},8000);return()=>clearInterval(i);},[activeRoom]);
-  useEffect(()=>{msgEndRef.current?.scrollIntoView({behavior:"smooth"});},[roomMsgs]);
-  const loadRooms=async()=>{const{data}=await sb.from("rooms").select("*").order("created_at",{ascending:false});if(data)setRooms(data);};
-  const loadRoomMsgs=async(rid)=>{const{data}=await sb.from("room_messages").select("*").eq("room_id",rid).order("created_at");if(data)setRoomMsgs(data);};
-  const send=async()=>{if(!msgText.trim()||!activeRoom)return;const{data}=await sb.from("room_messages").insert({room_id:activeRoom.id,user_id:me.id,username:me.username,is_reg:me.type==="registered",verified:me.verified||false,color:me.color,content:msgText}).select().single();if(data)setRoomMsgs(m=>[...m,data]);setMsgText("");};
-  const createRoom=async()=>{if(!canCreate||!roomName.trim())return;const{data}=await sb.from("rooms").insert({name:roomName,owner_id:me.id,owner_name:me.username}).select().single();if(data){setRooms(r=>[data,...r]);setRoomName("");setCreating(false);}};
-  const deleteRoom=async id=>{await sb.from("rooms").delete().eq("id",id);setRooms(r=>r.filter(x=>x.id!==id));};
+  const [rname,setRname]=useState("");
+  const [loading,setLoading]=useState(true);
+
+  const canCreate=isGroup?true:(me.type==="registered"&&me.verified===true);
+
+  useEffect(()=>{load();const i=setInterval(()=>{if(active)loadMsgs(active.id);else load();},8000);return()=>clearInterval(i);},[active]);
+
+  const load=async()=>{const{data}=await sb.from("rooms").select("*").order("created_at",{ascending:false});if(data)setRooms(data);setLoading(false);};
+  const loadMsgs=async(id)=>{const{data}=await sb.from("room_messages").select("*").eq("room_id",id).order("created_at");if(data)setMsgs(data);};
+  const create=async()=>{if(!canCreate||!rname.trim())return;const{data}=await sb.from("rooms").insert({name:rname,owner_id:me.id,owner_name:me.username}).select().single();if(data){setRooms(r=>[data,...r]);setRname("");setCreating(false);}};
+  const del=async(id)=>{await sb.from("rooms").delete().eq("id",id);setRooms(r=>r.filter(x=>x.id!==id));};
+  const send=async(text)=>{const{data}=await sb.from("room_messages").insert({room_id:active.id,user_id:me.id,username:me.username,is_reg:me.type==="registered",verified:me.verified||false,color:me.color,content:text}).select().single();if(data)setMsgs(m=>[...m,data]);};
+
+  if(active)return <ChatUI me={me} tc={tc} title={active.name} onBack={()=>setActive(null)} onClose={onClose} messages={msgs} onSend={send}/>;
+
   return(
-    <div style={{position:"fixed",inset:0,background:tc.bg,zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
-      <div style={{background:tc.nav,borderBottom:`1px solid ${tc.border}`,padding:"0 14px",height:54,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-        <button onClick={activeRoom?()=>setActiveRoom(null):onClose} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-        <span style={{color:"#c4b5fd",fontWeight:800,fontSize:17,flex:1}}>{activeRoom?activeRoom.name:t("💬 চ্যাট রুম","💬 Chat Rooms")}</span>
-        {!activeRoom&&<button onClick={onClose} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>}
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"12px",background:tc.bg}}>
-        {!activeRoom?(<div>
-          {canCreate?<button onClick={()=>setCreating(!creating)} style={{width:"100%",background:"linear-gradient(135deg,#10b981,#059669)",border:"none",borderRadius:14,padding:"12px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginBottom:12}}>✅ {t("নতুন রুম তৈরি করো","Create New Room")}</button>
-          :<div style={{background:"#10b98111",border:"1px solid #10b98133",borderRadius:14,padding:"14px",marginBottom:12,textAlign:"center"}}><div style={{fontSize:28,marginBottom:6}}>🔒</div><p style={{color:"#10b981",fontSize:13,fontWeight:600}}>{t("শুধুমাত্র ✅ ভেরিফাইড ইউজাররা রুম তৈরি করতে পারবে","Only ✅ verified users can create rooms")}</p></div>}
-          {creating&&canCreate&&<div style={{background:tc.input,borderRadius:14,padding:12,border:`1px solid #10b98144`,marginBottom:12}}><input value={roomName} onChange={e=>setRoomName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&createRoom()} placeholder={t("রুমের নাম দাও...","Room name...")} style={{width:"100%",background:tc.bg,border:`1px solid ${tc.border}`,borderRadius:12,padding:"10px 13px",color:tc.text,fontSize:13,outline:"none",marginBottom:8}}/><div style={{display:"flex",gap:8}}><button onClick={createRoom} style={{flex:1,background:"linear-gradient(135deg,#10b981,#059669)",border:"none",borderRadius:12,padding:"9px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>{t("তৈরি করো ✓","Create ✓")}</button><button onClick={()=>setCreating(false)} style={{background:tc.input,border:"none",borderRadius:12,padding:"9px 14px",color:"#64748b",cursor:"pointer",fontSize:13}}>{t("বাতিল","Cancel")}</button></div></div>}
-          {rooms.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dimText}}><div style={{fontSize:44,marginBottom:10}}>💬</div><p>{t("কোনো রুম নেই এখনো","No rooms yet")}</p></div>}
-          {rooms.map(r=><div key={r.id} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,background:tc.card,border:`1px solid ${tc.border}`,marginBottom:10,alignItems:"center",cursor:"pointer"}} onClick={()=>{setActiveRoom(r);loadRoomMsgs(r.id);}}><div style={{width:46,height:46,borderRadius:"50%",background:"linear-gradient(135deg,#7c3aed,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>💬</div><div style={{flex:1,minWidth:0}}><div style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{r.name}</div><div style={{color:tc.subText,fontSize:12,marginTop:2}}>by {r.owner_name}</div></div>{me.id===r.owner_id&&<button onClick={e=>{e.stopPropagation();deleteRoom(r.id);}} style={{background:"#ef444422",border:"1px solid #ef444444",borderRadius:10,padding:"6px 10px",color:"#ef4444",cursor:"pointer",fontSize:13,flexShrink:0}}>🗑️</button>}</div>)}
-        </div>):(<div>{roomMsgs.length===0&&<p style={{color:tc.dimText,textAlign:"center",padding:"40px 0"}}>{t("কেউ এখনো কথা বলেনি","No messages yet")} 💬</p>}{roomMsgs.map(m=><div key={m.id} style={{display:"flex",gap:8,marginBottom:12,flexDirection:m.user_id===me.id?"row-reverse":"row"}}><Av username={m.username} color={m.color} size={32} verified={m.verified||false} isReg={m.is_reg}/><div style={{maxWidth:"72%"}}>{m.user_id!==me.id&&<div style={{color:"#a78bfa",fontSize:11,marginBottom:2,display:"flex",alignItems:"center",gap:3}}>{m.username}{m.is_reg&&<RegBadge/>}{m.verified&&<VBadge/>}</div>}<div style={{background:m.user_id===me.id?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,borderRadius:m.user_id===me.id?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",border:m.user_id===me.id?"none":`1px solid ${tc.border}`}}><p style={{color:"#e2e8f0",fontSize:14,margin:0,lineHeight:1.5,wordBreak:"break-word"}}>{m.content}</p></div><div style={{color:tc.dimText,fontSize:10,marginTop:3,textAlign:m.user_id===me.id?"right":"left"}}>{timeAgo(m.created_at)}</div></div></div>)}<div ref={msgEndRef}/></div>)}
-      </div>
-      {activeRoom&&<div style={{borderTop:`1px solid ${tc.border}`,padding:"10px 12px",background:tc.nav,flexShrink:0}}><div style={{display:"flex",gap:8}}><input value={msgText} onChange={e=>setMsgText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder={t("মেসেজ লিখুন...","Type a message...")} style={{flex:1,background:tc.input,border:`1px solid ${tc.border}`,borderRadius:22,padding:"11px 16px",color:tc.text,fontSize:14,outline:"none"}}/><button onClick={send} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:"50%",width:46,height:46,color:"#fff",cursor:"pointer",fontSize:18,flexShrink:0}}>→</button></div></div>}
-    </div>
+    <FullScreen title={isGroup?"👥 গ্রুপ চ্যাট":"💬 চ্যাট রুম"} onBack={null} onClose={onClose} tc={tc}>
+      {canCreate?(
+        <button onClick={()=>setCreating(!creating)} style={{width:"100%",background:`linear-gradient(135deg,${isGroup?"#7c3aed,#3b82f6":"#10b981,#059669"})`,border:"none",borderRadius:14,padding:"12px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginBottom:12}}>
+          + {isGroup?"নতুন গ্রুপ তৈরি করো":"নতুন রুম তৈরি করো"} {isGroup?"👥":"✅"}
+        </button>
+      ):(
+        <div style={{background:"#10b98111",border:"1px solid #10b98133",borderRadius:14,padding:"14px",marginBottom:12,textAlign:"center"}}>
+          <div style={{fontSize:28,marginBottom:6}}>🔒</div>
+          <p style={{color:"#10b981",fontSize:13,fontWeight:600}}>শুধুমাত্র ✅ ভেরিফাইড ইউজাররা রুম তৈরি করতে পারবে</p>
+        </div>
+      )}
+      {creating&&canCreate&&(
+        <div style={{background:tc.input,borderRadius:14,padding:12,border:`1px solid ${isGroup?"#7c3aed44":"#10b98144"}`,marginBottom:12}}>
+          <input value={rname} onChange={e=>setRname(e.target.value)} onKeyDown={e=>e.key==="Enter"&&create()} placeholder={isGroup?"গ্রুপের নাম...":"রুমের নাম..."} style={{width:"100%",background:tc.bg,border:`1px solid ${tc.border}`,borderRadius:12,padding:"10px 13px",color:tc.text,fontSize:13,outline:"none",marginBottom:8}}/>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={create} style={{flex:1,background:`linear-gradient(135deg,${isGroup?"#7c3aed,#3b82f6":"#10b981,#059669"})`,border:"none",borderRadius:12,padding:"9px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>তৈরি করো ✓</button>
+            <button onClick={()=>setCreating(false)} style={{background:tc.input,border:"none",borderRadius:12,padding:"9px 14px",color:"#64748b",cursor:"pointer",fontSize:13}}>বাতিল</button>
+          </div>
+        </div>
+      )}
+      {loading&&<Spin/>}
+      {!loading&&rooms.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>{isGroup?"👥":"💬"}</div><p>কোনো {isGroup?"গ্রুপ":"রুম"} নেই এখনো</p></div>}
+      {rooms.map(r=>(
+        <div key={r.id} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,background:tc.card,border:`1px solid ${tc.border}`,marginBottom:10,alignItems:"center",cursor:"pointer"}} onClick={()=>{setActive(r);loadMsgs(r.id);}}>
+          <div style={{width:46,height:46,borderRadius:"50%",background:`linear-gradient(135deg,${isGroup?"#7c3aed,#3b82f6":"#7c3aed,#3b82f6"})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{isGroup?"👥":"💬"}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{r.name}</div>
+            <div style={{color:tc.sub,fontSize:12,marginTop:2}}>by {r.owner_name}</div>
+          </div>
+          {me.id===r.owner_id&&<button onClick={e=>{e.stopPropagation();del(r.id);}} style={{background:"#ef444422",border:"1px solid #ef444444",borderRadius:10,padding:"6px 10px",color:"#ef4444",cursor:"pointer",fontSize:13,flexShrink:0}}>🗑️</button>}
+        </div>
+      ))}
+    </FullScreen>
   );
 }
 
-function NotifPanel({me,onClose,tc,t}){
+// ── Notifications ──────────────────────────────────────────────────────────────
+function Notifs({me,tc,onClose}){
   const [notifs,setNotifs]=useState([]);
   useEffect(()=>{sb.from("notifications").select("*").eq("to_id",me.id).order("created_at",{ascending:false}).limit(30).then(({data})=>{if(data)setNotifs(data);});},[]);
   const markAll=async()=>{await sb.from("notifications").update({read:true}).eq("to_id",me.id);setNotifs(n=>n.map(x=>({...x,read:true})));};
   const icons={"like":"❤️","comment":"💬","follow":"👤","mention":"🏷️"};
   return(
-    <div style={{position:"fixed",inset:0,background:tc.bg,zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
-      <div style={{background:tc.nav,borderBottom:`1px solid ${tc.border}`,padding:"0 14px",height:54,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-        <button onClick={onClose} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-        <span style={{color:"#c4b5fd",fontWeight:800,fontSize:17,flex:1}}>🔔 {t("নোটিফিকেশন","Notifications")}</span>
-        {notifs.some(n=>!n.read)&&<button onClick={markAll} style={{background:"#7c3aed22",border:"1px solid #7c3aed44",borderRadius:12,padding:"6px 12px",color:"#a855f7",cursor:"pointer",fontSize:12,fontWeight:600}}>{t("সব পড়া ✓","Mark all read ✓")}</button>}
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"12px",background:tc.bg}}>
-        {notifs.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dimText}}><div style={{fontSize:44,marginBottom:10}}>🔔</div><p>{t("কোনো নোটিফিকেশন নেই","No notifications yet")}</p></div>}
-        {notifs.map(n=><div key={n.id} style={{display:"flex",gap:10,padding:"13px",borderRadius:16,background:n.read?tc.card:"#7c3aed11",border:`1px solid ${n.read?tc.border:"#7c3aed33"}`,marginBottom:10,alignItems:"center"}}><div style={{width:42,height:42,borderRadius:"50%",background:tc.input,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,border:`1px solid ${tc.border}`}}>{icons[n.type]||"🔔"}</div><div style={{flex:1}}><span style={{color:"#a78bfa",fontWeight:700,fontSize:14}}>{n.from_username} </span><span style={{color:tc.subText,fontSize:13}}>{n.content}</span><div style={{color:tc.dimText,fontSize:11,marginTop:3}}>{timeAgo(n.created_at)}</div></div>{!n.read&&<div style={{width:9,height:9,borderRadius:"50%",background:"#7c3aed",flexShrink:0}}/>}</div>)}
-      </div>
-    </div>
+    <FullScreen title="🔔 নোটিফিকেশন" onBack={null} onClose={onClose} tc={tc}>
+      {notifs.some(n=>!n.read)&&<button onClick={markAll} style={{width:"100%",background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"9px",color:"#7c3aed",cursor:"pointer",fontSize:13,fontWeight:600,marginBottom:12}}>সব পড়া ✓</button>}
+      {notifs.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>🔔</div><p>কোনো নোটিফিকেশন নেই</p></div>}
+      {notifs.map(n=>(
+        <div key={n.id} style={{display:"flex",gap:10,padding:"13px",borderRadius:16,background:n.read?tc.card:"#7c3aed11",border:`1px solid ${n.read?tc.border:"#7c3aed33"}`,marginBottom:10,alignItems:"center"}}>
+          <div style={{width:42,height:42,borderRadius:"50%",background:tc.input,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,border:`1px solid ${tc.border}`}}>{icons[n.type]||"🔔"}</div>
+          <div style={{flex:1}}>
+            <span style={{color:"#a78bfa",fontWeight:700,fontSize:14}}>{n.from_username} </span>
+            <span style={{color:tc.sub,fontSize:13}}>{n.content}</span>
+            <div style={{color:tc.dim,fontSize:11,marginTop:3}}>{timeAgo(n.created_at)}</div>
+          </div>
+          {!n.read&&<div style={{width:9,height:9,borderRadius:"50%",background:"#7c3aed",flexShrink:0}}/>}
+        </div>
+      ))}
+    </FullScreen>
   );
 }
 
-function UserSearch({me,onViewProfile,onFollow,onClose,tc,t}){
+// ── User Search ────────────────────────────────────────────────────────────────
+function UserSearch({me,tc,onViewProfile,onFollow,onClose}){
   const [q,setQ]=useState("");
   const [results,setResults]=useState([]);
-  const [loading,setLoading]=useState(false);
+  const [busy,setBusy]=useState(false);
   useEffect(()=>{
     if(!q.trim()){setResults([]);return;}
-    const timer=setTimeout(async()=>{setLoading(true);const{data}=await sb.from("users").select("*").ilike("username",`%${q}%`).neq("id",me.id).limit(20);if(data)setResults(data);setLoading(false);},400);
+    const timer=setTimeout(async()=>{setBusy(true);const{data}=await sb.from("users").select("*").ilike("username",`%${q}%`).neq("id",me.id).limit(20);if(data)setResults(data);setBusy(false);},400);
     return()=>clearTimeout(timer);
   },[q]);
   return(
-    <div style={{position:"fixed",inset:0,background:tc.bg,zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
-      <div style={{background:tc.nav,borderBottom:`1px solid ${tc.border}`,padding:"0 14px",height:54,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-        <button onClick={onClose} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-        <input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t("ইউজারনেম খোঁজো...","Search username...")} style={{flex:1,background:tc.input,border:`1px solid #7c3aed44`,borderRadius:20,padding:"8px 14px",color:tc.text,fontSize:14,outline:"none"}}/>
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"12px",background:tc.bg}}>
-        {loading&&<Spinner/>}
-        {!q.trim()&&!loading&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dimText}}><div style={{fontSize:44,marginBottom:10}}>👥</div><p>{t("ইউজারনেম লিখলে রেজাল্ট দেখাবে","Start typing to search users")}</p></div>}
-        {q.trim()&&!loading&&results.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dimText}}><div style={{fontSize:44,marginBottom:10}}>🔍</div><p>{t("কোনো ইউজার পাওয়া যায়নি","No users found")}</p></div>}
-        {results.map(u=>{const isF=(me.following||[]).includes(u.id);return(<div key={u.id} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,background:tc.card,border:`1px solid ${tc.border}`,marginBottom:10,alignItems:"center"}}><div onClick={()=>{onViewProfile(u.id);onClose();}} style={{cursor:"pointer",flexShrink:0}}><Av username={u.username} color={u.color} size={46} verified={u.verified||false} isReg={true}/></div><div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>{onViewProfile(u.id);onClose();}}><div style={{display:"flex",alignItems:"center",gap:4}}><span style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{u.username}</span><RegBadge/>{u.verified&&<VBadge/>}</div><div style={{color:tc.subText,fontSize:12,marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.bio||t("বায়ো নেই","No bio")}</div></div>{me.type==="registered"&&<button onClick={()=>onFollow(u.id)} style={{background:isF?"#1a1a2e":"#7c3aed22",border:`1px solid ${isF?"#2a2a40":"#7c3aed55"}`,borderRadius:12,padding:"7px 13px",color:isF?"#475569":"#a855f7",cursor:"pointer",fontSize:12,fontWeight:700,flexShrink:0}}>{isF?t("✓ ফলোয়িং","✓ Following"):t("+ ফলো","+ Follow")}</button>}</div>);})}
-      </div>
-    </div>
+    <FullScreen title="🔍 ইউজার খোঁজো" onBack={null} onClose={onClose} tc={tc}>
+      <input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder="ইউজারনেম লিখো..." style={{width:"100%",background:tc.input,border:`1px solid #7c3aed44`,borderRadius:20,padding:"10px 14px",color:tc.text,fontSize:14,outline:"none",marginBottom:12}}/>
+      {busy&&<Spin/>}
+      {!busy&&!q.trim()&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>👥</div><p>ইউজারনেম লিখলে রেজাল্ট দেখাবে</p></div>}
+      {!busy&&q.trim()&&results.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>🔍</div><p>কোনো ইউজার পাওয়া যায়নি</p></div>}
+      {results.map(u=>{
+        const isF=(me.following||[]).includes(u.id);
+        return(
+          <div key={u.id} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,background:tc.card,border:`1px solid ${tc.border}`,marginBottom:10,alignItems:"center"}}>
+            <div onClick={()=>{onViewProfile(u.id);onClose();}} style={{cursor:"pointer",flexShrink:0}}><Av u={u.username} color={u.color} size={46} verified={u.verified||false} isReg={true}/></div>
+            <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>{onViewProfile(u.id);onClose();}}>
+              <div style={{display:"flex",alignItems:"center",gap:4}}><span style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{u.username}</span><RBadge/>{u.verified&&<VBadge/>}</div>
+              <div style={{color:tc.sub,fontSize:12,marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.bio||"বায়ো নেই"}</div>
+            </div>
+            {me.type==="registered"&&<button onClick={()=>onFollow(u.id)} style={{background:isF?"#1a1a2e":"#7c3aed22",border:`1px solid ${isF?"#2a2a40":"#7c3aed55"}`,borderRadius:12,padding:"7px 13px",color:isF?"#475569":"#a855f7",cursor:"pointer",fontSize:12,fontWeight:700,flexShrink:0}}>{isF?"✓ ফলোয়িং":"+ ফলো"}</button>}
+          </div>
+        );
+      })}
+    </FullScreen>
   );
 }
-function ProfilePage({userId,me,onBack,onFollow,onMsgUser,onLogout,onOpenSettings,tc,t,...cardProps}){
+
+// ── Settings ───────────────────────────────────────────────────────────────────
+function Settings({theme,setTheme,lang,setLang,tc,onClose}){
+  return(
+    <BottomSheet title="⚙️ সেটিংস" onClose={onClose} tc={tc}>
+      <p style={{color:tc.sub,fontSize:13,fontWeight:600,marginBottom:10}}>🎨 থিম</p>
+      <div style={{display:"flex",gap:8,marginBottom:20}}>
+        {[["dark","🌙 ডার্ক"],["light","☀️ লাইট"]].map(([v,l])=>(
+          <button key={v} onClick={()=>{setTheme(v);localStorage.setItem("al_theme",v);document.body.className=v==="light"?"light":"";}} style={{flex:1,background:theme===v?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,border:`1px solid ${theme===v?"#7c3aed":tc.border}`,borderRadius:14,padding:"14px",color:theme===v?"#fff":tc.sub,cursor:"pointer",fontWeight:theme===v?700:400,fontSize:14}}>{l}</button>
+        ))}
+      </div>
+      <p style={{color:tc.sub,fontSize:13,fontWeight:600,marginBottom:10}}>🌐 ভাষা</p>
+      <div style={{display:"flex",gap:8}}>
+        {[["bn","🇧🇩 বাংলা"],["en","🇬🇧 English"]].map(([v,l])=>(
+          <button key={v} onClick={()=>{setLang(v);localStorage.setItem("al_lang",v);}} style={{flex:1,background:lang===v?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,border:`1px solid ${lang===v?"#7c3aed":tc.border}`,borderRadius:14,padding:"14px",color:lang===v?"#fff":tc.sub,cursor:"pointer",fontWeight:lang===v?700:400,fontSize:14}}>{l}</button>
+        ))}
+      </div>
+    </BottomSheet>
+  );
+}
+// ── Profile Page ───────────────────────────────────────────────────────────────
+function ProfilePage({userId,me,tc,onBack,onFollow,onMsgUser,onLogout,onSettings,...cardProps}){
   const [user,setUser]=useState(null);
   const [posts,setPosts]=useState([]);
-  const [comments,setComments]=useState([]);
-  const [editingBio,setEditingBio]=useState(false);
-  const [bioText,setBioText]=useState("");
+  const [cmts,setCmts]=useState([]);
+  const [editBio,setEditBio]=useState(false);
+  const [bio,setBio]=useState("");
+
   useEffect(()=>{
-    sb.from("users").select("*").eq("id",userId).single().then(({data})=>{if(data){setUser(data);setBioText(data.bio||"");}});
-    sb.from("posts").select("*").eq("author_id",userId).order("created_at",{ascending:false}).then(({data})=>{if(data){setPosts(data);if(data.length>0)sb.from("comments").select("*").in("post_id",data.map(p=>p.id)).order("created_at").then(({data:c})=>{if(c)setComments(c);});}});
+    sb.from("users").select("*").eq("id",userId).single().then(({data})=>{if(data){setUser(data);setBio(data.bio||"");}});
+    sb.from("posts").select("*").eq("author_id",userId).order("created_at",{ascending:false}).then(({data})=>{
+      if(data){setPosts(data);if(data.length>0)sb.from("comments").select("*").in("post_id",data.map(p=>p.id)).then(({data:c})=>{if(c)setCmts(c);});}
+    });
   },[userId]);
-  const saveBio=async()=>{await sb.from("users").update({bio:bioText}).eq("id",me.id);setUser(u=>({...u,bio:bioText}));setEditingBio(false);};
-  const copyLink=()=>navigator.clipboard?.writeText(`${window.location.origin}?profile=${userId}`).catch(()=>{});
+
+  const saveBio=async()=>{await sb.from("users").update({bio}).eq("id",me.id);setUser(u=>({...u,bio}));setEditBio(false);};
+  const copyLink=()=>{navigator.clipboard?.writeText(`${window.location.href.split('?')[0]}?profile=${userId}`).catch(()=>{});};
   const isOwn=me.id===userId;
-  const isFollowing=(me.following||[]).includes(userId);
+  const isF=(me.following||[]).includes(userId);
   const totalLikes=posts.reduce((a,p)=>a+(p.likes||[]).length,0);
-  if(!user)return <div style={{minHeight:"100vh",background:tc.bg}}><Spinner/></div>;
+
+  if(!user)return <div style={{minHeight:"100vh",background:tc.bg}}><Spin/></div>;
+
   return(
     <div style={{paddingBottom:80,minHeight:"100vh",background:tc.bg}}>
       <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 12px 0",position:"sticky",top:0,background:tc.nav,zIndex:50}}>
         <button onClick={onBack} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16}}>←</button>
-        <span style={{color:"#c4b5fd",fontWeight:700,fontSize:16,flex:1}}>{t("প্রোফাইল","Profile")}</span>
-        {isOwn&&<button onClick={onOpenSettings} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"6px 12px",color:tc.subText,cursor:"pointer",fontSize:13}}>⚙️ {t("সেটিংস","Settings")}</button>}
+        <span style={{color:"#c4b5fd",fontWeight:700,fontSize:16,flex:1}}>প্রোফাইল</span>
+        {isOwn&&<button onClick={onSettings} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"6px 12px",color:tc.sub,cursor:"pointer",fontSize:13}}>⚙️ সেটিংস</button>}
       </div>
       <div style={{background:tc.card,border:`1px solid ${tc.border}`,borderRadius:20,padding:"24px 14px",textAlign:"center",margin:"10px 10px 14px"}}>
-        <div style={{display:"flex",justifyContent:"center",marginBottom:10}}><Av username={user.username} color={user.color} size={76} verified={user.verified||false} isReg={true}/></div>
-        <h2 style={{color:"#c4b5fd",fontSize:19,fontWeight:800}}>{user.username}<RegBadge/>{user.verified&&<VBadge/>}</h2>
-        <p style={{color:tc.dimText,fontSize:11,marginTop:4}}>{timeAgo(user.created_at)} {t("আগে যোগ দিয়েছে","ago joined")}</p>
+        <div style={{display:"flex",justifyContent:"center",marginBottom:10}}><Av u={user.username} color={user.color} size={76} verified={user.verified||false} isReg={true}/></div>
+        <h2 style={{color:"#c4b5fd",fontSize:19,fontWeight:800}}>{user.username}<RBadge/>{user.verified&&<VBadge/>}</h2>
+        <p style={{color:tc.dim,fontSize:11,marginTop:4}}>{timeAgo(user.created_at)} আগে যোগ দিয়েছে</p>
+
         {isOwn?(
           <div style={{marginTop:8,maxWidth:300,margin:"8px auto 4px"}}>
-            {editingBio?(<div><textarea value={bioText} onChange={e=>setBioText(e.target.value.slice(0,150))} rows={2} style={{width:"100%",background:tc.input,border:"1px solid #7c3aed",borderRadius:12,padding:"9px 12px",color:tc.text,fontSize:13,outline:"none",resize:"none",lineHeight:1.5}}/><div style={{display:"flex",justifyContent:"flex-end",gap:6,marginTop:5}}><button onClick={()=>{setEditingBio(false);setBioText(user.bio||"");}} style={{background:tc.input,border:"none",borderRadius:10,padding:"6px 12px",color:"#64748b",cursor:"pointer",fontSize:12}}>{t("বাতিল","Cancel")}</button><button onClick={saveBio} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:10,padding:"6px 14px",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}}>{t("সেভ","Save")}</button></div></div>)
-            :(<div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:6}}><p style={{color:tc.subText,fontSize:13}}>{user.bio||t("বায়ো যোগ করোনি...","No bio yet...")}</p><button onClick={()=>setEditingBio(true)} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:8,padding:"3px 8px",color:"#475569",cursor:"pointer",fontSize:11}}>✏️</button></div>)}
+            {editBio?(
+              <div>
+                <textarea value={bio} onChange={e=>setBio(e.target.value.slice(0,150))} rows={2} style={{width:"100%",background:tc.input,border:"1px solid #7c3aed",borderRadius:12,padding:"9px 12px",color:tc.text,fontSize:13,outline:"none",resize:"none",lineHeight:1.5}}/>
+                <div style={{display:"flex",justifyContent:"flex-end",gap:6,marginTop:5}}>
+                  <button onClick={()=>{setEditBio(false);setBio(user.bio||"");}} style={{background:tc.input,border:"none",borderRadius:10,padding:"6px 12px",color:"#64748b",cursor:"pointer",fontSize:12}}>বাতিল</button>
+                  <button onClick={saveBio} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:10,padding:"6px 14px",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}}>সেভ</button>
+                </div>
+              </div>
+            ):(
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:6}}>
+                <p style={{color:tc.sub,fontSize:13}}>{user.bio||"বায়ো যোগ করোনি..."}</p>
+                <button onClick={()=>setEditBio(true)} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:8,padding:"3px 8px",color:"#475569",cursor:"pointer",fontSize:11}}>✏️</button>
+              </div>
+            )}
           </div>
-        ):(user.bio&&<p style={{color:tc.subText,fontSize:13,marginTop:6}}>{user.bio}</p>)}
+        ):(user.bio&&<p style={{color:tc.sub,fontSize:13,marginTop:6}}>{user.bio}</p>)}
+
         <div style={{display:"flex",justifyContent:"center",gap:0,marginTop:14,background:tc.input,borderRadius:14,overflow:"hidden",border:`1px solid ${tc.border}`}}>
-          {[[t("পোস্ট","Posts"),posts.length,"#a855f7"],[t("লাইক","Likes"),totalLikes,"#ec4899"],[t("ফলোয়ার","Followers"),(user.followers||[]).length,"#3b82f6"]].map(([l,v,c],i,arr)=>(
+          {[["পোস্ট",posts.length,"#a855f7"],["লাইক",totalLikes,"#ec4899"],["ফলোয়ার",(user.followers||[]).length,"#3b82f6"]].map(([l,v,c],i,arr)=>(
             <div key={i} style={{flex:1,padding:"12px 4px",textAlign:"center",borderRight:i<arr.length-1?`1px solid ${tc.border}`:"none"}}>
               <div style={{fontSize:18,fontWeight:800,color:c}}>{v}</div>
               <div style={{fontSize:10,color:"#475569"}}>{l}</div>
             </div>
           ))}
         </div>
+
         <div style={{display:"flex",gap:8,marginTop:12,justifyContent:"center",flexWrap:"wrap"}}>
-          <button onClick={copyLink} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:14,padding:"9px 14px",color:tc.subText,cursor:"pointer",fontWeight:600,fontSize:12}}>🔗 {t("আইডি লিংক","Profile Link")}</button>
-          {!isOwn&&me.type==="registered"&&(<><button onClick={()=>onFollow(user.id)} style={{background:isFollowing?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#3b82f6)",border:isFollowing?"1px solid #2a2a40":"none",borderRadius:14,padding:"9px 18px",color:isFollowing?"#64748b":"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>{isFollowing?t("✓ আনফলো","✓ Unfollow"):t("+ ফলো","+ Follow")}</button><button onClick={()=>onMsgUser({author_id:user.id,username:user.username})} style={{background:"#7c3aed22",border:"1px solid #7c3aed44",borderRadius:14,padding:"9px 14px",color:"#a855f7",cursor:"pointer",fontWeight:600,fontSize:13}}>💌 {t("মেসেজ","Message")}</button></>)}
-          {isOwn&&<button onClick={onLogout} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:14,padding:"9px 18px",color:tc.subText,cursor:"pointer",fontWeight:600,fontSize:13}}>{t("লগআউট","Logout")}</button>}
+          <button onClick={copyLink} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:14,padding:"9px 14px",color:tc.sub,cursor:"pointer",fontWeight:600,fontSize:12}}>🔗 আইডি লিংক</button>
+          {!isOwn&&me.type==="registered"&&(
+            <>
+              <button onClick={()=>onFollow(user.id)} style={{background:isF?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#3b82f6)",border:isF?"1px solid #2a2a40":"none",borderRadius:14,padding:"9px 18px",color:isF?"#64748b":"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>{isF?"✓ আনফলো":"+ ফলো"}</button>
+              <button onClick={()=>onMsgUser({author_id:user.id,username:user.username})} style={{background:"#7c3aed22",border:"1px solid #7c3aed44",borderRadius:14,padding:"9px 14px",color:"#a855f7",cursor:"pointer",fontWeight:600,fontSize:13}}>💌 মেসেজ</button>
+            </>
+          )}
+          {isOwn&&<button onClick={onLogout} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:14,padding:"9px 18px",color:tc.sub,cursor:"pointer",fontWeight:600,fontSize:13}}>লগআউট</button>}
         </div>
       </div>
       <div style={{padding:"0 10px"}}>
-        {posts.length===0?<p style={{textAlign:"center",color:tc.dimText,padding:36}}>{t("কোনো পোস্ট নেই","No posts yet")}</p>:posts.map(p=><PostCard key={p.id} p={p} me={me} comments={comments.filter(c=>c.post_id===p.id)} onFollow={onFollow} onMsgUser={onMsgUser} tc={tc} t={t} {...cardProps}/>)}
+        {posts.length===0?<p style={{textAlign:"center",color:tc.dim,padding:36}}>কোনো পোস্ট নেই</p>
+          :posts.map(p=><PostCard key={p.id} p={p} me={me} tc={tc} comments={cmts.filter(c=>c.post_id===p.id)} onFollow={onFollow} onMsgUser={onMsgUser} {...cardProps}/>)
+        }
       </div>
     </div>
   );
 }
-// ── Main App ──────────────────────────────────────────────────────────────────
+// ── MAIN APP ───────────────────────────────────────────────────────────────────
 function App(){
   const [profile,setProfile]=useState(null);
   const [guest]=useState(()=>({type:"guest",username:genUser(),id:"guest_"+genId(),color:genColor(),following:[],verified:false}));
@@ -623,55 +746,53 @@ function App(){
   const [page,setPage]=useState(0);
   const [hasMore,setHasMore]=useState(true);
   const [loadingMore,setLoadingMore]=useState(false);
-  const [pendingLikes,setPendingLikes]=useState({}); // ✅ বাগ ফিক্স
+  const [pendingLikes,setPendingLikes]=useState({});
+
   const [tab,setTab]=useState("feed");
   const [activeTag,setActiveTag]=useState("সব");
-  const [sort,setSort]=useState("smart"); // smart=random+latest
-  const [compose,setCompose]=useState(false);
+  const [sort,setSort]=useState("smart");
+
   const [showAuth,setShowAuth]=useState(false);
   const [showInbox,setShowInbox]=useState(false);
   const [showRooms,setShowRooms]=useState(false);
+  const [showGroups,setShowGroups]=useState(false);
   const [showNotif,setShowNotif]=useState(false);
-  const [showUserSearch,setShowUserSearch]=useState(false);
+  const [showSearch,setShowSearch]=useState(false);
   const [showSettings,setShowSettings]=useState(false);
+  const [compose,setCompose]=useState(false);
+
   const [viewProfile,setViewProfile]=useState(null);
-  const [search,setSearch]=useState(false);
-  const [q,setQ]=useState("");
+  const [searchQ,setSearchQ]=useState("");
+  const [searchOpen,setSearchOpen]=useState(false);
   const [toast,setToast]=useState(null);
-  const [loading,setLoading]=useState(true);
-  const [unreadNotifs,setUnreadNotifs]=useState(0);
-  const [unreadMsgs,setUnreadMsgs]=useState(0);
+  const [appLoading,setAppLoading]=useState(true);
+  const [unreadN,setUnreadN]=useState(0);
+  const [unreadM,setUnreadM]=useState(0);
+
   const [theme,setTheme]=useState(()=>localStorage.getItem("al_theme")||"dark");
   const [lang,setLang]=useState(()=>localStorage.getItem("al_lang")||"bn");
+  const TC=getTC(theme);
+
   const loaderRef=useRef();
+  const feedTopRef=useRef();
 
-  // Theme
+  // Apply theme
   useEffect(()=>{document.body.className=theme==="light"?"light":"";localStorage.setItem("al_theme",theme);},[theme]);
-
-  // Translation
-  const t=(bn,en)=>lang==="en"?en:bn;
-
-  // Theme colors
-  const TC={
-    bg:theme==="light"?"#f8fafc":"#080810",
-    card:theme==="light"?"#ffffff":"linear-gradient(160deg,#0f0f1f,#0c0c18)",
-    modal:theme==="light"?"#ffffff":"#0d0d1e",
-    border:theme==="light"?"#e2e8f0":"#1e1e35",
-    nav:theme==="light"?"rgba(248,250,252,.97)":"rgba(8,8,16,.97)",
-    input:theme==="light"?"#f1f5f9":"#0a0a14",
-    text:theme==="light"?"#1e293b":"#e2e8f0",
-    subText:theme==="light"?"#475569":"#64748b",
-    dimText:theme==="light"?"#94a3b8":"#2a2a45",
-    strip:theme==="light"?"#f1f5f9":"#0a0a14",
-  };
 
   const msg=(m,type="info")=>setToast({m,type});
 
-  // Auth check
+  // Handle URL params — profile link & post link
+  useEffect(()=>{
+    const p=new URLSearchParams(window.location.search);
+    const pid=p.get("profile");
+    if(pid){setViewProfile(pid);window.history.replaceState({},"",window.location.pathname);}
+  },[]);
+
+  // Auth
   useEffect(()=>{
     sb.auth.getSession().then(({data:{session}})=>{
-      if(session)sb.from("users").select("*").eq("id",session.user.id).single().then(({data})=>{if(data)setProfile(data);setLoading(false);});
-      else setLoading(false);
+      if(session)sb.from("users").select("*").eq("id",session.user.id).single().then(({data})=>{if(data)setProfile(data);setAppLoading(false);});
+      else setAppLoading(false);
     });
     sb.auth.onAuthStateChange((_,session)=>{
       if(session)sb.from("users").select("*").eq("id",session.user.id).single().then(({data})=>{if(data)setProfile(data);});
@@ -679,107 +800,89 @@ function App(){
     });
   },[]);
 
-  // Load posts with pagination
+  // Load posts
   const loadPosts=useCallback(async(reset=false)=>{
     if(loadingMore&&!reset)return;
     setLoadingMore(true);
-    const currentPage=reset?0:page;
-    let query=sb.from("posts").select("*");
-    if(activeTag!=="সব")query=query.eq("tag",activeTag);
-    if(sort==="top")query=query.order("likes",{ascending:false});
-    else query=query.order("created_at",{ascending:false});
-    query=query.range(currentPage*PAGE_SIZE,(currentPage+1)*PAGE_SIZE-1);
-    const{data}=await query;
+    const pg=reset?0:page;
+    let q2=sb.from("posts").select("*");
+    if(activeTag!=="সব")q2=q2.eq("tag",activeTag);
+    if(sort==="top")q2=q2.order("likes",{ascending:false});
+    else q2=q2.order("created_at",{ascending:false});
+    q2=q2.range(pg*PAGE_SIZE,(pg+1)*PAGE_SIZE-1);
+    const{data}=await q2;
     if(data){
-      if(reset){
-        setPosts(data);
-        setPendingLikes({}); // clear pending on refresh
-      } else {
-        setPosts(p=>[...p,...data.filter(np=>!p.find(ep=>ep.id===np.id))]);
-      }
+      if(reset){setPosts(data);setPendingLikes({});}
+      else setPosts(prev=>[...prev,...data.filter(np=>!prev.find(ep=>ep.id===np.id))]);
       setHasMore(data.length===PAGE_SIZE);
       if(reset)setPage(1);else setPage(p=>p+1);
-      // load comments
       const ids=(reset?data:[...posts,...data]).map(p=>p.id);
-      if(ids.length>0){
-        const{data:c}=await sb.from("comments").select("*").in("post_id",ids).order("created_at");
-        if(c)setComments(c);
-      }
+      if(ids.length>0){const{data:c}=await sb.from("comments").select("*").in("post_id",ids).order("created_at");if(c)setComments(c);}
     }
     setLoadingMore(false);
-  },[activeTag,sort,page,loadingMore,posts]);
+  },[activeTag,sort,page,loadingMore]);
 
   useEffect(()=>{loadPosts(true);},[activeTag,sort]);
 
-  // Infinite scroll observer
+  // Infinite scroll
   useEffect(()=>{
     if(!loaderRef.current)return;
-    const obs=new IntersectionObserver(entries=>{if(entries[0].isIntersecting&&hasMore&&!loadingMore)loadPosts(false);},{threshold:0.1});
+    const obs=new IntersectionObserver(e=>{if(e[0].isIntersecting&&hasMore&&!loadingMore)loadPosts(false);},{threshold:0.1});
     obs.observe(loaderRef.current);
     return()=>obs.disconnect();
   },[hasMore,loadingMore,loadPosts]);
 
+  // Unread counts
   useEffect(()=>{
-    if(profile)loadUnread();
-    const i=setInterval(()=>{if(profile)loadUnread();},30000);
+    if(profile){checkUnread();}
+    const i=setInterval(()=>{if(profile)checkUnread();},30000);
     return()=>clearInterval(i);
   },[profile]);
 
-  const loadUnread=async()=>{
+  const checkUnread=async()=>{
     if(!profile)return;
     const[{count:nc},{count:mc}]=await Promise.all([
       sb.from("notifications").select("*",{count:"exact",head:true}).eq("to_id",profile.id).eq("read",false),
       sb.from("messages").select("*",{count:"exact",head:true}).eq("to_id",profile.id).eq("read",false),
     ]);
-    setUnreadNotifs(nc||0);setUnreadMsgs(mc||0);
+    setUnreadN(nc||0);setUnreadM(mc||0);
   };
 
-  const handleLogout=async()=>{await sb.auth.signOut();setProfile(null);setViewProfile(null);msg(t("👋 লগআউট হয়েছে","👋 Logged out"));};
+  const logout=async()=>{await sb.auth.signOut();setProfile(null);setViewProfile(null);msg("👋 লগআউট হয়েছে");};
 
-  const addPost=async(postData)=>{
-    const{data,error}=await sb.from("posts").insert(postData).select().single();
-    if(error){msg(t("পোস্ট করতে সমস্যা হয়েছে!","Error posting!"),"error");return;}
-    if(data)setPosts(p=>[data,...p]);
-    msg(t("✅ পোস্ট শেয়ার হয়েছে!","✅ Posted!"),"success");
+  // Post actions
+  const addPost=async(data)=>{
+    const{data:p,error}=await sb.from("posts").insert(data).select().single();
+    if(error){msg("পোস্ট করতে সমস্যা হয়েছে!","error");return;}
+    if(p)setPosts(prev=>[p,...prev]);
+    msg("✅ পোস্ট শেয়ার হয়েছে!","success");
   };
 
-  // ✅ বাগ ফিক্স: Optimistic like — পেন্ডিং state রেখে DB আপডেট করো
+  // ✅ Optimistic like fix
   const onLike=async(id,liked)=>{
-    // Immediately update UI
     setPendingLikes(pl=>({...pl,[id]:!liked}));
     const post=posts.find(p=>p.id===id);if(!post)return;
     const newLikes=liked?(post.likes||[]).filter(u=>u!==me.id):[...(post.likes||[]),me.id];
-    // DB update
     const{error}=await sb.from("posts").update({likes:newLikes}).eq("id",id);
-    if(error){
-      // Revert if error
-      setPendingLikes(pl=>({...pl,[id]:liked}));
-      return;
-    }
-    // Sync actual state
+    if(error){setPendingLikes(pl=>({...pl,[id]:liked}));return;}
     setPosts(p=>p.map(x=>x.id!==id?x:{...x,likes:newLikes}));
-    // Clear pending
-    setPendingLikes(pl=>{const np={...pl};delete np[id];return np;});
-    if(!liked&&post.author_id!==me.id){
-      await sb.from("notifications").insert({to_id:post.author_id,from_username:me.username,type:"like",content:t("তোমার পোস্টে লাইক দিয়েছে ❤️","liked your post ❤️"),read:false});
-    }
+    setPendingLikes(pl=>{const n={...pl};delete n[id];return n;});
+    if(!liked&&post.author_id!==me.id)await sb.from("notifications").insert({to_id:post.author_id,from_username:me.username,type:"like",content:"তোমার পোস্টে লাইক দিয়েছে ❤️",read:false});
   };
 
   const onReact=async(id,r)=>{
     const post=posts.find(p=>p.id===id);if(!post)return;
-    const reacts={...post.reactions||{}};
-    if(!reacts[r])reacts[r]=[];
-    reacts[r]=reacts[r].includes(me.id)?reacts[r].filter(u=>u!==me.id):[...reacts[r],me.id];
-    await sb.from("posts").update({reactions:reacts}).eq("id",id);
-    setPosts(p=>p.map(x=>x.id!==id?x:{...x,reactions:reacts}));
+    const rc={...post.reactions||{}};if(!rc[r])rc[r]=[];
+    rc[r]=rc[r].includes(me.id)?rc[r].filter(u=>u!==me.id):[...rc[r],me.id];
+    await sb.from("posts").update({reactions:rc}).eq("id",id);
+    setPosts(p=>p.map(x=>x.id!==id?x:{...x,reactions:rc}));
   };
 
-  const onComment=async(pid,commentData)=>{
-    const{data}=await sb.from("comments").insert(commentData).select().single();
-    if(data){
-      setComments(c=>[...c,data]);
+  const onComment=async(pid,cdata)=>{
+    const{data}=await sb.from("comments").insert(cdata).select().single();
+    if(data){setComments(c=>[...c,data]);
       const post=posts.find(p=>p.id===pid);
-      if(post&&post.author_id!==me.id)await sb.from("notifications").insert({to_id:post.author_id,from_username:me.username,type:"comment",content:t("তোমার পোস্টে কমেন্ট করেছে 💬","commented on your post 💬"),read:false});
+      if(post&&post.author_id!==me.id)await sb.from("notifications").insert({to_id:post.author_id,from_username:me.username,type:"comment",content:"তোমার পোস্টে কমেন্ট করেছে 💬",read:false});
     }
   };
 
@@ -787,17 +890,17 @@ function App(){
     const post=posts.find(p=>p.id===id);if(!post)return;
     await sb.from("posts").update({shares:(post.shares||0)+1}).eq("id",id);
     setPosts(p=>p.map(x=>x.id!==id?x:{...x,shares:(x.shares||0)+1}));
-    if(navigator.share)navigator.share({title:"AnonLogos",url:`${window.location.origin}?post=${id}`}).catch(()=>{});
-    msg(t("🔁 শেয়ার হয়েছে!","🔁 Shared!"));
+    if(navigator.share)navigator.share({title:"AnonLogos",url:`${window.location.href.split('?')[0]}?post=${id}`}).catch(()=>{});
+    msg("🔁 শেয়ার হয়েছে!");
   };
 
-  const onCopy=id=>{navigator.clipboard?.writeText(`${window.location.origin}?post=${id}`).catch(()=>{});msg(t("🔗 লিংক কপি হয়েছে!","🔗 Link copied!"));};
+  const onCopy=id=>{navigator.clipboard?.writeText(`${window.location.href.split('?')[0]}?post=${id}`).catch(()=>{});msg("🔗 লিংক কপি হয়েছে!");};
 
   const onBookmark=async(id,saved)=>{
     const post=posts.find(p=>p.id===id);if(!post)return;
-    const newB=saved?(post.bookmarks||[]).filter(u=>u!==me.id):[...(post.bookmarks||[]),me.id];
-    await sb.from("posts").update({bookmarks:newB}).eq("id",id);
-    setPosts(p=>p.map(x=>x.id!==id?x:{...x,bookmarks:newB}));
+    const nb=saved?(post.bookmarks||[]).filter(u=>u!==me.id):[...(post.bookmarks||[]),me.id];
+    await sb.from("posts").update({bookmarks:nb}).eq("id",id);
+    setPosts(p=>p.map(x=>x.id!==id?x:{...x,bookmarks:nb}));
   };
 
   const onVote=async(id,i)=>{
@@ -811,83 +914,97 @@ function App(){
     await sb.from("posts").update({content,edited:true}).eq("id",id);
     setPosts(p=>p.map(x=>x.id!==id?x:{...x,content,edited:true}));
   };
-
   const onDelete=async(id)=>{
     await sb.from("posts").delete().eq("id",id);
     setPosts(p=>p.filter(x=>x.id!==id));
-    msg(t("🗑️ ডিলিট হয়েছে!","🗑️ Deleted!"),"success");
+    msg("🗑️ ডিলিট হয়েছে!","success");
   };
 
   const onPin=async(id,pinned)=>{
-    if(me.type!=="registered"||!me.verified){msg(t("📌 পিন করতে ✅ ভেরিফিকেশন লাগবে!","📌 Verification required to pin!"),"error");return;}
+    if(!me.verified){msg("📌 পিন করতে ✅ ভেরিফিকেশন লাগবে!","error");return;}
     await sb.from("posts").update({pinned}).eq("id",id);
     setPosts(p=>p.map(x=>x.id!==id?x:{...x,pinned}));
   };
 
   const onFollow=async(uid)=>{
-    if(me.type!=="registered"){msg(t("🎭 ফলো করতে রেজিস্ট্রেশন করো!","🎭 Register to follow!"),"error");setTimeout(()=>setShowAuth(true),600);return;}
+    if(me.type!=="registered"){msg("🎭 ফলো করতে রেজিস্ট্রেশন করো!","error");setTimeout(()=>setShowAuth(true),600);return;}
     const isF=(me.following||[]).includes(uid);
     const nf=isF?(me.following||[]).filter(i=>i!==uid):[...(me.following||[]),uid];
     await sb.from("users").update({following:nf}).eq("id",me.id);
     setProfile(p=>({...p,following:nf}));
-    const{data:target}=await sb.from("users").select("followers").eq("id",uid).single();
-    if(target){const nfol=isF?(target.followers||[]).filter(i=>i!==me.id):[...(target.followers||[]),me.id];await sb.from("users").update({followers:nfol}).eq("id",uid);}
-    if(!isF)await sb.from("notifications").insert({to_id:uid,from_username:me.username,type:"follow",content:t("তোমাকে ফলো করেছে 👤","followed you 👤"),read:false});
-    msg(isF?t("আনফলো করা হয়েছে","Unfollowed"):t("✅ ফলো করা হয়েছে!","✅ Following!"),"success");
+    const{data:t}=await sb.from("users").select("followers").eq("id",uid).single();
+    if(t){const nfl=isF?(t.followers||[]).filter(i=>i!==me.id):[...(t.followers||[]),me.id];await sb.from("users").update({followers:nfl}).eq("id",uid);}
+    if(!isF)await sb.from("notifications").insert({to_id:uid,from_username:me.username,type:"follow",content:"তোমাকে ফলো করেছে 👤",read:false});
+    msg(isF?"আনফলো করা হয়েছে":"✅ ফলো করা হয়েছে!","success");
   };
 
   const onMsgUser=async(p)=>{
-    if(me.type!=="registered"){msg(t("💌 মেসেজ করতে রেজিস্ট্রেশন করো!","💌 Register to message!"),"error");setShowAuth(true);return;}
-    if(p.author_id===me.id){msg(t("নিজেকে মেসেজ করা যাবে না 😄","Can't message yourself 😄"));return;}
-    await sb.from("messages").insert({from_id:me.id,from_name:me.username,to_id:p.author_id,content:t("👋 হ্যালো!","👋 Hello!"),read:false});
-    setShowInbox(true);msg(t("💌 মেসেজ পাঠানো হয়েছে!","💌 Message sent!"),"success");
+    if(me.type!=="registered"){msg("💌 মেসেজ করতে রেজিস্ট্রেশন করো!","error");setShowAuth(true);return;}
+    if(p.author_id===me.id){msg("নিজেকে মেসেজ করা যাবে না 😄");return;}
+    await sb.from("messages").insert({from_id:me.id,from_name:me.username,to_id:p.author_id,content:"👋 হ্যালো!",read:false});
+    setShowInbox(true);msg("💌 মেসেজ পাঠানো হয়েছে!","success");
   };
-// Smart feed
-  const baseFeed=posts.filter(p=>!q||(p.content||"").includes(q));
+
+  const onAuthReq=()=>{msg("🎭 এই ফিচারের জন্য রেজিস্ট্রেশন করো!","error");setShowAuth(true);};
+
+  const cardProps={tc:TC,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVote,onEdit,onDelete,onPin,onMsgUser,onViewProfile:setViewProfile,onFollow,onAuthReq};
+
+  const baseFeed=posts.filter(p=>!searchQ||(p.content||"").includes(searchQ));
   const feed=sort==="smart"?buildSmartFeed(baseFeed):sort==="top"?[...baseFeed].sort((a,b)=>(b.likes||[]).length-(a.likes||[]).length):baseFeed;
   const mine=posts.filter(p=>p.author_id===me.id);
   const saved=posts.filter(p=>(p.bookmarks||[]).includes(me.id));
 
-  const cardProps={onLike,onReact,onComment,onShare,onCopy,onBookmark,onVote,onEdit,onDelete,onPin,onMsgUser,onViewProfile:setViewProfile,onFollow,onAuthRequired:()=>{msg(t("🎭 এই ফিচারের জন্য রেজিস্ট্রেশন করো!","🎭 Register for this feature!"),"error");setShowAuth(true);},tc:TC,t};
+  const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"ট্রেন্ড"},{id:"saved",ic:"🔖",lb:"সেভড"},{id:"profile",ic:"👤",lb:"আমি"}];
 
-  const TABS=[{id:"feed",ic:"🌐",lb:t("ফিড","Feed")},{id:"trending",ic:"🔥",lb:t("ট্রেন্ড","Trend")},{id:"saved",ic:"🔖",lb:t("সেভড","Saved")},{id:"profile",ic:"👤",lb:t("আমি","Me")}];
+  // Loading screen
+  if(appLoading)return(
+    <div style={{minHeight:"100vh",background:"#080810",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:12}}>🎭</div>
+        <div style={{fontWeight:900,fontSize:24,background:"linear-gradient(90deg,#a855f7,#3b82f6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>AnonLogos</div>
+        <div style={{width:36,height:36,border:"3px solid #1e1e35",borderTop:"3px solid #7c3aed",borderRadius:"50%",animation:"spin 1s linear infinite",margin:"16px auto 0"}}/>
+      </div>
+    </div>
+  );
 
-  if(loading)return <div style={{minHeight:"100vh",background:TC.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{textAlign:"center"}}><div style={{fontSize:48,marginBottom:12}}>🎭</div><div style={{fontWeight:900,fontSize:24,background:"linear-gradient(90deg,#a855f7,#3b82f6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>AnonLogos</div><div style={{width:36,height:36,border:"3px solid #1e1e35",borderTop:"3px solid #7c3aed",borderRadius:"50%",animation:"spin 1s linear infinite",margin:"16px auto 0"}}/></div></div>;
-
+  // Profile view
   if(viewProfile)return(
-    <ProfilePage userId={viewProfile} me={me} onBack={()=>setViewProfile(null)} onFollow={onFollow} onMsgUser={onMsgUser} onLogout={handleLogout} onOpenSettings={()=>setShowSettings(true)} tc={TC} t={t} {...cardProps}>
+    <div style={{minHeight:"100vh",background:TC.bg}}>
+      <ProfilePage userId={viewProfile} me={me} tc={TC} onBack={()=>setViewProfile(null)} onFollow={onFollow} onMsgUser={onMsgUser} onLogout={logout} onSettings={()=>setShowSettings(true)} {...cardProps}/>
+      {showSettings&&<Settings theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} tc={TC} onClose={()=>setShowSettings(false)}/>}
       {toast&&<Toast msg={toast.m} type={toast.type} onClose={()=>setToast(null)}/>}
-      {showSettings&&<SettingsModal theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} onClose={()=>setShowSettings(false)} tc={TC} t={t}/>}
-    </ProfilePage>
+    </div>
   );
 
   return(
     <div style={{minHeight:"100vh",background:TC.bg,position:"relative"}}>
+
       {/* Topbar */}
-      <div style={{background:TC.nav,backdropFilter:"blur(20px)",borderBottom:`1px solid ${TC.border}`,padding:"0 12px",height:54,display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:100}}>
-        {search
-          ?<input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t("পোস্ট খোঁজো...","Search posts...")} style={{flex:1,background:TC.input,border:"none",borderRadius:20,padding:"8px 14px",color:TC.text,fontSize:14,outline:"none"}}/>
-          :<span style={{fontWeight:900,fontSize:21,background:"linear-gradient(90deg,#a855f7,#3b82f6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-0.5px"}}>AnonLogos</span>
+      <div style={{background:TC.nav,backdropFilter:"blur(20px)",borderBottom:`1px solid ${TC.border}`,padding:"0 10px",height:54,display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:100}}>
+        {searchOpen
+          ?<input autoFocus value={searchQ} onChange={e=>setSearchQ(e.target.value)} placeholder="পোস্ট খোঁজো..." style={{flex:1,background:TC.input,border:"none",borderRadius:20,padding:"8px 14px",color:TC.text,fontSize:14,outline:"none"}}/>
+          :<span style={{fontWeight:900,fontSize:20,background:"linear-gradient(90deg,#a855f7,#3b82f6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-0.5px"}}>AnonLogos</span>
         }
-        <div style={{display:"flex",gap:6,marginLeft:8,alignItems:"center"}}>
-          <button onClick={()=>{setSearch(!search);setQ("");}} style={{background:TC.input,border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:14,color:"#64748b"}}>{search?"✕":"🔍"}</button>
-          <button onClick={()=>setShowUserSearch(true)} style={{background:TC.input,border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:14,color:"#64748b"}}>👥</button>
-          <button onClick={()=>setShowRooms(true)} style={{background:TC.input,border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:14,color:"#64748b"}}>💬</button>
+        <div style={{display:"flex",gap:5,marginLeft:6,alignItems:"center"}}>
+          <button onClick={()=>{setSearchOpen(!searchOpen);setSearchQ("");}} style={{background:TC.input,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:13,color:"#64748b"}}>{searchOpen?"✕":"🔍"}</button>
+          <button onClick={()=>setShowSearch(true)} style={{background:TC.input,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:13,color:"#64748b"}}>👥</button>
+          <button onClick={()=>setShowRooms(true)} style={{background:TC.input,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:13,color:"#64748b"}}>💬</button>
+          <button onClick={()=>setShowGroups(true)} style={{background:TC.input,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:13,color:"#64748b"}}>🫂</button>
           {profile&&(
             <>
               <div style={{position:"relative"}}>
-                <button onClick={()=>{setShowNotif(true);setUnreadNotifs(0);}} style={{background:TC.input,border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:14,color:"#64748b"}}>🔔</button>
-                {unreadNotifs>0&&<div style={{position:"absolute",top:-2,right:-2,background:"#ef4444",color:"#fff",borderRadius:"50%",width:16,height:16,fontSize:9,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unreadNotifs}</div>}
+                <button onClick={()=>{setShowNotif(true);setUnreadN(0);}} style={{background:TC.input,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:13,color:"#64748b"}}>🔔</button>
+                {unreadN>0&&<div style={{position:"absolute",top:-2,right:-2,background:"#ef4444",color:"#fff",borderRadius:"50%",width:15,height:15,fontSize:9,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unreadN}</div>}
               </div>
               <div style={{position:"relative"}}>
-                <button onClick={()=>setShowInbox(true)} style={{background:TC.input,border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:14,color:"#64748b"}}>💌</button>
-                {unreadMsgs>0&&<div style={{position:"absolute",top:-2,right:-2,background:"#7c3aed",color:"#fff",borderRadius:"50%",width:16,height:16,fontSize:9,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unreadMsgs}</div>}
+                <button onClick={()=>setShowInbox(true)} style={{background:TC.input,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:13,color:"#64748b"}}>💌</button>
+                {unreadM>0&&<div style={{position:"absolute",top:-2,right:-2,background:"#7c3aed",color:"#fff",borderRadius:"50%",width:15,height:15,fontSize:9,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unreadM}</div>}
               </div>
             </>
           )}
           {profile
-            ?<button onClick={()=>setViewProfile(profile.id)} style={{background:"none",border:"none",cursor:"pointer",padding:0}}><Av username={me.username} color={me.color} size={34} verified={me.verified||false} isReg={true}/></button>
-            :<button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:18,padding:"7px 14px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12}}>{t("লগইন","Login")}</button>
+            ?<button onClick={()=>setViewProfile(profile.id)} style={{background:"none",border:"none",cursor:"pointer",padding:0}}><Av u={me.username} color={me.color} size={32} verified={me.verified||false} isReg={true}/></button>
+            :<button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:16,padding:"6px 12px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12}}>লগইন</button>
           }
         </div>
       </div>
@@ -896,22 +1013,22 @@ function App(){
       {!profile&&(
         <div style={{background:"linear-gradient(135deg,#7c3aed22,#3b82f622)",borderBottom:"1px solid #7c3aed33",padding:"9px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div>
-            <div style={{color:"#a78bfa",fontSize:13,fontWeight:600}}>🎭 {t("গেস্ট মোডে আছো","You're in Guest Mode")}</div>
-            <div style={{color:"#475569",fontSize:11}}>{t("রেজিস্ট্রেশন করলে পাবে ফলো, মেসেজ ও আরো!","Register for follow, messages & more!")}</div>
+            <div style={{color:"#a78bfa",fontSize:13,fontWeight:600}}>🎭 গেস্ট মোডে আছো</div>
+            <div style={{color:"#475569",fontSize:11}}>রেজিস্ট্রেশন করলে পাবে ফলো, মেসেজ ও আরো!</div>
           </div>
-          <button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"8px 14px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12,whiteSpace:"nowrap"}}>{t("রেজিস্টার","Register")}</button>
+          <button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"8px 14px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12,whiteSpace:"nowrap"}}>রেজিস্টার</button>
         </div>
       )}
 
-      {/* Tag + Sort */}
+      {/* Tag + Sort strip */}
       {tab==="feed"&&(
         <div style={{background:TC.strip,borderBottom:`1px solid ${TC.border}`}}>
           <div style={{display:"flex",gap:6,overflowX:"auto",padding:"8px 10px 5px"}}>
-            {[t("সব","All"),...TAGS].map(tag=>{const c=TAG_C[tag]||"#7c3aed";const a=activeTag===tag;return(<button key={tag} onClick={()=>setActiveTag(tag)} style={{background:a?(tag===t("সব","All")?"linear-gradient(135deg,#7c3aed,#3b82f6)":c+"33"):TC.input,border:`1px solid ${a?(tag===t("সব","All")?"#7c3aed":c):TC.border}`,borderRadius:16,padding:"5px 11px",color:a?(tag===t("সব","All")?"#fff":c):TC.subText,cursor:"pointer",fontSize:11,whiteSpace:"nowrap",fontWeight:a?700:400}}>{tag}</button>);})}
+            {["সব",...TAGS].map(tag=>{const c=TAG_C[tag]||"#7c3aed";const a=activeTag===tag;return(<button key={tag} onClick={()=>setActiveTag(tag)} style={{background:a?(tag==="সব"?"linear-gradient(135deg,#7c3aed,#3b82f6)":c+"33"):TC.input,border:`1px solid ${a?(tag==="সব"?"#7c3aed":c):TC.border}`,borderRadius:16,padding:"5px 11px",color:a?(tag==="সব"?"#fff":c):TC.sub,cursor:"pointer",fontSize:11,whiteSpace:"nowrap",fontWeight:a?700:400}}>{tag}</button>);})}
           </div>
           <div style={{display:"flex",gap:6,padding:"0 10px 7px"}}>
-            {[["smart",t("🔀 স্মার্ট","🔀 Smart")],["new",t("🕐 নতুন","🕐 New")],["top",t("🔥 জনপ্রিয়","🔥 Top")]].map(([v,l])=>(
-              <button key={v} onClick={()=>setSort(v)} style={{background:sort===v?"#7c3aed22":"transparent",border:`1px solid ${sort===v?"#7c3aed":"transparent"}`,borderRadius:10,padding:"3px 9px",color:sort===v?"#a855f7":TC.subText,cursor:"pointer",fontSize:11,fontWeight:sort===v?700:400}}>{l}</button>
+            {[["smart","🔀 স্মার্ট"],["new","🕐 নতুন"],["top","🔥 জনপ্রিয়"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setSort(v)} style={{background:sort===v?"#7c3aed22":"transparent",border:`1px solid ${sort===v?"#7c3aed":"transparent"}`,borderRadius:10,padding:"3px 9px",color:sort===v?"#a855f7":TC.sub,cursor:"pointer",fontSize:11,fontWeight:sort===v?700:400}}>{l}</button>
             ))}
           </div>
         </div>
@@ -919,50 +1036,50 @@ function App(){
 
       {/* Content */}
       <div style={{padding:"10px 10px 80px"}}>
+        <div ref={feedTopRef}/>
         {tab==="feed"&&(
           <>
-            {posts.length===0&&!loadingMore?<div style={{textAlign:"center",padding:"60px 0",color:TC.dimText}}><div style={{fontSize:44,marginBottom:10}}>🎭</div>{t("কোনো পোস্ট নেই। প্রথমে পোস্ট করো!","No posts yet. Be the first!")}</div>
-              :feed.map(p=><PostCard key={p.id} p={p} me={me} comments={comments.filter(c=>c.post_id===p.id)} localLike={pendingLikes[p.id]} {...cardProps}/>)
+            {posts.length===0&&!loadingMore?<div style={{textAlign:"center",padding:"60px 0",color:TC.dim}}><div style={{fontSize:44,marginBottom:10}}>🎭</div>কোনো পোস্ট নেই। প্রথমে পোস্ট করো!</div>
+              :feed.map(p=><PostCard key={p.id} p={p} me={me} localLike={pendingLikes[p.id]} comments={comments.filter(c=>c.post_id===p.id)} {...cardProps}/>)
             }
-            {/* Infinity scroll loader */}
             <div ref={loaderRef} style={{height:40,display:"flex",alignItems:"center",justifyContent:"center"}}>
               {loadingMore&&<div style={{width:28,height:28,border:"3px solid #1e1e35",borderTop:"3px solid #7c3aed",borderRadius:"50%",animation:"spin 1s linear infinite"}}/>}
-              {!hasMore&&posts.length>0&&<p style={{color:TC.dimText,fontSize:12}}>{t("সব পোস্ট দেখা হয়েছে ✓","All posts loaded ✓")}</p>}
+              {!hasMore&&posts.length>0&&<p style={{color:TC.dim,fontSize:12}}>সব পোস্ট দেখা হয়েছে ✓</p>}
             </div>
           </>
         )}
-        {tab==="trending"&&[...posts].sort((a,b)=>(b.likes||[]).length-(a.likes||[]).length).map(p=><PostCard key={p.id} p={p} me={me} comments={comments.filter(c=>c.post_id===p.id)} localLike={pendingLikes[p.id]} {...cardProps}/>)}
-        {tab==="saved"&&(saved.length===0?<div style={{textAlign:"center",padding:"60px 0",color:TC.dimText}}><div style={{fontSize:44,marginBottom:10}}>🔖</div>{t("সেভড পোস্ট নেই","No saved posts")}</div>:saved.map(p=><PostCard key={p.id} p={p} me={me} comments={comments.filter(c=>c.post_id===p.id)} localLike={pendingLikes[p.id]} {...cardProps}/>))}
+        {tab==="trending"&&[...posts].sort((a,b)=>(b.likes||[]).length-(a.likes||[]).length).map(p=><PostCard key={p.id} p={p} me={me} localLike={pendingLikes[p.id]} comments={comments.filter(c=>c.post_id===p.id)} {...cardProps}/>)}
+        {tab==="saved"&&(saved.length===0?<div style={{textAlign:"center",padding:"60px 0",color:TC.dim}}><div style={{fontSize:44,marginBottom:10}}>🔖</div>সেভড পোস্ট নেই</div>:saved.map(p=><PostCard key={p.id} p={p} me={me} localLike={pendingLikes[p.id]} comments={comments.filter(c=>c.post_id===p.id)} {...cardProps}/>))}
         {tab==="profile"&&(
           <div>
             <div style={{background:TC.card,border:`1px solid ${TC.border}`,borderRadius:20,padding:"24px 14px",textAlign:"center",marginBottom:14}}>
-              <div style={{display:"flex",justifyContent:"center",marginBottom:10}}><Av username={me.username} color={me.color} size={72} verified={me.verified||false} isReg={me.type==="registered"}/></div>
-              <h2 style={{color:"#c4b5fd",fontSize:18,fontWeight:800}}>{me.username}{me.type==="registered"&&<RegBadge/>}{me.verified&&<VBadge/>}</h2>
-              <p style={{color:TC.dimText,fontSize:11,marginTop:4}}>#{me.id?.slice(0,8)} · {me.type==="registered"?t("রেজিস্টার্ড","Registered"):t("গেস্ট","Guest")}</p>
+              <div style={{display:"flex",justifyContent:"center",marginBottom:10}}><Av u={me.username} color={me.color} size={72} verified={me.verified||false} isReg={me.type==="registered"}/></div>
+              <h2 style={{color:"#c4b5fd",fontSize:18,fontWeight:800}}>{me.username}{me.type==="registered"&&<RBadge/>}{me.verified&&<VBadge/>}</h2>
+              <p style={{color:TC.dim,fontSize:11,marginTop:4}}>#{me.id?.slice(0,8)} · {me.type==="registered"?"রেজিস্টার্ড":"গেস্ট"}</p>
               {me.type==="registered"&&(
-                <div style={{display:"flex",gap:8,justifyContent:"center",marginTop:8,flexWrap:"wrap"}}>
-                  <button onClick={()=>{navigator.clipboard?.writeText(`${window.location.origin}?profile=${me.id}`).catch(()=>{});msg(t("🔗 প্রোফাইল লিংক কপি!","🔗 Profile link copied!"),"success");}} style={{background:TC.input,border:`1px solid ${TC.border}`,borderRadius:12,padding:"7px 14px",color:TC.subText,cursor:"pointer",fontSize:12}}>🔗 {t("প্রোফাইল লিংক","Profile Link")}</button>
-                  <button onClick={()=>setShowSettings(true)} style={{background:TC.input,border:`1px solid ${TC.border}`,borderRadius:12,padding:"7px 14px",color:TC.subText,cursor:"pointer",fontSize:12}}>⚙️ {t("সেটিংস","Settings")}</button>
+                <div style={{display:"flex",gap:8,justifyContent:"center",marginTop:10,flexWrap:"wrap"}}>
+                  <button onClick={()=>{navigator.clipboard?.writeText(`${window.location.href.split('?')[0]}?profile=${me.id}`).catch(()=>{});msg("🔗 প্রোফাইল লিংক কপি!","success");}} style={{background:TC.input,border:`1px solid ${TC.border}`,borderRadius:12,padding:"7px 12px",color:TC.sub,cursor:"pointer",fontSize:12}}>🔗 প্রোফাইল লিংক</button>
+                  <button onClick={()=>setShowSettings(true)} style={{background:TC.input,border:`1px solid ${TC.border}`,borderRadius:12,padding:"7px 12px",color:TC.sub,cursor:"pointer",fontSize:12}}>⚙️ সেটিংস</button>
                 </div>
               )}
               {me.type!=="registered"
-                ?<button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"10px 24px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginTop:14}}>🆅 {t("রেজিস্ট্রেশন করো","Register Now")}</button>
+                ?<button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"10px 24px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginTop:14}}>🆅 রেজিস্ট্রেশন করো</button>
                 :(
                   <div>
                     <div style={{display:"flex",justifyContent:"center",gap:0,marginTop:14,background:TC.input,borderRadius:14,overflow:"hidden",border:`1px solid ${TC.border}`}}>
-                      {[[t("পোস্ট","Posts"),mine.length,"#a855f7"],[t("লাইক","Likes"),mine.reduce((a,p)=>a+(p.likes||[]).length,0),"#ec4899"],[t("সেভড","Saved"),saved.length,"#f59e0b"],[t("ফলোয়ার","Followers"),(me.followers||[]).length,"#3b82f6"]].map(([l,v,c],i,arr)=>(
+                      {[["পোস্ট",mine.length,"#a855f7"],["লাইক",mine.reduce((a,p)=>a+(p.likes||[]).length,0),"#ec4899"],["সেভড",saved.length,"#f59e0b"],["ফলোয়ার",(me.followers||[]).length,"#3b82f6"]].map(([l,v,c],i,arr)=>(
                         <div key={i} style={{flex:1,padding:"11px 2px",textAlign:"center",borderRight:i<arr.length-1?`1px solid ${TC.border}`:"none"}}>
                           <div style={{fontSize:17,fontWeight:800,color:c}}>{v}</div>
                           <div style={{fontSize:9,color:"#475569"}}>{l}</div>
                         </div>
                       ))}
                     </div>
-                    <button onClick={handleLogout} style={{background:TC.input,border:`1px solid ${TC.border}`,borderRadius:14,padding:"9px 22px",color:TC.subText,cursor:"pointer",fontWeight:600,fontSize:13,marginTop:12}}>{t("লগআউট","Logout")}</button>
+                    <button onClick={logout} style={{background:TC.input,border:`1px solid ${TC.border}`,borderRadius:14,padding:"9px 22px",color:TC.sub,cursor:"pointer",fontWeight:600,fontSize:13,marginTop:12}}>লগআউট</button>
                   </div>
                 )
               }
             </div>
-            {mine.length===0?<p style={{textAlign:"center",color:TC.dimText,padding:36}}>{t("এখনো পোস্ট করোনি!","No posts yet!")}</p>:mine.map(p=><PostCard key={p.id} p={p} me={me} comments={comments.filter(c=>c.post_id===p.id)} localLike={pendingLikes[p.id]} {...cardProps}/>)}
+            {mine.length===0?<p style={{textAlign:"center",color:TC.dim,padding:36}}>এখনো পোস্ট করোনি!</p>:mine.map(p=><PostCard key={p.id} p={p} me={me} localLike={pendingLikes[p.id]} comments={comments.filter(c=>c.post_id===p.id)} {...cardProps}/>)}
           </div>
         )}
       </div>
@@ -972,21 +1089,26 @@ function App(){
 
       {/* Bottom Nav */}
       <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:TC.nav,backdropFilter:"blur(20px)",borderTop:`1px solid ${TC.border}`,display:"flex",zIndex:100,height:56}}>
-        {TABS.map(tab2=>(
-          <button key={tab2.id} onClick={()=>setTab(tab2.id)} style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:tab===tab2.id?"#a855f7":"#2a2a45"}}>
-            <span style={{fontSize:18,filter:tab===tab2.id?"drop-shadow(0 0 6px #a855f7)":"none"}}>{tab2.ic}</span>
-            <span style={{fontSize:9,fontWeight:tab===tab2.id?700:400}}>{tab2.lb}</span>
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>{
+            if(t.id==="feed"&&tab==="feed"){feedTopRef.current?.scrollIntoView({behavior:"smooth"});loadPosts(true);}
+            else setTab(t.id);
+          }} style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:tab===t.id?"#a855f7":"#2a2a45"}}>
+            <span style={{fontSize:18,filter:tab===t.id?"drop-shadow(0 0 6px #a855f7)":"none"}}>{t.ic}</span>
+            <span style={{fontSize:9,fontWeight:tab===t.id?700:400}}>{t.lb}</span>
           </button>
         ))}
       </div>
 
-      {compose&&<Compose me={me} onPost={addPost} onClose={()=>setCompose(false)} tc={TC} t={t}/>}
-      {showAuth&&<AuthModal onSuccess={(p)=>{setProfile(p);setShowAuth(false);msg(t("✅ স্বাগতম ","✅ Welcome ")+p.username,"success");}} onClose={()=>setShowAuth(false)} tc={TC} t={t}/>}
-      {showInbox&&profile&&<Inbox me={me} onClose={()=>setShowInbox(false)} tc={TC} t={t}/>}
-      {showRooms&&<ChatRooms me={me} onClose={()=>setShowRooms(false)} tc={TC} t={t}/>}
-      {showNotif&&profile&&<NotifPanel me={me} onClose={()=>setShowNotif(false)} tc={TC} t={t}/>}
-      {showUserSearch&&<UserSearch me={me} onViewProfile={setViewProfile} onFollow={onFollow} onClose={()=>setShowUserSearch(false)} tc={TC} t={t}/>}
-      {showSettings&&<SettingsModal theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} onClose={()=>setShowSettings(false)} tc={TC} t={t}/>}
+      {/* All modals */}
+      {compose&&<Compose me={me} tc={TC} onPost={addPost} onClose={()=>setCompose(false)}/>}
+      {showAuth&&<AuthModal onSuccess={p=>{setProfile(p);setShowAuth(false);msg("✅ স্বাগতম "+p.username,"success");}} onClose={()=>setShowAuth(false)} tc={TC}/>}
+      {showInbox&&profile&&<Inbox me={me} tc={TC} onClose={()=>setShowInbox(false)}/>}
+      {showRooms&&<Rooms me={me} tc={TC} onClose={()=>setShowRooms(false)} isGroup={false}/>}
+      {showGroups&&<Rooms me={me} tc={TC} onClose={()=>setShowGroups(false)} isGroup={true}/>}
+      {showNotif&&profile&&<Notifs me={me} tc={TC} onClose={()=>setShowNotif(false)}/>}
+      {showSearch&&<UserSearch me={me} tc={TC} onViewProfile={setViewProfile} onFollow={onFollow} onClose={()=>setShowSearch(false)}/>}
+      {showSettings&&<Settings theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} tc={TC} onClose={()=>setShowSettings(false)}/>}
       {toast&&<Toast msg={toast.m} type={toast.type} onClose={()=>setToast(null)}/>}
     </div>
   );
