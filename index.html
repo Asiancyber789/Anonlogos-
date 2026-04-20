@@ -11,9 +11,9 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#080810;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;max-width:480px;margin:0 auto;transition:background .3s,color .3s}
-body.light{background:#f8fafc !important;color:#1e293b !important}
+body.light{background:#f8fafc!important;color:#1e293b!important}
 ::-webkit-scrollbar{width:0;height:0}
-input,textarea,button{font-family:inherit}
+input,textarea,button,select{font-family:inherit}
 input::placeholder,textarea::placeholder{color:#2a2a45}
 @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -25,12 +25,10 @@ input::placeholder,textarea::placeholder{color:#2a2a45}
 <script type="text/babel">
 const {useState,useEffect,useRef,useCallback}=React;
 
-// ── Supabase ──────────────────────────────────────────────────────────────────
 const SUPA_URL="https://stfxqkrotaffyafwatdp.supabase.co";
 const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0Znhxa3JvdGFmZnlhZndhdGRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MDQwNTcsImV4cCI6MjA5MjA4MDA1N30.m2U9ubKElKndq3lVvWbPRtu6mIuEHmis3V6nnNX4ySM";
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
-// ── Constants ─────────────────────────────────────────────────────────────────
 const ADJ=["Silent","Shadow","Mystic","Ghost","Phantom","Cosmic","Neon","Stealth","Void","Cipher","Echo","Rogue","Nova","Blur","Spectre"];
 const NOUN=["Fox","Wolf","Hawk","Panda","Tiger","Eagle","Lynx","Raven","Cobra","Viper","Falcon","Bear","Shark","Owl","Deer"];
 const COLORS=["#7C3AED","#1D4ED8","#BE185D","#0F766E","#B45309","#6D28D9","#9D174D","#1E40AF","#7F1D1D","#064E3B"];
@@ -39,69 +37,59 @@ const TAG_C={"#মতামত":"#f59e0b","#রাজনীতি":"#ef4444","#�
 const REACTIONS=[["🔥","আগুন"],["😂","হাসি"],["😢","কষ্ট"],["😡","রাগ"],["👏","তালি"],["💯","একমত"]];
 const MOODS=["😊 ভালো","😔 মন খারাপ","😡 রাগান্বিত","🤔 চিন্তিত","🥳 মজায়","😴 বিরক্ত"];
 const PAGE_SIZE=10;
+const MAX_GROUP=30;
 
 function rnd(a){return a[~~(Math.random()*a.length)];}
 function genUser(){return rnd(ADJ)+rnd(NOUN)+(~~(Math.random()*900)+100);}
 function genId(){return Math.random().toString(36).substr(2,8);}
 function genColor(){return rnd(COLORS);}
-function avatarUrl(u){return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(u)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;}
-function timeAgo(ts){
-  if(!ts)return "";
-  const d=~~((Date.now()-new Date(ts).getTime())/1000);
-  if(d<60)return d+"s";if(d<3600)return ~~(d/60)+"m";if(d<86400)return ~~(d/3600)+"h";return ~~(d/86400)+"d";
-}
+function avatarUrl(u){return`https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(u)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;}
+function timeAgo(ts){if(!ts)return"";const d=~~((Date.now()-new Date(ts).getTime())/1000);if(d<60)return d+"s";if(d<3600)return~~(d/60)+"m";if(d<86400)return~~(d/3600)+"h";return~~(d/86400)+"d";}
+
 function buildSmartFeed(all){
   const pinned=all.filter(p=>p.pinned);
   const normal=all.filter(p=>!p.pinned);
-  const half=Math.ceil(normal.length*.6);
-  const mixed=[...normal.slice(0,half),...normal.slice(half).sort(()=>Math.random()-.5)];
-  const result=[];let pi=0;
-  mixed.forEach((p,i)=>{if(i>0&&i%5===0&&pi<pinned.length)result.push(pinned[pi++]);result.push(p);});
-  return result;
+  const h=Math.ceil(normal.length*.6);
+  const mixed=[...normal.slice(0,h),...normal.slice(h).sort(()=>Math.random()-.5)];
+  const res=[];let pi=0;
+  mixed.forEach((p,i)=>{if(i>0&&i%5===0&&pi<pinned.length)res.push(pinned[pi++]);res.push(p);});
+  return res;
 }
 
-function getTC(theme){
-  const d=theme==="dark";
-  return{
-    bg:d?"#080810":"#f8fafc",
-    card:d?"#0f0f1e":"#ffffff",
-    modal:d?"#0d0d1e":"#ffffff",
-    border:d?"#1e1e35":"#e2e8f0",
-    nav:d?"rgba(8,8,16,.97)":"rgba(248,250,252,.97)",
-    input:d?"#0a0a14":"#f1f5f9",
-    text:d?"#e2e8f0":"#1e293b",
-    sub:d?"#64748b":"#475569",
-    dim:d?"#2a2a45":"#94a3b8",
-    strip:d?"#0a0a14":"#f1f5f9",
-  };
+function getTC(t){
+  const d=t==="dark";
+  return{bg:d?"#080810":"#f8fafc",card:d?"#0f0f1e":"#ffffff",modal:d?"#0d0d1e":"#ffffff",border:d?"#1e1e35":"#e2e8f0",nav:d?"rgba(8,8,16,.97)":"rgba(248,250,252,.97)",input:d?"#0a0a14":"#f1f5f9",text:d?"#e2e8f0":"#1e293b",sub:d?"#64748b":"#475569",dim:d?"#2a2a45":"#94a3b8",strip:d?"#0a0a14":"#f1f5f9"};
 }
 
-function Spin(){return <div style={{display:"flex",justifyContent:"center",padding:30}}><div style={{width:32,height:32,border:"3px solid #1e1e35",borderTop:"3px solid #7c3aed",borderRadius:"50%",animation:"spin 1s linear infinite"}}/></div>;}
+// ── UI Atoms ──────────────────────────────────────────────────────────────────
+function Spin(){return<div style={{display:"flex",justifyContent:"center",padding:30}}><div style={{width:32,height:32,border:"3px solid #1e1e35",borderTop:"3px solid #7c3aed",borderRadius:"50%",animation:"spin 1s linear infinite"}}/></div>;}
 
-function Av({u,color,size=40,verified=false,isReg=false}){
+function Av({u,color="#7c3aed",size=40,verified=false,isReg=false,logo=null}){
   const [err,setErr]=useState(false);
-  const initials=(u||"?").slice(0,2).toUpperCase();
+  if(logo&&!err)return(
+    <div style={{position:"relative",flexShrink:0,width:size,height:size}}>
+      <img src={logo} onError={()=>setErr(true)} alt="logo" style={{width:size,height:size,borderRadius:"50%",objectFit:"cover",border:`2px solid ${color}66`,display:"block"}}/>
+      {verified&&<div style={{position:"absolute",bottom:-1,right:-1,background:"#10b981",borderRadius:"50%",width:size*.34,height:size*.34,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.18,border:"2px solid #080810"}}>✅</div>}
+    </div>
+  );
   return(
     <div style={{position:"relative",flexShrink:0,width:size,height:size}}>
-      {isReg&&!err
-        ?<img src={avatarUrl(u)} onError={()=>setErr(true)} alt={u} style={{width:size,height:size,borderRadius:"50%",border:`2px solid ${color}66`,objectFit:"cover",background:"#1a1a2e",display:"block"}}/>
-        :<div style={{width:size,height:size,borderRadius:"50%",background:`linear-gradient(135deg,${color},${color}88)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.34,fontWeight:800,color:"#fff",border:`2px solid ${color}66`}}>{initials}</div>
-      }
+      {isReg&&!err?<img src={avatarUrl(u)} onError={()=>setErr(true)} alt={u} style={{width:size,height:size,borderRadius:"50%",border:`2px solid ${color}66`,objectFit:"cover",background:"#1a1a2e",display:"block"}}/>
+        :<div style={{width:size,height:size,borderRadius:"50%",background:`linear-gradient(135deg,${color},${color}88)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.34,fontWeight:800,color:"#fff",border:`2px solid ${color}66`}}>{(u||"?").slice(0,2).toUpperCase()}</div>}
       {verified&&<div style={{position:"absolute",bottom:-1,right:-1,background:"#10b981",borderRadius:"50%",width:size*.34,height:size*.34,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.18,border:"2px solid #080810"}}>✅</div>}
     </div>
   );
 }
-
-function VBadge(){return <span style={{background:"#10b98122",color:"#10b981",fontSize:10,padding:"1px 6px",borderRadius:6,border:"1px solid #10b98144",fontWeight:700,marginLeft:3}}>✅</span>;}
-function RBadge(){return <span style={{background:"#7c3aed33",color:"#a855f7",fontSize:10,padding:"1px 5px",borderRadius:6,border:"1px solid #7c3aed55",fontWeight:700,marginLeft:2}}>🆅</span>;}
+function VBadge(){return<span style={{background:"#10b98122",color:"#10b981",fontSize:10,padding:"1px 6px",borderRadius:6,border:"1px solid #10b98144",fontWeight:700,marginLeft:3}}>✅</span>;}
+function RBadge(){return<span style={{background:"#7c3aed33",color:"#a855f7",fontSize:10,padding:"1px 5px",borderRadius:6,border:"1px solid #7c3aed55",fontWeight:700,marginLeft:2}}>🆅</span>;}
 
 function Toast({msg,type,onClose}){
   useEffect(()=>{const t=setTimeout(onClose,2500);return()=>clearTimeout(t);},[]);
   const bg=type==="error"?"linear-gradient(135deg,#ef4444,#b91c1c)":type==="success"?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#7c3aed,#3b82f6)";
-  return <div style={{position:"fixed",bottom:75,left:"50%",transform:"translateX(-50%)",background:bg,color:"#fff",padding:"11px 22px",borderRadius:30,fontSize:13,zIndex:9999,whiteSpace:"nowrap",fontWeight:600,boxShadow:"0 8px 28px #0008",animation:"fadeIn .3s"}}>{msg}</div>;
+  return<div style={{position:"fixed",bottom:75,left:"50%",transform:"translateX(-50%)",background:bg,color:"#fff",padding:"11px 22px",borderRadius:30,fontSize:13,zIndex:9999,whiteSpace:"nowrap",fontWeight:600,boxShadow:"0 8px 28px #0008",animation:"fadeIn .3s"}}>{msg}</div>;
 }
 
-function BottomSheet({title,onClose,tc,children}){
+function Sheet({title,onClose,tc,children}){
   return(
     <div onClick={e=>e.target===e.currentTarget&&onClose()} style={{position:"fixed",inset:0,background:"#000000cc",zIndex:700,display:"flex",alignItems:"flex-end"}}>
       <div style={{background:tc.modal,borderRadius:"24px 24px 0 0",padding:"18px 15px 30px",width:"100%",maxWidth:480,margin:"0 auto",border:`1px solid ${tc.border}`,maxHeight:"92vh",overflowY:"auto",animation:"slideUp .25s ease"}}>
@@ -115,7 +103,8 @@ function BottomSheet({title,onClose,tc,children}){
     </div>
   );
 }
-function FullScreen({title,onBack,onClose,tc,children,footer}){
+
+function Full({title,onBack,onClose,tc,children,footer}){
   return(
     <div style={{position:"fixed",inset:0,background:tc.bg,zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
       <div style={{background:tc.nav,borderBottom:`1px solid ${tc.border}`,padding:"0 14px",height:54,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
@@ -128,15 +117,15 @@ function FullScreen({title,onBack,onClose,tc,children,footer}){
     </div>
   );
 }
-// ── Auth ───────────────────────────────────────────────────────────────────────
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
 function AuthModal({onSuccess,onClose,tc}){
   const [mode,setMode]=useState("login");
   const [f,setF]=useState({email:"",username:"",pass:"",bio:""});
   const [err,setErr]=useState("");
   const [busy,setBusy]=useState(false);
   const inp={width:"100%",background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"12px 14px",color:tc.text,fontSize:14,outline:"none",marginBottom:10};
-
-  const submit=async()=>{
+  const go=async()=>{
     setErr("");setBusy(true);
     try{
       if(mode==="login"){
@@ -144,12 +133,12 @@ function AuthModal({onSuccess,onClose,tc}){
         if(error)throw error;
         const{data:p}=await sb.from("users").select("*").eq("id",data.user.id).single();
         onSuccess(p);
-      } else {
+      }else{
         if(f.username.length<3){setErr("ইউজারনেম কমপক্ষে ৩ অক্ষর!");setBusy(false);return;}
         if(!f.email.includes("@")){setErr("সঠিক ইমেল দাও!");setBusy(false);return;}
         if(f.pass.length<6){setErr("পাসওয়ার্ড কমপক্ষে ৬ অক্ষর!");setBusy(false);return;}
         const{data:ex}=await sb.from("users").select("id").eq("username",f.username).maybeSingle();
-        if(ex){setErr("এই ইউজারনেম আগে থেকে আছে!");setBusy(false);return;}
+        if(ex){setErr("ইউজারনেম আগে থেকে আছে!");setBusy(false);return;}
         const{data,error}=await sb.auth.signUp({email:f.email,password:f.pass});
         if(error)throw error;
         const{data:p}=await sb.from("users").insert({id:data.user.id,username:f.username,email:f.email,bio:f.bio||"",color:genColor(),verified:false,admin:false,followers:[],following:[]}).select().single();
@@ -158,9 +147,8 @@ function AuthModal({onSuccess,onClose,tc}){
     }catch(e){setErr(e.message||"সমস্যা হয়েছে!");}
     setBusy(false);
   };
-
   return(
-    <BottomSheet title={mode==="login"?"🔐 লগইন":"📝 রেজিস্ট্রেশন"} onClose={onClose} tc={tc}>
+    <Sheet title={mode==="login"?"🔐 লগইন":"📝 রেজিস্ট্রেশন"} onClose={onClose} tc={tc}>
       <div style={{display:"flex",gap:6,marginBottom:16,background:tc.input,borderRadius:14,padding:4}}>
         {[["login","লগইন"],["register","রেজিস্ট্রেশন"]].map(([m,l])=>(
           <button key={m} onClick={()=>{setMode(m);setErr("");}} style={{flex:1,background:mode===m?"linear-gradient(135deg,#7c3aed,#3b82f6)":"transparent",border:"none",borderRadius:11,padding:"9px",color:mode===m?"#fff":"#64748b",cursor:"pointer",fontWeight:700,fontSize:14}}>{l}</button>
@@ -171,13 +159,13 @@ function AuthModal({onSuccess,onClose,tc}){
       <input value={f.pass} onChange={e=>setF({...f,pass:e.target.value})} placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" type="password" style={inp}/>
       {mode==="register"&&<textarea value={f.bio} onChange={e=>setF({...f,bio:e.target.value.slice(0,150)})} placeholder="বায়ো (ঐচ্ছিক)" rows={2} style={{...inp,resize:"none",lineHeight:1.5}}/>}
       {err&&<p style={{color:"#ef4444",fontSize:12,marginBottom:10,background:"#ef444411",padding:"8px 12px",borderRadius:10}}>⚠️ {err}</p>}
-      <button onClick={submit} disabled={busy} style={{width:"100%",background:busy?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"13px",color:"#fff",cursor:busy?"default":"pointer",fontWeight:700,fontSize:15}}>
+      <button onClick={go} disabled={busy} style={{width:"100%",background:busy?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"13px",color:"#fff",cursor:busy?"default":"pointer",fontWeight:700,fontSize:15}}>
         {busy?"লোড হচ্ছে...":mode==="login"?"লগইন করো 🚀":"রেজিস্ট্রেশন করো ✨"}
       </button>
-    </BottomSheet>
+    </Sheet>
   );
 }
-// ── Poll ───────────────────────────────────────────────────────────────────────
+// ── Poll ──────────────────────────────────────────────────────────────────────
 function Poll({poll,postId,myId,onVote,tc}){
   if(!poll)return null;
   const total=poll.options.reduce((a,o)=>a+(o.votes||[]).length,0);
@@ -204,8 +192,9 @@ function Poll({poll,postId,myId,onVote,tc}){
     </div>
   );
 }
-// ── PostCard ───────────────────────────────────────────────────────────────────
-function PostCard({p,me,tc,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVote,onEdit,onDelete,onMsgUser,onViewProfile,onFollow,onAuthReq,comments=[],localLike}){
+
+// ── PostCard ──────────────────────────────────────────────────────────────────
+function PostCard({p,me,tc,onLike,onReact,onComment,onShare,onCopy,onBookmark,onVote,onEdit,onDelete,onMsgUser,onViewProfile,onFollow,onPin,onAuthReq,comments=[],localLike}){
   const [showC,setShowC]=useState(false);
   const [cText,setCText]=useState("");
   const [replyTo,setReplyTo]=useState(null);
@@ -237,7 +226,6 @@ function PostCard({p,me,tc,onLike,onReact,onComment,onShare,onCopy,onBookmark,on
       {p.pinned&&<div style={{background:"#10b98122",padding:"5px 14px",fontSize:11,color:"#10b981",borderBottom:"1px solid #10b98133"}}>📌 পিন করা পোস্ট</div>}
       {p.tag&&<div style={{height:3,background:`linear-gradient(90deg,${tc2},transparent)`}}/>}
       <div style={{padding:"13px 13px 0"}}>
-        {/* Header */}
         <div style={{display:"flex",gap:9,marginBottom:10,alignItems:"flex-start"}}>
           <div onClick={()=>p.is_reg&&onViewProfile(p.author_id)} style={{cursor:p.is_reg?"pointer":"default"}}>
             <Av u={p.username} color={p.color} size={38} verified={p.verified||false} isReg={p.is_reg}/>
@@ -245,8 +233,7 @@ function PostCard({p,me,tc,onLike,onReact,onComment,onShare,onCopy,onBookmark,on
           <div style={{flex:1,minWidth:0}}>
             <div style={{display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}}>
               <span onClick={()=>p.is_reg&&onViewProfile(p.author_id)} style={{color:"#c4b5fd",fontWeight:700,fontSize:14,cursor:p.is_reg?"pointer":"default",textDecoration:p.is_reg?"underline dotted":"none",textUnderlineOffset:3}}>{p.username}</span>
-              {p.is_reg&&<RBadge/>}
-              {p.verified&&<VBadge/>}
+              {p.is_reg&&<RBadge/>}{p.verified&&<VBadge/>}
               {p.mood&&<span style={{fontSize:10,background:tc.input,padding:"2px 6px",borderRadius:8,color:tc.sub}}>{p.mood}</span>}
               {p.is_reg&&!isOwner&&(
                 <button onClick={()=>me.type==="registered"?onFollow(p.author_id):onAuthReq()} style={{background:isFollowing?"#1a1a2e":"#7c3aed22",border:`1px solid ${isFollowing?"#2a2a40":"#7c3aed55"}`,borderRadius:10,padding:"2px 8px",color:isFollowing?"#475569":"#a855f7",cursor:"pointer",fontSize:10,fontWeight:700}}>
@@ -272,8 +259,6 @@ function PostCard({p,me,tc,onLike,onReact,onComment,onShare,onCopy,onBookmark,on
             </div>
           </div>
         </div>
-
-        {/* Content */}
         {editing?(
           <div style={{marginBottom:10}}>
             <textarea value={editText} onChange={e=>setEditText(e.target.value)} rows={3} style={{width:"100%",background:tc.input,border:"1px solid #7c3aed",borderRadius:12,padding:"10px",color:tc.text,fontSize:14,outline:"none",resize:"none"}}/>
@@ -288,10 +273,8 @@ function PostCard({p,me,tc,onLike,onReact,onComment,onShare,onCopy,onBookmark,on
             {isLong&&<span onClick={()=>setExp(!exp)} style={{color:"#7c3aed",cursor:"pointer",marginLeft:5,fontSize:12}}>{exp?"↑ কম":"↓ আরো"}</span>}
           </p>
         )}
-
         {p.image_url&&<div style={{borderRadius:14,overflow:"hidden",marginBottom:10,border:`1px solid ${tc.border}`}}><img src={p.image_url} alt="post" style={{width:"100%",maxHeight:300,objectFit:"cover",display:"block"}}/></div>}
         {p.poll&&<Poll poll={p.poll} postId={p.id} myId={me.id} onVote={onVote} tc={tc}/>}
-
         {totalR>0&&(
           <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
             {Object.entries(p.reactions||{}).filter(([,v])=>Array.isArray(v)&&v.length>0).map(([r,v])=>(
@@ -300,16 +283,9 @@ function PostCard({p,me,tc,onLike,onReact,onComment,onShare,onCopy,onBookmark,on
           </div>
         )}
       </div>
-
-      {/* Actions */}
       <div style={{display:"flex",alignItems:"center",borderTop:`1px solid ${tc.border}`,padding:"6px 4px",position:"relative"}}>
-        {[
-          {ic:liked?"❤️":"🤍",val:likeCount,fn:()=>onLike(p.id,liked),active:liked,col:"#ec4899"},
-          {ic:"😄",val:totalR,fn:()=>setShowReact(!showReact),active:showReact,col:"#f59e0b"},
-          {ic:"💬",val:comments.length,fn:()=>setShowC(!showC),active:showC,col:"#3b82f6"},
-          {ic:"🔁",val:p.shares||0,fn:()=>onShare(p.id),active:false,col:"#10b981"},
-        ].map((a,i)=>(
-          <button key={i} onClick={a.fn} style={{flex:1,background:a.active?a.col+"18":"transparent",border:"none",color:a.active?a.col:"#3f3f5a",cursor:"pointer",padding:"7px 2px",borderRadius:10,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",gap:3,fontWeight:a.active?700:400}}>
+        {[{ic:liked?"❤️":"🤍",val:likeCount,fn:()=>onLike(p.id,liked),act:liked,col:"#ec4899"},{ic:"😄",val:totalR,fn:()=>setShowReact(!showReact),act:showReact,col:"#f59e0b"},{ic:"💬",val:comments.length,fn:()=>setShowC(!showC),act:showC,col:"#3b82f6"},{ic:"🔁",val:p.shares||0,fn:()=>onShare(p.id),act:false,col:"#10b981"}].map((a,i)=>(
+          <button key={i} onClick={a.fn} style={{flex:1,background:a.act?a.col+"18":"transparent",border:"none",color:a.act?a.col:"#3f3f5a",cursor:"pointer",padding:"7px 2px",borderRadius:10,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",gap:3,fontWeight:a.act?700:400}}>
             {a.ic}<span style={{fontSize:11}}>{a.val}</span>
           </button>
         ))}
@@ -321,7 +297,6 @@ function PostCard({p,me,tc,onLike,onReact,onComment,onShare,onCopy,onBookmark,on
           </div>
         )}
       </div>
-{/* Comments */}
       {showC&&(
         <div style={{borderTop:`1px solid ${tc.border}`,padding:"12px 13px"}}>
           {comments.length===0&&<p style={{color:tc.dim,fontSize:12,textAlign:"center",marginBottom:10}}>প্রথম কমেন্ট করো! 💬</p>}
@@ -353,7 +328,7 @@ function PostCard({p,me,tc,onLike,onReact,onComment,onShare,onCopy,onBookmark,on
     </div>
   );
 }
-// ── Compose ────────────────────────────────────────────────────────────────────
+// ── Compose ───────────────────────────────────────────────────────────────────
 function Compose({me,tc,onPost,onClose}){
   const [text,setText]=useState("");
   const [tag,setTag]=useState(TAGS[0]);
@@ -361,36 +336,24 @@ function Compose({me,tc,onPost,onClose}){
   const [postAs,setPostAs]=useState("me");
   const [showPoll,setShowPoll]=useState(false);
   const [pq,setPq]=useState("");
-  const [popts,setPopts]=useState(["",""]);
+  const [po,setPo]=useState(["",""]);
   const [imgFile,setImgFile]=useState(null);
   const [imgPrev,setImgPrev]=useState(null);
   const [busy,setBusy]=useState(false);
-  const fileRef=useRef();
-
-  const handleImg=e=>{
-    const f=e.target.files[0];if(!f)return;
-    if(f.size>5*1024*1024){alert("ছবি ৫MB এর বেশি হওয়া যাবে না!");return;}
-    setImgFile(f);const r=new FileReader();r.onload=ev=>setImgPrev(ev.target.result);r.readAsDataURL(f);
-  };
-
-  const submit=async()=>{
-    if(!text.trim()&&!imgFile)return;
-    setBusy(true);
+  const fRef=useRef();
+  const handleImg=e=>{const f=e.target.files[0];if(!f)return;if(f.size>5*1024*1024){alert("ছবি ৫MB এর বেশি হওয়া যাবে না!");return;}setImgFile(f);const r=new FileReader();r.onload=ev=>setImgPrev(ev.target.result);r.readAsDataURL(f);};
+  const go=async()=>{
+    if(!text.trim()&&!imgFile)return;setBusy(true);
     const isAnon=me.type==="guest"||(me.type==="registered"&&postAs==="anon");
     let image_url=null;
-    if(imgFile){
-      const fname=`${genId()}.${imgFile.name.split('.').pop()}`;
-      const{error}=await sb.storage.from("post-images").upload(fname,imgFile);
-      if(!error){const{data:u}=sb.storage.from("post-images").getPublicUrl(fname);image_url=u.publicUrl;}
-    }
-    const poll=showPoll&&pq.trim()&&popts.filter(o=>o.trim()).length>=2?{question:pq,options:popts.filter(o=>o.trim()).map(o=>({text:o,votes:[]})),voted:[]}:null;
+    if(imgFile){const fn=`${genId()}.${imgFile.name.split('.').pop()}`;const{error}=await sb.storage.from("post-images").upload(fn,imgFile);if(!error){const{data:u}=sb.storage.from("post-images").getPublicUrl(fn);image_url=u.publicUrl;}}
+    const poll=showPoll&&pq.trim()&&po.filter(o=>o.trim()).length>=2?{question:pq,options:po.filter(o=>o.trim()).map(o=>({text:o,votes:[]})),voted:[]}:null;
     await onPost({author_id:isAnon?"anon_"+genId():me.id,username:isAnon?genUser():me.username,is_reg:!isAnon&&me.type==="registered",verified:!isAnon&&(me.verified||false),color:isAnon?genColor():me.color,content:text,tag,mood,image_url,poll,likes:[],reactions:{},shares:0,views:1,bookmarks:[],pinned:false,edited:false});
     setBusy(false);onClose();
   };
-
   const inp={width:"100%",background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"10px 13px",color:tc.text,fontSize:13,outline:"none",marginBottom:8};
   return(
-    <BottomSheet title="✏️ নতুন পোস্ট" onClose={onClose} tc={tc}>
+    <Sheet title="✏️ নতুন পোস্ট" onClose={onClose} tc={tc}>
       {me.type==="registered"&&(
         <div style={{display:"flex",gap:6,marginBottom:12,background:tc.input,borderRadius:12,padding:4}}>
           {[["me","🆅 নিজের নামে"],["anon","🎭 বেনামে"]].map(([v,l])=>(
@@ -399,295 +362,382 @@ function Compose({me,tc,onPost,onClose}){
         </div>
       )}
       <textarea value={text} onChange={e=>setText(e.target.value.slice(0,500))} placeholder="মনের কথা লিখো... 🎭" rows={4} style={{...inp,resize:"none",lineHeight:1.65,borderRadius:14,padding:12,marginBottom:10}}/>
-      {imgPrev&&(
-        <div style={{position:"relative",marginBottom:10,borderRadius:12,overflow:"hidden",border:`1px solid ${tc.border}`}}>
-          <img src={imgPrev} style={{width:"100%",maxHeight:200,objectFit:"cover",display:"block"}}/>
-          <button onClick={()=>{setImgFile(null);setImgPrev(null);}} style={{position:"absolute",top:6,right:6,background:"#000a",border:"none",color:"#fff",borderRadius:"50%",width:26,height:26,cursor:"pointer",fontSize:14}}>✕</button>
-        </div>
-      )}
+      {imgPrev&&(<div style={{position:"relative",marginBottom:10,borderRadius:12,overflow:"hidden",border:`1px solid ${tc.border}`}}><img src={imgPrev} style={{width:"100%",maxHeight:200,objectFit:"cover",display:"block"}}/><button onClick={()=>{setImgFile(null);setImgPrev(null);}} style={{position:"absolute",top:6,right:6,background:"#000a",border:"none",color:"#fff",borderRadius:"50%",width:26,height:26,cursor:"pointer",fontSize:14}}>✕</button></div>)}
       <div style={{display:"flex",gap:7,marginBottom:10}}>
-        <button onClick={()=>fileRef.current.click()} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"7px 12px",color:tc.sub,cursor:"pointer",fontSize:13}}>📷 ছবি</button>
+        <button onClick={()=>fRef.current.click()} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"7px 12px",color:tc.sub,cursor:"pointer",fontSize:13}}>📷 ছবি</button>
         <button onClick={()=>setShowPoll(!showPoll)} style={{background:showPoll?"#7c3aed33":tc.input,border:`1px solid ${showPoll?"#7c3aed":tc.border}`,borderRadius:12,padding:"7px 12px",color:showPoll?"#a855f7":tc.sub,cursor:"pointer",fontSize:13}}>📊 পোল</button>
-        <input ref={fileRef} type="file" accept="image/*" onChange={handleImg} style={{display:"none"}}/>
+        <input ref={fRef} type="file" accept="image/*" onChange={handleImg} style={{display:"none"}}/>
       </div>
-      {showPoll&&(
-        <div style={{background:tc.input,borderRadius:14,padding:12,border:`1px solid ${tc.border}`,marginBottom:10}}>
-          <input value={pq} onChange={e=>setPq(e.target.value)} placeholder="প্রশ্ন লিখুন..." style={inp}/>
-          {popts.map((o,i)=>(<input key={i} value={o} onChange={e=>{const n=[...popts];n[i]=e.target.value;setPopts(n);}} placeholder={`বিকল্প ${i+1}`} style={inp}/>))}
-          {popts.length<4&&<button onClick={()=>setPopts([...popts,""])} style={{background:"none",border:"none",color:"#7c3aed",cursor:"pointer",fontSize:12}}>+ আরো</button>}
-        </div>
-      )}
-<div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:10,paddingBottom:2}}>
-        {MOODS.map(m=>(<button key={m} onClick={()=>setMood(mood===m?"":m)} style={{background:mood===m?"#7c3aed33":tc.input,border:`1px solid ${mood===m?"#7c3aed":tc.border}`,borderRadius:14,padding:"5px 10px",color:mood===m?"#a855f7":tc.sub,cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>{m}</button>))}
-      </div>
-      <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:14,paddingBottom:2}}>
-        {TAGS.map(t=>{const c=TAG_C[t];const a=tag===t;return(<button key={t} onClick={()=>setTag(t)} style={{background:a?c+"33":tc.input,border:`1px solid ${a?c:tc.border}`,borderRadius:14,padding:"5px 10px",color:a?c:tc.sub,cursor:"pointer",fontSize:11,whiteSpace:"nowrap",fontWeight:a?700:400}}>{t}</button>);})}
-      </div>
+      {showPoll&&(<div style={{background:tc.input,borderRadius:14,padding:12,border:`1px solid ${tc.border}`,marginBottom:10}}><input value={pq} onChange={e=>setPq(e.target.value)} placeholder="প্রশ্ন লিখুন..." style={inp}/>{po.map((o,i)=>(<input key={i} value={o} onChange={e=>{const n=[...po];n[i]=e.target.value;setPo(n);}} placeholder={`বিকল্প ${i+1}`} style={inp}/>))}{po.length<4&&<button onClick={()=>setPo([...po,""])} style={{background:"none",border:"none",color:"#7c3aed",cursor:"pointer",fontSize:12}}>+ আরো</button>}</div>)}
+      <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:10,paddingBottom:2}}>{MOODS.map(m=>(<button key={m} onClick={()=>setMood(mood===m?"":m)} style={{background:mood===m?"#7c3aed33":tc.input,border:`1px solid ${mood===m?"#7c3aed":tc.border}`,borderRadius:14,padding:"5px 10px",color:mood===m?"#a855f7":tc.sub,cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>{m}</button>))}</div>
+      <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:14,paddingBottom:2}}>{TAGS.map(t=>{const c=TAG_C[t];const a=tag===t;return(<button key={t} onClick={()=>setTag(t)} style={{background:a?c+"33":tc.input,border:`1px solid ${a?c:tc.border}`,borderRadius:14,padding:"5px 10px",color:a?c:tc.sub,cursor:"pointer",fontSize:11,whiteSpace:"nowrap",fontWeight:a?700:400}}>{t}</button>);})}</div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <span style={{color:500-text.length<50?"#ef4444":tc.dim,fontSize:12}}>{500-text.length} বাকি</span>
-        <button onClick={submit} disabled={busy||(!text.trim()&&!imgFile)} style={{background:(!busy&&(text.trim()||imgFile))?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,border:"none",borderRadius:16,padding:"11px 24px",color:(!busy&&(text.trim()||imgFile))?"#fff":tc.sub,cursor:(!busy&&(text.trim()||imgFile))?"pointer":"default",fontWeight:700,fontSize:14}}>
+        <button onClick={go} disabled={busy||(!text.trim()&&!imgFile)} style={{background:(!busy&&(text.trim()||imgFile))?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,border:"none",borderRadius:16,padding:"11px 24px",color:(!busy&&(text.trim()||imgFile))?"#fff":tc.sub,cursor:(!busy&&(text.trim()||imgFile))?"pointer":"default",fontWeight:700,fontSize:14}}>
           {busy?"আপলোড হচ্ছে...":"পোস্ট করো 🚀"}
         </button>
       </div>
-    </BottomSheet>
+    </Sheet>
   );
 }
 
-// ── Messaging (reusable chat UI) ───────────────────────────────────────────────
-function ChatUI({me,tc,title,onBack,onClose,messages,onSend,loading=false}){
-  const [text,setText]=useState("");
-  const endRef=useRef();
-  useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"});},[messages]);
-  const send=()=>{if(!text.trim())return;onSend(text);setText("");};
+// ── Chat bubble UI ─────────────────────────────────────────────────────────────
+function MsgBubble({m,me,tc}){
+  const isMe=m.user_id===me.id||m.from_id===me.id;
   return(
-    <FullScreen title={title} onBack={onBack} onClose={onClose} tc={tc}
-      footer={<div style={{display:"flex",gap:8}}><input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="মেসেজ লিখুন..." style={{flex:1,background:tc.input,border:`1px solid ${tc.border}`,borderRadius:22,padding:"11px 16px",color:tc.text,fontSize:14,outline:"none"}}/><button onClick={send} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:"50%",width:46,height:46,color:"#fff",cursor:"pointer",fontSize:18,flexShrink:0}}>→</button></div>}
-    >
-      {loading&&<Spin/>}
-      {!loading&&messages.length===0&&<div style={{textAlign:"center",padding:"40px 0",color:tc.dim}}><div style={{fontSize:40,marginBottom:8}}>💬</div><p>কথা শুরু করো! 👋</p></div>}
-      {messages.map((m,i)=>{
-        const isMe=m.user_id===me.id||m.from_id===me.id;
-        return(
-          <div key={m.id||i} style={{display:"flex",gap:8,marginBottom:12,flexDirection:isMe?"row-reverse":"row"}}>
-            {!isMe&&<Av u={m.username||m.from_name} color={m.color||"#7c3aed"} size={30} verified={m.verified||false} isReg={m.is_reg||false}/>}
-            <div style={{maxWidth:"75%"}}>
-              {!isMe&&<div style={{color:"#a78bfa",fontSize:11,marginBottom:2,display:"flex",alignItems:"center",gap:3}}>{m.username||m.from_name}{m.is_reg&&<RBadge/>}{m.verified&&<VBadge/>}</div>}
-              <div style={{background:isMe?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,borderRadius:isMe?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",border:isMe?"none":`1px solid ${tc.border}`}}>
-                <p style={{color:"#e2e8f0",fontSize:14,margin:0,lineHeight:1.5,wordBreak:"break-word"}}>{m.content||m.text}</p>
-              </div>
-              <div style={{color:tc.dim,fontSize:10,marginTop:3,textAlign:isMe?"right":"left"}}>{timeAgo(m.created_at)}</div>
-            </div>
-          </div>
-        );
-      })}
-      <div ref={endRef}/>
-    </FullScreen>
-  );
-}
-// ── Inbox ──────────────────────────────────────────────────────────────────────
-function Inbox({me,tc,onClose,setShowGroups}){
-  const [threads,setThreads]=useState([]);
-  const [selected,setSelected]=useState(null);
-  const [msgs,setMsgs]=useState([]);
-  const [users,setUsers]=useState({});
-  const [loading,setLoading]=useState(true);
-
-  useEffect(()=>{load();const i=setInterval(()=>{if(selected)loadMsgs(selected);else load();},8000);return()=>clearInterval(i);},[selected]);
-
-  const load=async()=>{
-    const{data}=await sb.from("messages").select("*").or(`from_id.eq.${me.id},to_id.eq.${me.id}`).order("created_at",{ascending:false});
-    if(!data){setLoading(false);return;}
-    const ids=[...new Set(data.map(m=>m.from_id===me.id?m.to_id:m.from_id))];
-    setThreads(ids.map(tid=>({tid,last:data.find(m=>m.from_id===tid||m.to_id===tid),unread:data.filter(m=>m.from_id===tid&&m.to_id===me.id&&!m.read).length})));
-    if(ids.length>0){const{data:ud}=await sb.from("users").select("id,username,color,verified").in("id",ids);if(ud){const um={};ud.forEach(u=>um[u.id]=u);setUsers(um);}}
-    setLoading(false);
-  };
-  const loadMsgs=async(tid)=>{const{data}=await sb.from("messages").select("*").or(`and(from_id.eq.${me.id},to_id.eq.${tid}),and(from_id.eq.${tid},to_id.eq.${me.id})`).order("created_at");if(data)setMsgs(data);};
-  const send=async(text)=>{const{data}=await sb.from("messages").insert({from_id:me.id,from_name:me.username,to_id:selected,content:text,read:false}).select().single();if(data)setMsgs(m=>[...m,data]);};
-
-  if(selected){
-    const u=users[selected];
-    return <ChatUI me={me} tc={tc} title={u?u.username:"ইনবক্স"} onBack={()=>setSelected(null)} onClose={onClose} messages={msgs.map(m=>({...m,user_id:m.from_id,username:m.from_name}))} onSend={send}/>;
-  }
-
-  return(
-    <FullScreen title="📬 ইনবক্স" onBack={null} onClose={onClose} tc={tc}>
-      {loading&&<Spin/>}
-      {!loading&&threads.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>💌</div><p>কোনো মেসেজ নেই</p></div>}
-      {threads.map(({tid,last,unread})=>{
-        const u=users[tid];
-        return(
-          <div key={tid} onClick={()=>{setSelected(tid);loadMsgs(tid);}} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,cursor:"pointer",background:unread>0?"#7c3aed11":tc.card,border:`1px solid ${unread>0?"#7c3aed33":tc.border}`,marginBottom:10,alignItems:"center"}}>
-            {u?<Av u={u.username} color={u.color} size={46} verified={u.verified||false} isReg={true}/>:<div style={{width:46,height:46,borderRadius:"50%",background:tc.input,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>🎭</div>}
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{color:"#c4b5fd",fontWeight:unread>0?700:500,fontSize:15}}>{u?u.username:"অজানা"}</div>
-              <div style={{color:tc.sub,fontSize:13,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginTop:2}}>{last?.content}</div>
-            </div>
-            {unread>0&&<div style={{background:"#7c3aed",color:"#fff",borderRadius:"50%",width:20,height:20,fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unread}</div>}
-          </div>
-        );
-      })}
-      <div style={{marginTop:12}}>
-        <button onClick={()=>{onClose(); setTimeout(()=>setShowGroups(true), 100);}} style={{width:"100%",background:"#7c3aed22",border:"1px solid #7c3aed44",borderRadius:14,padding:"11px",color:"#a855f7",cursor:"pointer",fontWeight:700,fontSize:14}}>
-          ➕ নতুন প্রাইভেট গ্রুপ তৈরি করো
-        </button>
+    <div style={{display:"flex",gap:8,marginBottom:12,flexDirection:isMe?"row-reverse":"row"}}>
+      {!isMe&&<Av u={m.username||m.from_name||"?"} color={m.color||"#7c3aed"} size={30} verified={m.verified||false} isReg={m.is_reg||false}/>}
+      <div style={{maxWidth:"75%"}}>
+        {!isMe&&<div style={{color:"#a78bfa",fontSize:11,marginBottom:2,display:"flex",alignItems:"center",gap:3}}>{m.username||m.from_name}{m.is_reg&&<RBadge/>}{m.verified&&<VBadge/>}</div>}
+        <div style={{background:isMe?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,borderRadius:isMe?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",border:isMe?"none":`1px solid ${tc.border}`}}>
+          <p style={{color:"#e2e8f0",fontSize:14,margin:0,lineHeight:1.5,wordBreak:"break-word"}}>{m.content||m.text}</p>
+        </div>
+        <div style={{color:tc.dim,fontSize:10,marginTop:3,textAlign:isMe?"right":"left"}}>{timeAgo(m.created_at)}</div>
       </div>
-    </FullScreen>
+    </div>
   );
 }
-// ── Chat Rooms (Public) + Groups (Private) ─────────────────────────────────────
-function Rooms({me,tc,onClose,isGroup=false}){
+
+// ── Inbox + Groups (Combined) ─────────────────────────────────────────────────
+function InboxPanel({me,tc,onClose,initTab="dm"}){
+  const [tab,setTab]=useState(initTab); // "dm" | "groups" | "rooms"
+  const [dmThreads,setDmThreads]=useState([]);
+  const [groups,setGroups]=useState([]);
   const [rooms,setRooms]=useState([]);
-  const [active,setActive]=useState(null);
+  const [activeChat,setActiveChat]=useState(null); // {type,id,name,data}
   const [msgs,setMsgs]=useState([]);
+  const [text,setText]=useState("");
+  const [users,setUsers]=useState({});
+  const [loading,setLoading]=useState(false);
   const [creating,setCreating]=useState(false);
-  const [rname,setRname]=useState("");
-  const [groupPic,setGroupPic]=useState(null);
-  const [groupPicPreview,setGroupPicPreview]=useState(null);
-  const [loading,setLoading]=useState(true);
-  const [showMemberModal,setShowMemberModal]=useState(false);
-  const [selectedGroup,setSelectedGroup]=useState(null);
-  const [friends,setFriends]=useState([]);
-  const fileRef=useRef();
+  const [newName,setNewName]=useState("");
+  const [logoFile,setLogoFile]=useState(null);
+  const [logoPrev,setLogoPrev]=useState(null);
+  const [showAddMember,setShowAddMember]=useState(false);
+  const [memberSearch,setMemberSearch]=useState("");
+  const [memberResults,setMemberResults]=useState([]);
+  const [showMembers,setShowMembers]=useState(false);
+  const endRef=useRef();
+  const logoRef=useRef();
 
-  // ✅ সঠিক নিয়ম: গ্রুপ সব রেজিস্টার্ড, রুম শুধু ভেরিফাইড
-  const canCreate = isGroup 
-    ? (me.type === "registered")  // গ্রুপ: যেকোনো রেজিস্টার্ড ইউজার
-    : (me.type === "registered" && me.verified === true); // রুম: শুধু ভেরিফাইড
+  useEffect(()=>{loadAll();const i=setInterval(()=>{if(activeChat)loadMsgs(activeChat);else loadAll();},8000);return()=>clearInterval(i);},[activeChat]);
+  useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"});},[msgs]);
 
-  useEffect(()=>{load();const i=setInterval(()=>{if(active)loadMsgs(active.id);else load();},8000);return()=>clearInterval(i);},[active]);
-
-  const load=async()=>{
-    const table=isGroup?"groups":"rooms";
-    const{data}=await sb.from(table).select("*").order("created_at",{ascending:false});
-    if(data){
-      if(isGroup){
-        const myGroups=data.filter(g=>g.members?.includes(me.id));
-        setRooms(myGroups);
-      }else setRooms(data);
+  const loadAll=async()=>{
+    // DM threads
+    const{data:dms}=await sb.from("messages").select("*").or(`from_id.eq.${me.id},to_id.eq.${me.id}`).order("created_at",{ascending:false});
+    if(dms){
+      const ids=[...new Set(dms.map(m=>m.from_id===me.id?m.to_id:m.from_id))];
+      setDmThreads(ids.map(tid=>({tid,last:dms.find(m=>m.from_id===tid||m.to_id===tid),unread:dms.filter(m=>m.from_id===tid&&m.to_id===me.id&&!m.read).length})));
+      if(ids.length>0){const{data:ud}=await sb.from("users").select("id,username,color,verified").in("id",ids);if(ud){const um={};ud.forEach(u=>um[u.id]=u);setUsers(um);}}
     }
-    setLoading(false);
+    // Groups (user is member)
+    const{data:grps}=await sb.from("groups").select("*").contains("members",[me.id]).order("created_at",{ascending:false});
+    if(grps)setGroups(grps);
+    // Rooms (public - verified only create, all can join)
+    const{data:rms}=await sb.from("rooms").select("*").order("created_at",{ascending:false});
+    if(rms)setRooms(rms);
   };
-  
-  const loadFriends=async()=>{
-    const{data}=await sb.from("users").select("id,username,color,verified").neq("id",me.id);
-    if(data)setFriends(data);
-  };
-  
-  const loadMsgs=async(id)=>{
-    const table=isGroup?"group_messages":"room_messages";
-    const{data}=await sb.from(table).select("*").eq(isGroup?"group_id":"room_id",id).order("created_at");
-    if(data)setMsgs(data);
-  };
-  const handleGroupPic=(e)=>{
-    const f=e.target.files[0];if(!f)return;
-    if(f.size>2*1024*1024){alert("ছবি ২MB এর কম হতে হবে!");return;}
-    const url=URL.createObjectURL(f);setGroupPic(f);setGroupPicPreview(url);
-  };
-  const uploadPic=async()=>{
-    if(!groupPic)return null;
-    const ext=groupPic.name.split('.').pop();
-    const fname=`${genId()}.${ext}`;
-    const{error}=await sb.storage.from("group-pics").upload(fname,groupPic);
-    if(error){console.error(error);return null;}
-    const{data:u}=sb.storage.from("group-pics").getPublicUrl(fname);
-    return u.publicUrl;
-  };
-  const create=async()=>{
-    if(!canCreate||!rname.trim())return;
-    let avatarUrl=null;
-    if(isGroup&&groupPic)avatarUrl=await uploadPic();
-    if(isGroup){
-      const{data}=await sb.from("groups").insert({name:rname,members:[me.id],admin_id:me.id,avatar:avatarUrl}).select().single();
-      if(data){setRooms(r=>[data,...r]);setRname("");setGroupPic(null);setGroupPicPreview(null);setCreating(false);}
-    }else{
-      const{data}=await sb.from("rooms").insert({name:rname,owner_id:me.id,owner_name:me.username}).select().single();
-      if(data){setRooms(r=>[data,...r]);setRname("");setCreating(false);}
+
+  const loadMsgs=async(chat)=>{
+    if(!chat)return;
+    if(chat.type==="dm"){
+      const{data}=await sb.from("messages").select("*").or(`and(from_id.eq.${me.id},to_id.eq.${chat.id}),and(from_id.eq.${chat.id},to_id.eq.${me.id})`).order("created_at");
+      if(data)setMsgs(data.map(m=>({...m,user_id:m.from_id,username:m.from_name,color:users[m.from_id]?.color||"#7c3aed"})));
+    } else if(chat.type==="group"){
+      const{data}=await sb.from("group_messages").select("*").eq("group_id",chat.id).order("created_at");
+      if(data)setMsgs(data);
+    } else {
+      const{data}=await sb.from("room_messages").select("*").eq("room_id",chat.id).order("created_at");
+      if(data)setMsgs(data);
     }
   };
-  
-  const addMember = async (groupId, userId) => {
-    const grp = rooms.find(r => r.id === groupId);
-    if (!grp || grp.admin_id !== me.id) return;
-    if (grp.members?.includes(userId)) return;
-    const newMembers = [...(grp.members || []), userId];
-    await sb.from("groups").update({ members: newMembers }).eq("id", groupId);
-    await load();
-    setShowMemberModal(false);
+
+  const openChat=async(chat)=>{setActiveChat(chat);setMsgs([]);setLoading(true);await loadMsgs(chat);setLoading(false);};
+
+  const send=async()=>{
+    if(!text.trim()||!activeChat)return;
+    if(activeChat.type==="dm"){
+      const{data}=await sb.from("messages").insert({from_id:me.id,from_name:me.username,to_id:activeChat.id,content:text,read:false}).select().single();
+      if(data)setMsgs(m=>[...m,{...data,user_id:data.from_id,username:data.from_name,color:me.color}]);
+    } else if(activeChat.type==="group"){
+      const{data}=await sb.from("group_messages").insert({group_id:activeChat.id,user_id:me.id,username:me.username,color:me.color,verified:me.verified||false,is_reg:me.type==="registered",content:text}).select().single();
+      if(data)setMsgs(m=>[...m,data]);
+    } else {
+      const{data}=await sb.from("room_messages").insert({room_id:activeChat.id,user_id:me.id,username:me.username,color:me.color,verified:me.verified||false,is_reg:me.type==="registered",content:text}).select().single();
+      if(data)setMsgs(m=>[...m,data]);
+    }
+    setText("");
   };
-  
-  const leaveGroup=async(groupId)=>{
-    const grp=rooms.find(r=>r.id===groupId);
+
+  // Create group
+  const handleLogoFile=e=>{const f=e.target.files[0];if(!f)return;setLogoFile(f);const r=new FileReader();r.onload=ev=>setLogoPrev(ev.target.result);r.readAsDataURL(f);};
+
+  const createGroup=async()=>{
+    if(!newName.trim())return;
+    let logo_url=null;
+    if(logoFile){const fn=`group_${genId()}.${logoFile.name.split('.').pop()}`;const{error}=await sb.storage.from("post-images").upload(fn,logoFile);if(!error){const{data:u}=sb.storage.from("post-images").getPublicUrl(fn);logo_url=u.publicUrl;}}
+    const{data}=await sb.from("groups").insert({name:newName,owner_id:me.id,owner_name:me.username,members:[me.id],logo_url}).select().single();
+    if(data){setGroups(g=>[data,...g]);setNewName("");setLogoFile(null);setLogoPrev(null);setCreating(false);}
+  };
+
+  // Create room (verified only)
+  const createRoom=async()=>{
+    if(!me.verified){alert("শুধু ✅ ভেরিফাইড ইউজাররা রুম তৈরি করতে পারবে!");return;}
+    if(!newName.trim())return;
+    const{data}=await sb.from("rooms").insert({name:newName,owner_id:me.id,owner_name:me.username}).select().single();
+    if(data){setRooms(r=>[data,...r]);setNewName("");setCreating(false);}
+  };
+
+  // Add member to group
+  const searchMembers=async(q)=>{
+    setMemberSearch(q);
+    if(!q.trim()){setMemberResults([]);return;}
+    const{data}=await sb.from("users").select("id,username,color,verified").ilike("username",`%${q}%`).neq("id",me.id).limit(10);
+    if(data)setMemberResults(data);
+  };
+
+  const addMember=async(uid)=>{
+    if(!activeChat||activeChat.type!=="group")return;
+    const grp=groups.find(g=>g.id===activeChat.id);
+    if(!grp||grp.owner_id!==me.id)return;
+    if((grp.members||[]).length>=MAX_GROUP){alert(`গ্রুপে সর্বোচ্চ ${MAX_GROUP} জন হতে পারবে!`);return;}
+    if((grp.members||[]).includes(uid)){alert("এই ইউজার আগেই গ্রুপে আছে!");return;}
+    const newMembers=[...(grp.members||[]),uid];
+    await sb.from("groups").update({members:newMembers}).eq("id",grp.id);
+    setGroups(gs=>gs.map(g=>g.id===grp.id?{...g,members:newMembers}:g));
+    setActiveChat(c=>({...c,data:{...c.data,members:newMembers}}));
+    setMemberSearch("");setMemberResults([]);
+  };
+
+  const removeMember=async(uid)=>{
+    if(!activeChat||activeChat.type!=="group")return;
+    const grp=groups.find(g=>g.id===activeChat.id);
+    if(!grp||grp.owner_id!==me.id)return;
+    const newMembers=(grp.members||[]).filter(m=>m!==uid);
+    await sb.from("groups").update({members:newMembers}).eq("id",grp.id);
+    setGroups(gs=>gs.map(g=>g.id===grp.id?{...g,members:newMembers}:g));
+  };
+
+  const leaveGroup=async()=>{
+    if(!activeChat||activeChat.type!=="group")return;
+    const grp=groups.find(g=>g.id===activeChat.id);
     if(!grp)return;
-    const newMembers=(grp.members||[]).filter(id=>id!==me.id);
-    await sb.from("groups").update({members:newMembers}).eq("id",groupId);
-    load();
-    if(active?.id===groupId)setActive(null);
-  };
-  const del=async(id)=>{
-    const table=isGroup?"groups":"rooms";
-    await sb.from(table).delete().eq("id",id);
-    setRooms(r=>r.filter(x=>x.id!==id));
-  };
-  const send=async(text)=>{
-    const table=isGroup?"group_messages":"room_messages";
-    const idField=isGroup?"group_id":"room_id";
-    const{data}=await sb.from(table).insert({[idField]:active.id,user_id:me.id,username:me.username,is_reg:me.type==="registered",verified:me.verified||false,color:me.color,content:text}).select().single();
-    if(data)setMsgs(m=>[...m,data]);
+    if(grp.owner_id===me.id){if(!confirm("তুমি owner! গ্রুপ ডিলিট হয়ে যাবে। নিশ্চিত?"))return;await sb.from("groups").delete().eq("id",grp.id);setGroups(g=>g.filter(x=>x.id!==grp.id));}
+    else{const nm=(grp.members||[]).filter(m=>m!==me.id);await sb.from("groups").update({members:nm}).eq("id",grp.id);setGroups(gs=>gs.map(g=>g.id===grp.id?{...g,members:nm}:g));}
+    setActiveChat(null);
   };
 
-  if(active)return <ChatUI me={me} tc={tc} title={active.name} onBack={()=>setActive(null)} onClose={onClose} messages={msgs} onSend={send}/>;
+  const deleteRoom=async(id)=>{await sb.from("rooms").delete().eq("id",id);setRooms(r=>r.filter(x=>x.id!==id));};
 
-  return(
-    <FullScreen title={isGroup?"👥 প্রাইভেট গ্রুপ":"💬 পাবলিক রুম"} onBack={null} onClose={onClose} tc={tc}>
-      {canCreate?(
-        <button onClick={()=>setCreating(!creating)} style={{width:"100%",background:`linear-gradient(135deg,${isGroup?"#7c3aed,#3b82f6":"#10b981,#059669"})`,border:"none",borderRadius:14,padding:"12px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginBottom:12}}>
-          + {isGroup?"নতুন প্রাইভেট গ্রুপ তৈরি করো":"নতুন পাবলিক রুম তৈরি করো"} {isGroup?"👥":"✅"}
-        </button>
-      ):(
-        <div style={{background:"#10b98111",border:"1px solid #10b98133",borderRadius:14,padding:"14px",marginBottom:12,textAlign:"center"}}>
-          <div style={{fontSize:28,marginBottom:6}}>🔒</div>
-          <p style={{color:"#10b981",fontSize:13,fontWeight:600}}>
-            {isGroup?"রেজিস্ট্রেশন করলে গ্রুপ তৈরি করতে পারবে":"শুধুমাত্র ✅ ভেরিফাইড ইউজাররা পাবলিক রুম তৈরি করতে পারবে"}
-          </p>
+  const chatTitle=activeChat?(activeChat.type==="dm"?(users[activeChat.id]?.username||"DM"):activeChat.name):(tab==="dm"?"📬 ইনবক্স":tab==="groups"?"👥 গ্রুপ":"💬 চ্যাট রুম");
+
+  // Active chat header
+  const renderChatHeader=()=>{
+    if(!activeChat)return null;
+    const grp=activeChat.type==="group"?groups.find(g=>g.id===activeChat.id):null;
+    const isOwner=grp&&grp.owner_id===me.id;
+    return(
+      <div style={{display:"flex",alignItems:"center",gap:8,flex:1,minWidth:0}}>
+        {activeChat.type==="group"&&grp&&<Av u={grp.name} color="#7c3aed" size={34} logo={grp.logo_url}/>}
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{color:"#c4b5fd",fontWeight:700,fontSize:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{chatTitle}</div>
+          {activeChat.type==="group"&&grp&&<div style={{color:tc.sub,fontSize:11}}>{(grp.members||[]).length}/{MAX_GROUP} জন</div>}
+        </div>
+        {activeChat.type==="group"&&(
+          <div style={{display:"flex",gap:5}}>
+            {isOwner&&<button onClick={()=>setShowAddMember(true)} style={{background:"#7c3aed22",border:"1px solid #7c3aed44",borderRadius:10,padding:"5px 8px",color:"#a855f7",cursor:"pointer",fontSize:12}}>+ সদস্য</button>}
+            <button onClick={()=>setShowMembers(true)} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:10,padding:"5px 8px",color:tc.sub,cursor:"pointer",fontSize:12}}>👥</button>
+            <button onClick={leaveGroup} style={{background:"#ef444422",border:"1px solid #ef444444",borderRadius:10,padding:"5px 8px",color:"#ef4444",cursor:"pointer",fontSize:12}}>🚪</button>
+          </div>
+        )}
+      </div>
+    );
+  };
+return(
+    <div style={{position:"fixed",inset:0,background:tc.bg,zIndex:700,display:"flex",flexDirection:"column",maxWidth:480,margin:"0 auto"}}>
+      {/* Header */}
+      <div style={{background:tc.nav,borderBottom:`1px solid ${tc.border}`,padding:"0 12px",height:54,display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+        <button onClick={activeChat?()=>setActiveChat(null):onClose} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:16,flexShrink:0}}>←</button>
+        {activeChat?renderChatHeader():<span style={{color:"#c4b5fd",fontWeight:800,fontSize:17,flex:1}}>💌 মেসেজ</span>}
+        {!activeChat&&<button onClick={onClose} style={{background:tc.input,border:"none",color:"#64748b",width:34,height:34,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>}
+      </div>
+
+      {/* Tabs (only when no active chat) */}
+      {!activeChat&&(
+        <div style={{display:"flex",background:tc.strip,borderBottom:`1px solid ${tc.border}`}}>
+          {[["dm","💌 DM"],["groups","👥 গ্রুপ"],["rooms","💬 রুম"]].map(([id,label])=>(
+            <button key={id} onClick={()=>{setTab(id);setCreating(false);}} style={{flex:1,background:"none",border:"none",borderBottom:`2px solid ${tab===id?"#7c3aed":"transparent"}`,padding:"10px 0",color:tab===id?"#a855f7":tc.sub,cursor:"pointer",fontSize:13,fontWeight:tab===id?700:400}}>{label}</button>
+          ))}
         </div>
       )}
-      {creating&&canCreate&&(
-        <div style={{background:tc.input,borderRadius:14,padding:12,border:`1px solid ${isGroup?"#7c3aed44":"#10b98144"}`,marginBottom:12}}>
-          <input value={rname} onChange={e=>setRname(e.target.value)} onKeyDown={e=>e.key==="Enter"&&create()} placeholder={isGroup?"গ্রুপের নাম...":"রুমের নাম..."} style={{width:"100%",background:tc.bg,border:`1px solid ${tc.border}`,borderRadius:12,padding:"10px 13px",color:tc.text,fontSize:13,outline:"none",marginBottom:8}}/>
-          {isGroup&&(
-            <div style={{marginBottom:12}}>
-              <div onClick={()=>fileRef.current.click()} style={{width:64,height:64,borderRadius:"50%",background:tc.input,border:`2px dashed #7c3aed`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden",marginBottom:6}}>
-                {groupPicPreview?<img src={groupPicPreview} style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:24,color:"#64748b"}}>📷</span>}
+
+      {/* Content */}
+      <div style={{flex:1,overflowY:"auto",padding:"12px",background:tc.bg}}>
+        {/* ── Active Chat ── */}
+        {activeChat&&(
+          <>
+            {loading&&<Spin/>}
+            {!loading&&msgs.length===0&&<div style={{textAlign:"center",padding:"40px 0",color:tc.dim}}><div style={{fontSize:40,marginBottom:8}}>💬</div><p>কথা শুরু করো! 👋</p></div>}
+            {msgs.map((m,i)=><MsgBubble key={m.id||i} m={m} me={me} tc={tc}/>)}
+            <div ref={endRef}/>
+          </>
+        )}
+
+        {/* ── DM List ── */}
+        {!activeChat&&tab==="dm"&&(
+          <>
+            {dmThreads.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>💌</div><p>কোনো মেসেজ নেই</p></div>}
+            {dmThreads.map(({tid,last,unread})=>{
+              const u=users[tid];
+              return(
+                <div key={tid} onClick={()=>openChat({type:"dm",id:tid,name:u?.username||"অজানা"})} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,cursor:"pointer",background:unread>0?"#7c3aed11":tc.card,border:`1px solid ${unread>0?"#7c3aed33":tc.border}`,marginBottom:10,alignItems:"center"}}>
+                  {u?<Av u={u.username} color={u.color} size={46} verified={u.verified||false} isReg={true}/>:<div style={{width:46,height:46,borderRadius:"50%",background:tc.input,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>🎭</div>}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{color:"#c4b5fd",fontWeight:unread>0?700:500,fontSize:15}}>{u?u.username:"অজানা"}</div>
+                    <div style={{color:tc.sub,fontSize:13,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginTop:2}}>{last?.content}</div>
+                  </div>
+                  {unread>0&&<div style={{background:"#7c3aed",color:"#fff",borderRadius:"50%",width:20,height:20,fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unread}</div>}
+                </div>
+              );
+            })}
+          </>
+        )}
+
+        {/* ── Groups ── */}
+        {!activeChat&&tab==="groups"&&(
+          <>
+            <button onClick={()=>setCreating(!creating)} style={{width:"100%",background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"12px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginBottom:12}}>+ নতুন গ্রুপ তৈরি করো 👥</button>
+            {creating&&(
+              <div style={{background:tc.input,borderRadius:14,padding:14,border:`1px solid #7c3aed44`,marginBottom:12}}>
+                <p style={{color:tc.sub,fontSize:12,marginBottom:8}}>👥 প্রাইভেট গ্রুপ (সর্বোচ্চ {MAX_GROUP} জন)</p>
+                {/* Logo upload */}
+                <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
+                  <div onClick={()=>logoRef.current.click()} style={{width:54,height:54,borderRadius:"50%",background:logoPrev?"transparent":tc.bg,border:`2px dashed ${tc.border}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0,overflow:"hidden"}}>
+                    {logoPrev?<img src={logoPrev} style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:22}}>📷</span>}
+                  </div>
+                  <input ref={logoRef} type="file" accept="image/*" onChange={handleLogoFile} style={{display:"none"}}/>
+                  <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&createGroup()} placeholder="গ্রুপের নাম..." style={{flex:1,background:tc.bg,border:`1px solid ${tc.border}`,borderRadius:12,padding:"10px 13px",color:tc.text,fontSize:13,outline:"none"}}/>
+                </div>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={createGroup} style={{flex:1,background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:12,padding:"9px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>তৈরি করো ✓</button>
+                  <button onClick={()=>setCreating(false)} style={{background:tc.bg,border:"none",borderRadius:12,padding:"9px 14px",color:"#64748b",cursor:"pointer",fontSize:13}}>বাতিল</button>
+                </div>
               </div>
-              <input ref={fileRef} type="file" accept="image/*" onChange={handleGroupPic} style={{display:"none"}}/>
-              <p style={{color:tc.dim,fontSize:11,textAlign:"center"}}>গ্রুপ ফটো (ঐচ্ছিক)</p>
-            </div>
-          )}
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={create} style={{flex:1,background:`linear-gradient(135deg,${isGroup?"#7c3aed,#3b82f6":"#10b981,#059669"})`,border:"none",borderRadius:12,padding:"9px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>তৈরি করো ✓</button>
-            <button onClick={()=>{setCreating(false);setGroupPic(null);setGroupPicPreview(null);}} style={{background:tc.input,border:"none",borderRadius:12,padding:"9px 14px",color:"#64748b",cursor:"pointer",fontSize:13}}>বাতিল</button>
-          </div>
-        </div>
-      )}
-      {loading&&<Spin/>}
-      {!loading&&rooms.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>{isGroup?"👥":"💬"}</div><p>কোনো {isGroup?"গ্রুপ":"রুম"} নেই এখনো</p></div>}
-      {rooms.map(r=>(
-        <div key={r.id} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,background:tc.card,border:`1px solid ${tc.border}`,marginBottom:10,alignItems:"center",cursor:"pointer"}} onClick={()=>{setActive(r);loadMsgs(r.id);}}>
-          <div style={{width:46,height:46,borderRadius:"50%",background:`linear-gradient(135deg,${isGroup?"#7c3aed,#3b82f6":"#7c3aed,#3b82f6"})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>
-            {isGroup?(r.avatar?<img src={r.avatar} style={{width:"100%",height:"100%",borderRadius:"50%",objectFit:"cover"}}/>:"👥"):"💬"}
-          </div>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{r.name}</div>
-            {isGroup?<div style={{color:tc.sub,fontSize:11,marginTop:2}}>👥 {r.members?.length||0} সদস্য</div>:<div style={{color:tc.sub,fontSize:12,marginTop:2}}>by {r.owner_name}</div>}
-          </div>
-          {isGroup&&r.admin_id===me.id&&(
-            <button onClick={async(e)=>{e.stopPropagation();await loadFriends();setSelectedGroup(r);setShowMemberModal(true);}} style={{background:"#3b82f622",border:"1px solid #3b82f644",borderRadius:10,padding:"6px 10px",color:"#3b82f6",cursor:"pointer",fontSize:12,flexShrink:0}}>👥 +</button>
-          )}
-          {isGroup&&r.members?.includes(me.id)&&r.admin_id!==me.id&&(
-            <button onClick={e=>{e.stopPropagation();leaveGroup(r.id);}} style={{background:"#ef444422",border:"1px solid #ef444444",borderRadius:10,padding:"6px 10px",color:"#ef4444",cursor:"pointer",fontSize:12,flexShrink:0}}>🚪 লিভ</button>
-          )}
-          {!isGroup&&me.id===r.owner_id&&<button onClick={e=>{e.stopPropagation();del(r.id);}} style={{background:"#ef444422",border:"1px solid #ef444444",borderRadius:10,padding:"6px 10px",color:"#ef4444",cursor:"pointer",fontSize:13,flexShrink:0}}>🗑️</button>}
-        </div>
-      ))}
-      
-      {/* সদস্য যোগ করার মডাল */}
-      {showMemberModal && (
-        <div onClick={()=>setShowMemberModal(false)} style={{position:"fixed",inset:0,background:"#000000cc",zIndex:1000,display:"flex",alignItems:"flex-end"}}>
-          <div style={{background:tc.modal,borderRadius:"24px 24px 0 0",padding:"20px",width:"100%",maxWidth:480,margin:"0 auto"}}>
-            <h3 style={{color:"#c4b5fd",marginBottom:15}}>👥 সদস্য যোগ করো</h3>
-            {friends.filter(f=>!selectedGroup?.members?.includes(f.id)).map(f=>(
-              <div key={f.id} onClick={()=>addMember(selectedGroup.id,f.id)} style={{display:"flex",alignItems:"center",gap:10,padding:10,borderRadius:12,cursor:"pointer",background:tc.input,marginBottom:8}}>
-                <Av u={f.username} color={f.color} size={36} verified={f.verified||false} isReg={true}/>
-                <span style={{color:tc.text}}>{f.username}</span>
+            )}
+            {groups.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>👥</div><p>কোনো গ্রুপ নেই এখনো</p><p style={{fontSize:12,marginTop:6,color:tc.sub}}>গ্রুপ তৈরি করো বা কাউকে বলো তোমাকে যোগ করতে</p></div>}
+            {groups.map(g=>(
+              <div key={g.id} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,background:tc.card,border:`1px solid ${tc.border}`,marginBottom:10,alignItems:"center",cursor:"pointer"}} onClick={()=>openChat({type:"group",id:g.id,name:g.name,data:g})}>
+                <Av u={g.name} color="#7c3aed" size={46} logo={g.logo_url}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{g.name}</div>
+                  <div style={{color:tc.sub,fontSize:12,marginTop:2}}>{(g.members||[]).length}/{MAX_GROUP} জন · by {g.owner_name}</div>
+                </div>
+                {g.owner_id===me.id&&<span style={{background:"#f59e0b22",color:"#f59e0b",fontSize:10,padding:"2px 8px",borderRadius:8,border:"1px solid #f59e0b44",fontWeight:700,flexShrink:0}}>Admin</span>}
               </div>
             ))}
-            {friends.filter(f=>!selectedGroup?.members?.includes(f.id)).length===0&&<p style={{color:tc.dim,textAlign:"center",padding:20}}>আর কোনো বন্ধু যোগ করার নেই</p>}
-            <button onClick={()=>setShowMemberModal(false)} style={{width:"100%",background:tc.input,border:"none",borderRadius:14,padding:12,marginTop:10,color:tc.sub,cursor:"pointer"}}>বন্ধ করুন</button>
+          </>
+        )}
+
+        {/* ── Rooms ── */}
+        {!activeChat&&tab==="rooms"&&(
+          <>
+            {me.verified?(
+              <button onClick={()=>setCreating(!creating)} style={{width:"100%",background:"linear-gradient(135deg,#10b981,#059669)",border:"none",borderRadius:14,padding:"12px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginBottom:12}}>+ নতুন রুম তৈরি করো ✅</button>
+            ):(
+              <div style={{background:"#10b98111",border:"1px solid #10b98133",borderRadius:14,padding:"13px",marginBottom:12,textAlign:"center"}}>
+                <div style={{fontSize:28,marginBottom:6}}>🔒</div>
+                <p style={{color:"#10b981",fontSize:13,fontWeight:600}}>শুধুমাত্র ✅ ভেরিফাইড ইউজাররা রুম তৈরি করতে পারবে</p>
+              </div>
+            )}
+            {creating&&me.verified&&(
+              <div style={{background:tc.input,borderRadius:14,padding:12,border:`1px solid #10b98144`,marginBottom:12}}>
+                <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&createRoom()} placeholder="রুমের নাম..." style={{width:"100%",background:tc.bg,border:`1px solid ${tc.border}`,borderRadius:12,padding:"10px 13px",color:tc.text,fontSize:13,outline:"none",marginBottom:8}}/>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={createRoom} style={{flex:1,background:"linear-gradient(135deg,#10b981,#059669)",border:"none",borderRadius:12,padding:"9px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>তৈরি করো ✓</button>
+                  <button onClick={()=>setCreating(false)} style={{background:tc.bg,border:"none",borderRadius:12,padding:"9px 14px",color:"#64748b",cursor:"pointer",fontSize:13}}>বাতিল</button>
+                </div>
+              </div>
+            )}
+            {rooms.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>💬</div><p>কোনো রুম নেই এখনো</p></div>}
+            {rooms.map(r=>(
+              <div key={r.id} style={{display:"flex",gap:10,padding:"14px",borderRadius:16,background:tc.card,border:`1px solid ${tc.border}`,marginBottom:10,alignItems:"center",cursor:"pointer"}} onClick={()=>openChat({type:"room",id:r.id,name:r.name})}>
+                <div style={{width:46,height:46,borderRadius:"50%",background:"linear-gradient(135deg,#10b981,#059669)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>💬</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{color:"#c4b5fd",fontWeight:700,fontSize:15}}>{r.name}</div>
+                  <div style={{color:tc.sub,fontSize:12,marginTop:2}}>by {r.owner_name}</div>
+                </div>
+                {me.id===r.owner_id&&<button onClick={e=>{e.stopPropagation();deleteRoom(r.id);}} style={{background:"#ef444422",border:"1px solid #ef444444",borderRadius:10,padding:"6px 10px",color:"#ef4444",cursor:"pointer",fontSize:13,flexShrink:0}}>🗑️</button>}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+
+      {/* Message Input */}
+      {activeChat&&(
+        <div style={{borderTop:`1px solid ${tc.border}`,padding:"10px 12px",background:tc.nav,flexShrink:0}}>
+          <div style={{display:"flex",gap:8}}>
+            <input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="মেসেজ লিখুন..." style={{flex:1,background:tc.input,border:`1px solid ${tc.border}`,borderRadius:22,padding:"11px 16px",color:tc.text,fontSize:14,outline:"none"}}/>
+            <button onClick={send} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:"50%",width:46,height:46,color:"#fff",cursor:"pointer",fontSize:18,flexShrink:0}}>→</button>
           </div>
         </div>
       )}
-    </FullScreen>
+
+      {/* Add Member Modal */}
+      {showAddMember&&(
+        <div style={{position:"absolute",inset:0,background:"#000000cc",display:"flex",alignItems:"flex-end",zIndex:50}}>
+          <div style={{background:tc.modal,borderRadius:"24px 24px 0 0",padding:"18px 15px 30px",width:"100%",border:`1px solid ${tc.border}`,maxHeight:"70vh",display:"flex",flexDirection:"column"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+              <h3 style={{color:"#c4b5fd",fontSize:16,fontWeight:800}}>+ সদস্য যোগ করো</h3>
+              <button onClick={()=>{setShowAddMember(false);setMemberSearch("");setMemberResults([]);}} style={{background:tc.input,border:"none",color:"#64748b",width:30,height:30,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>
+            </div>
+            <input autoFocus value={memberSearch} onChange={e=>searchMembers(e.target.value)} placeholder="ইউজারনেম খোঁজো..." style={{width:"100%",background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"10px 14px",color:tc.text,fontSize:13,outline:"none",marginBottom:10}}/>
+            <div style={{overflowY:"auto",flex:1}}>
+              {memberResults.map(u=>{
+                const grp=groups.find(g=>g.id===activeChat?.id);
+                const already=(grp?.members||[]).includes(u.id);
+                return(
+                  <div key={u.id} style={{display:"flex",gap:10,padding:"12px",borderRadius:14,background:tc.input,border:`1px solid ${tc.border}`,marginBottom:8,alignItems:"center"}}>
+                    <Av u={u.username} color={u.color} size={38} verified={u.verified||false} isReg={true}/>
+                    <div style={{flex:1}}><div style={{color:"#c4b5fd",fontWeight:700,fontSize:14}}>{u.username}</div></div>
+                    <button onClick={()=>!already&&addMember(u.id)} disabled={already} style={{background:already?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:10,padding:"6px 14px",color:already?"#64748b":"#fff",cursor:already?"default":"pointer",fontSize:12,fontWeight:600}}>{already?"যোগ আছে":"যোগ করো"}</button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Members List Modal */}
+      {showMembers&&activeChat?.type==="group"&&(()=>{
+        const grp=groups.find(g=>g.id===activeChat.id);
+        const isOwner=grp&&grp.owner_id===me.id;
+        return(
+          <div style={{position:"absolute",inset:0,background:"#000000cc",display:"flex",alignItems:"flex-end",zIndex:50}}>
+            <div style={{background:tc.modal,borderRadius:"24px 24px 0 0",padding:"18px 15px 30px",width:"100%",border:`1px solid ${tc.border}`,maxHeight:"70vh",display:"flex",flexDirection:"column"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <h3 style={{color:"#c4b5fd",fontSize:16,fontWeight:800}}>👥 সদস্যরা ({(grp?.members||[]).length}/{MAX_GROUP})</h3>
+                <button onClick={()=>setShowMembers(false)} style={{background:tc.input,border:"none",color:"#64748b",width:30,height:30,borderRadius:"50%",cursor:"pointer",fontSize:15}}>✕</button>
+              </div>
+              <div style={{overflowY:"auto",flex:1}}>
+                {(grp?.members||[]).map(uid=>{
+                  const isThisOwner=uid===grp?.owner_id;
+                  return(
+                    <div key={uid} style={{display:"flex",gap:10,padding:"12px",borderRadius:14,background:tc.input,border:`1px solid ${tc.border}`,marginBottom:8,alignItems:"center"}}>
+                      <div style={{width:38,height:38,borderRadius:"50%",background:`linear-gradient(135deg,#7c3aed,#7c3aed88)`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,color:"#fff",fontSize:14}}>{uid.slice(0,2).toUpperCase()}</div>
+                      <div style={{flex:1}}><div style={{color:"#c4b5fd",fontSize:13}}>{uid===me.id?"তুমি":uid.slice(0,12)+"..."}{isThisOwner&&<span style={{color:"#f59e0b",fontSize:11,marginLeft:6}}>Admin</span>}</div></div>
+                      {isOwner&&!isThisOwner&&<button onClick={()=>removeMember(uid)} style={{background:"#ef444422",border:"1px solid #ef444444",borderRadius:10,padding:"5px 9px",color:"#ef4444",cursor:"pointer",fontSize:12}}>সরাও</button>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+    </div>
   );
 }
 // ── Notifications ──────────────────────────────────────────────────────────────
@@ -697,21 +747,17 @@ function Notifs({me,tc,onClose}){
   const markAll=async()=>{await sb.from("notifications").update({read:true}).eq("to_id",me.id);setNotifs(n=>n.map(x=>({...x,read:true})));};
   const icons={"like":"❤️","comment":"💬","follow":"👤","mention":"🏷️"};
   return(
-    <FullScreen title="🔔 নোটিফিকেশন" onBack={null} onClose={onClose} tc={tc}>
+    <Full title="🔔 নোটিফিকেশন" onClose={onClose} tc={tc}>
       {notifs.some(n=>!n.read)&&<button onClick={markAll} style={{width:"100%",background:tc.input,border:`1px solid ${tc.border}`,borderRadius:12,padding:"9px",color:"#7c3aed",cursor:"pointer",fontSize:13,fontWeight:600,marginBottom:12}}>সব পড়া ✓</button>}
       {notifs.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>🔔</div><p>কোনো নোটিফিকেশন নেই</p></div>}
       {notifs.map(n=>(
         <div key={n.id} style={{display:"flex",gap:10,padding:"13px",borderRadius:16,background:n.read?tc.card:"#7c3aed11",border:`1px solid ${n.read?tc.border:"#7c3aed33"}`,marginBottom:10,alignItems:"center"}}>
           <div style={{width:42,height:42,borderRadius:"50%",background:tc.input,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,border:`1px solid ${tc.border}`}}>{icons[n.type]||"🔔"}</div>
-          <div style={{flex:1}}>
-            <span style={{color:"#a78bfa",fontWeight:700,fontSize:14}}>{n.from_username} </span>
-            <span style={{color:tc.sub,fontSize:13}}>{n.content}</span>
-            <div style={{color:tc.dim,fontSize:11,marginTop:3}}>{timeAgo(n.created_at)}</div>
-          </div>
+          <div style={{flex:1}}><span style={{color:"#a78bfa",fontWeight:700,fontSize:14}}>{n.from_username} </span><span style={{color:tc.sub,fontSize:13}}>{n.content}</span><div style={{color:tc.dim,fontSize:11,marginTop:3}}>{timeAgo(n.created_at)}</div></div>
           {!n.read&&<div style={{width:9,height:9,borderRadius:"50%",background:"#7c3aed",flexShrink:0}}/>}
         </div>
       ))}
-    </FullScreen>
+    </Full>
   );
 }
 
@@ -726,7 +772,7 @@ function UserSearch({me,tc,onViewProfile,onFollow,onClose}){
     return()=>clearTimeout(timer);
   },[q]);
   return(
-    <FullScreen title="🔍 ইউজার খোঁজো" onBack={null} onClose={onClose} tc={tc}>
+    <Full title="🔍 ইউজার খোঁজো" onClose={onClose} tc={tc}>
       <input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder="ইউজারনেম লিখো..." style={{width:"100%",background:tc.input,border:`1px solid #7c3aed44`,borderRadius:20,padding:"10px 14px",color:tc.text,fontSize:14,outline:"none",marginBottom:12}}/>
       {busy&&<Spin/>}
       {!busy&&!q.trim()&&<div style={{textAlign:"center",padding:"60px 0",color:tc.dim}}><div style={{fontSize:44,marginBottom:10}}>👥</div><p>ইউজারনেম লিখলে রেজাল্ট দেখাবে</p></div>}
@@ -744,13 +790,14 @@ function UserSearch({me,tc,onViewProfile,onFollow,onClose}){
           </div>
         );
       })}
-    </FullScreen>
+    </Full>
   );
 }
+
 // ── Settings ───────────────────────────────────────────────────────────────────
 function Settings({theme,setTheme,lang,setLang,tc,onClose}){
   return(
-    <BottomSheet title="⚙️ সেটিংস" onClose={onClose} tc={tc}>
+    <Sheet title="⚙️ সেটিংস" onClose={onClose} tc={tc}>
       <p style={{color:tc.sub,fontSize:13,fontWeight:600,marginBottom:10}}>🎨 থিম</p>
       <div style={{display:"flex",gap:8,marginBottom:20}}>
         {[["dark","🌙 ডার্ক"],["light","☀️ লাইট"]].map(([v,l])=>(
@@ -763,9 +810,10 @@ function Settings({theme,setTheme,lang,setLang,tc,onClose}){
           <button key={v} onClick={()=>{setLang(v);localStorage.setItem("al_lang",v);}} style={{flex:1,background:lang===v?"linear-gradient(135deg,#7c3aed,#3b82f6)":tc.input,border:`1px solid ${lang===v?"#7c3aed":tc.border}`,borderRadius:14,padding:"14px",color:lang===v?"#fff":tc.sub,cursor:"pointer",fontWeight:lang===v?700:400,fontSize:14}}>{l}</button>
         ))}
       </div>
-    </BottomSheet>
+    </Sheet>
   );
 }
+
 // ── Profile Page ───────────────────────────────────────────────────────────────
 function ProfilePage({userId,me,tc,onBack,onFollow,onMsgUser,onLogout,onSettings,...cardProps}){
   const [user,setUser]=useState(null);
@@ -782,13 +830,12 @@ function ProfilePage({userId,me,tc,onBack,onFollow,onMsgUser,onLogout,onSettings
   },[userId]);
 
   const saveBio=async()=>{await sb.from("users").update({bio}).eq("id",me.id);setUser(u=>({...u,bio}));setEditBio(false);};
-  const copyLink=()=>{navigator.clipboard?.writeText(`${window.location.href.split('?')[0]}?profile=${userId}`).catch(()=>{});};
+  const copyLink=()=>navigator.clipboard?.writeText(`${window.location.href.split('?')[0]}?profile=${userId}`).catch(()=>{});
   const isOwn=me.id===userId;
   const isF=(me.following||[]).includes(userId);
   const totalLikes=posts.reduce((a,p)=>a+(p.likes||[]).length,0);
 
-  if(!user)return <div style={{minHeight:"100vh",background:tc.bg}}><Spin/></div>;
-
+  if(!user)return<div style={{minHeight:"100vh",background:tc.bg}}><Spin/></div>;
   return(
     <div style={{paddingBottom:80,minHeight:"100vh",background:tc.bg}}>
       <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 12px 0",position:"sticky",top:0,background:tc.nav,zIndex:50}}>
@@ -800,26 +847,12 @@ function ProfilePage({userId,me,tc,onBack,onFollow,onMsgUser,onLogout,onSettings
         <div style={{display:"flex",justifyContent:"center",marginBottom:10}}><Av u={user.username} color={user.color} size={76} verified={user.verified||false} isReg={true}/></div>
         <h2 style={{color:"#c4b5fd",fontSize:19,fontWeight:800}}>{user.username}<RBadge/>{user.verified&&<VBadge/>}</h2>
         <p style={{color:tc.dim,fontSize:11,marginTop:4}}>{timeAgo(user.created_at)} আগে যোগ দিয়েছে</p>
-
         {isOwn?(
           <div style={{marginTop:8,maxWidth:300,margin:"8px auto 4px"}}>
-            {editBio?(
-              <div>
-                <textarea value={bio} onChange={e=>setBio(e.target.value.slice(0,150))} rows={2} style={{width:"100%",background:tc.input,border:"1px solid #7c3aed",borderRadius:12,padding:"9px 12px",color:tc.text,fontSize:13,outline:"none",resize:"none",lineHeight:1.5}}/>
-                <div style={{display:"flex",justifyContent:"flex-end",gap:6,marginTop:5}}>
-                  <button onClick={()=>{setEditBio(false);setBio(user.bio||"");}} style={{background:tc.input,border:"none",borderRadius:10,padding:"6px 12px",color:"#64748b",cursor:"pointer",fontSize:12}}>বাতিল</button>
-                  <button onClick={saveBio} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:10,padding:"6px 14px",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}}>সেভ</button>
-                </div>
-              </div>
-            ):(
-              <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:6}}>
-                <p style={{color:tc.sub,fontSize:13}}>{user.bio||"বায়ো যোগ করোনি..."}</p>
-                <button onClick={()=>setEditBio(true)} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:8,padding:"3px 8px",color:"#475569",cursor:"pointer",fontSize:11}}>✏️</button>
-              </div>
-            )}
+            {editBio?(<div><textarea value={bio} onChange={e=>setBio(e.target.value.slice(0,150))} rows={2} style={{width:"100%",background:tc.input,border:"1px solid #7c3aed",borderRadius:12,padding:"9px 12px",color:tc.text,fontSize:13,outline:"none",resize:"none",lineHeight:1.5}}/><div style={{display:"flex",justifyContent:"flex-end",gap:6,marginTop:5}}><button onClick={()=>{setEditBio(false);setBio(user.bio||"");}} style={{background:tc.input,border:"none",borderRadius:10,padding:"6px 12px",color:"#64748b",cursor:"pointer",fontSize:12}}>বাতিল</button><button onClick={saveBio} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:10,padding:"6px 14px",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}}>সেভ</button></div></div>)
+            :(<div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:6}}><p style={{color:tc.sub,fontSize:13}}>{user.bio||"বায়ো যোগ করোনি..."}</p><button onClick={()=>setEditBio(true)} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:8,padding:"3px 8px",color:"#475569",cursor:"pointer",fontSize:11}}>✏️</button></div>)}
           </div>
         ):(user.bio&&<p style={{color:tc.sub,fontSize:13,marginTop:6}}>{user.bio}</p>)}
-
         <div style={{display:"flex",justifyContent:"center",gap:0,marginTop:14,background:tc.input,borderRadius:14,overflow:"hidden",border:`1px solid ${tc.border}`}}>
           {[["পোস্ট",posts.length,"#a855f7"],["লাইক",totalLikes,"#ec4899"],["ফলোয়ার",(user.followers||[]).length,"#3b82f6"]].map(([l,v,c],i,arr)=>(
             <div key={i} style={{flex:1,padding:"12px 4px",textAlign:"center",borderRight:i<arr.length-1?`1px solid ${tc.border}`:"none"}}>
@@ -828,15 +861,9 @@ function ProfilePage({userId,me,tc,onBack,onFollow,onMsgUser,onLogout,onSettings
             </div>
           ))}
         </div>
-
         <div style={{display:"flex",gap:8,marginTop:12,justifyContent:"center",flexWrap:"wrap"}}>
           <button onClick={copyLink} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:14,padding:"9px 14px",color:tc.sub,cursor:"pointer",fontWeight:600,fontSize:12}}>🔗 আইডি লিংক</button>
-          {!isOwn&&me.type==="registered"&&(
-            <>
-              <button onClick={()=>onFollow(user.id)} style={{background:isF?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#3b82f6)",border:isF?"1px solid #2a2a40":"none",borderRadius:14,padding:"9px 18px",color:isF?"#64748b":"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>{isF?"✓ আনফলো":"+ ফলো"}</button>
-              <button onClick={()=>onMsgUser({author_id:user.id,username:user.username})} style={{background:"#7c3aed22",border:"1px solid #7c3aed44",borderRadius:14,padding:"9px 14px",color:"#a855f7",cursor:"pointer",fontWeight:600,fontSize:13}}>💌 মেসেজ</button>
-            </>
-)}
+          {!isOwn&&me.type==="registered"&&(<><button onClick={()=>onFollow(user.id)} style={{background:isF?"#1a1a2e":"linear-gradient(135deg,#7c3aed,#3b82f6)",border:isF?"1px solid #2a2a40":"none",borderRadius:14,padding:"9px 18px",color:isF?"#64748b":"#fff",cursor:"pointer",fontWeight:700,fontSize:13}}>{isF?"✓ আনফলো":"+ ফলো"}</button><button onClick={()=>onMsgUser({author_id:user.id,username:user.username})} style={{background:"#7c3aed22",border:"1px solid #7c3aed44",borderRadius:14,padding:"9px 14px",color:"#a855f7",cursor:"pointer",fontWeight:600,fontSize:13}}>💌 মেসেজ</button></>)}
           {isOwn&&<button onClick={onLogout} style={{background:tc.input,border:`1px solid ${tc.border}`,borderRadius:14,padding:"9px 18px",color:tc.sub,cursor:"pointer",fontWeight:600,fontSize:13}}>লগআউট</button>}
         </div>
       </div>
@@ -859,21 +886,19 @@ function App(){
   const [page,setPage]=useState(0);
   const [hasMore,setHasMore]=useState(true);
   const [loadingMore,setLoadingMore]=useState(false);
+  // ✅ Optimistic like: store {postId: boolean}
+  const pendingRef=useRef({});
   const [pendingLikes,setPendingLikes]=useState({});
 
   const [tab,setTab]=useState("feed");
   const [activeTag,setActiveTag]=useState("সব");
   const [sort,setSort]=useState("smart");
-
+  const [compose,setCompose]=useState(false);
   const [showAuth,setShowAuth]=useState(false);
   const [showInbox,setShowInbox]=useState(false);
-  const [showRooms,setShowRooms]=useState(false);
-  const [showGroups,setShowGroups]=useState(false);
   const [showNotif,setShowNotif]=useState(false);
   const [showSearch,setShowSearch]=useState(false);
   const [showSettings,setShowSettings]=useState(false);
-  const [compose,setCompose]=useState(false);
-
   const [viewProfile,setViewProfile]=useState(null);
   const [searchQ,setSearchQ]=useState("");
   const [searchOpen,setSearchOpen]=useState(false);
@@ -881,24 +906,23 @@ function App(){
   const [appLoading,setAppLoading]=useState(true);
   const [unreadN,setUnreadN]=useState(0);
   const [unreadM,setUnreadM]=useState(0);
-
   const [theme,setTheme]=useState(()=>localStorage.getItem("al_theme")||"dark");
   const [lang,setLang]=useState(()=>localStorage.getItem("al_lang")||"bn");
   const TC=getTC(theme);
-
   const loaderRef=useRef();
   const feedTopRef=useRef();
 
   useEffect(()=>{document.body.className=theme==="light"?"light":"";localStorage.setItem("al_theme",theme);},[theme]);
-
   const msg=(m,type="info")=>setToast({m,type});
 
+  // URL param
   useEffect(()=>{
     const p=new URLSearchParams(window.location.search);
     const pid=p.get("profile");
     if(pid){setViewProfile(pid);window.history.replaceState({},"",window.location.pathname);}
   },[]);
 
+  // Auth
   useEffect(()=>{
     sb.auth.getSession().then(({data:{session}})=>{
       if(session)sb.from("users").select("*").eq("id",session.user.id).single().then(({data})=>{if(data)setProfile(data);setAppLoading(false);});
@@ -910,7 +934,8 @@ function App(){
     });
   },[]);
 
-const loadPosts=useCallback(async(reset=false)=>{
+  // Load posts
+  const loadPosts=useCallback(async(reset=false)=>{
     if(loadingMore&&!reset)return;
     setLoadingMore(true);
     const pg=reset?0:page;
@@ -921,8 +946,14 @@ const loadPosts=useCallback(async(reset=false)=>{
     q2=q2.range(pg*PAGE_SIZE,(pg+1)*PAGE_SIZE-1);
     const{data}=await q2;
     if(data){
-      if(reset){setPosts(data);setPendingLikes({});}
-      else setPosts(prev=>[...prev,...data.filter(np=>!prev.find(ep=>ep.id===np.id))]);
+      // ✅ Merge — don't overwrite pending likes
+      if(reset){
+        setPosts(data);
+        pendingRef.current={};
+        setPendingLikes({});
+      } else {
+        setPosts(prev=>[...prev,...data.filter(np=>!prev.find(ep=>ep.id===np.id))]);
+      }
       setHasMore(data.length===PAGE_SIZE);
       if(reset)setPage(1);else setPage(p=>p+1);
       const ids=(reset?data:[...posts,...data]).map(p=>p.id);
@@ -940,11 +971,7 @@ const loadPosts=useCallback(async(reset=false)=>{
     return()=>obs.disconnect();
   },[hasMore,loadingMore,loadPosts]);
 
-  useEffect(()=>{
-    if(profile){checkUnread();}
-    const i=setInterval(()=>{if(profile)checkUnread();},30000);
-    return()=>clearInterval(i);
-  },[profile]);
+  useEffect(()=>{if(profile)checkUnread();const i=setInterval(()=>{if(profile)checkUnread();},30000);return()=>clearInterval(i);},[profile]);
 
   const checkUnread=async()=>{
     if(!profile)return;
@@ -964,15 +991,34 @@ const loadPosts=useCallback(async(reset=false)=>{
     msg("✅ পোস্ট শেয়ার হয়েছে!","success");
   };
 
+  // ✅ Fixed like — no auto-refresh conflict
   const onLike=async(id,liked)=>{
-    setPendingLikes(pl=>({...pl,[id]:!liked}));
-    const post=posts.find(p=>p.id===id);if(!post)return;
+    // Optimistic UI
+    const newLiked=!liked;
+    pendingRef.current[id]=newLiked;
+    setPendingLikes({...pendingRef.current});
+
+    const post=posts.find(p=>p.id===id);
+    if(!post)return;
     const newLikes=liked?(post.likes||[]).filter(u=>u!==me.id):[...(post.likes||[]),me.id];
+
+    // DB update
     const{error}=await sb.from("posts").update({likes:newLikes}).eq("id",id);
-    if(error){setPendingLikes(pl=>({...pl,[id]:liked}));return;}
+    if(error){
+      // Revert
+      pendingRef.current[id]=liked;
+      setPendingLikes({...pendingRef.current});
+      return;
+    }
+    // Sync actual post state
     setPosts(p=>p.map(x=>x.id!==id?x:{...x,likes:newLikes}));
-    setPendingLikes(pl=>{const n={...pl};delete n[id];return n;});
-    if(!liked&&post.author_id!==me.id)await sb.from("notifications").insert({to_id:post.author_id,from_username:me.username,type:"like",content:"তোমার পোস্টে লাইক দিয়েছে ❤️",read:false});
+    // Clear pending
+    delete pendingRef.current[id];
+    setPendingLikes({...pendingRef.current});
+
+    if(!liked&&post.author_id!==me.id){
+      await sb.from("notifications").insert({to_id:post.author_id,from_username:me.username,type:"like",content:"তোমার পোস্টে লাইক দিয়েছে ❤️",read:false});
+    }
   };
 
   const onReact=async(id,r)=>{
@@ -1014,31 +1060,27 @@ const loadPosts=useCallback(async(reset=false)=>{
     await sb.from("posts").update({poll}).eq("id",id);
     setPosts(p=>p.map(x=>x.id!==id?x:{...x,poll}));
   };
+  const onEdit=async(id,content)=>{await sb.from("posts").update({content,edited:true}).eq("id",id);setPosts(p=>p.map(x=>x.id!==id?x:{...x,content,edited:true}));};
+  const onDelete=async(id)=>{await sb.from("posts").delete().eq("id",id);setPosts(p=>p.filter(x=>x.id!==id));msg("🗑️ ডিলিট হয়েছে!","success");};
+  const onPin=async(id,pinned)=>{if(!me.verified){msg("📌 পিন করতে ✅ ভেরিফিকেশন লাগবে!","error");return;}await sb.from("posts").update({pinned}).eq("id",id);setPosts(p=>p.map(x=>x.id!==id?x:{...x,pinned}));};
 
-  const onEdit=async(id,content)=>{
-    await sb.from("posts").update({content,edited:true}).eq("id",id);
-    setPosts(p=>p.map(x=>x.id!==id?x:{...x,content,edited:true}));
-  };
-  const onDelete=async(id)=>{
-    await sb.from("posts").delete().eq("id",id);
-    setPosts(p=>p.filter(x=>x.id!==id));
-    msg("🗑️ ডিলিট হয়েছে!","success");
-  };
-
-  const onPin=async(id,pinned)=>{
-    if(!me.verified){msg("📌 পিন করতে ✅ ভেরিফিকেশন লাগবে!","error");return;}
-    await sb.from("posts").update({pinned}).eq("id",id);
-    setPosts(p=>p.map(x=>x.id!==id?x:{...x,pinned}));
-  };
-
+  // ✅ Fixed follow — proper array update
   const onFollow=async(uid)=>{
     if(me.type!=="registered"){msg("🎭 ফলো করতে রেজিস্ট্রেশন করো!","error");setTimeout(()=>setShowAuth(true),600);return;}
     const isF=(me.following||[]).includes(uid);
     const nf=isF?(me.following||[]).filter(i=>i!==uid):[...(me.following||[]),uid];
-    await sb.from("users").update({following:nf}).eq("id",me.id);
-    setProfile(p=>({...p,following:nf}));
-    const{data:t}=await sb.from("users").select("followers").eq("id",uid).single();
-    if(t){const nfl=isF?(t.followers||[]).filter(i=>i!==me.id):[...(t.followers||[]),me.id];await sb.from("users").update({followers:nfl}).eq("id",uid);}
+
+    // Update my following
+    const{error:e1}=await sb.from("users").update({following:nf}).eq("id",me.id);
+    if(!e1)setProfile(p=>({...p,following:nf}));
+
+    // Update target followers
+    const{data:target}=await sb.from("users").select("followers").eq("id",uid).single();
+    if(target){
+      const nfl=isF?(target.followers||[]).filter(i=>i!==me.id):[...(target.followers||[]),me.id];
+      await sb.from("users").update({followers:nfl}).eq("id",uid);
+    }
+
     if(!isF)await sb.from("notifications").insert({to_id:uid,from_username:me.username,type:"follow",content:"তোমাকে ফলো করেছে 👤",read:false});
     msg(isF?"আনফলো করা হয়েছে":"✅ ফলো করা হয়েছে!","success");
   };
@@ -1058,7 +1100,8 @@ const loadPosts=useCallback(async(reset=false)=>{
   const feed=sort==="smart"?buildSmartFeed(baseFeed):sort==="top"?[...baseFeed].sort((a,b)=>(b.likes||[]).length-(a.likes||[]).length):baseFeed;
   const mine=posts.filter(p=>p.author_id===me.id);
   const saved=posts.filter(p=>(p.bookmarks||[]).includes(me.id));
-const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"ট্রেন্ড"},{id:"saved",ic:"🔖",lb:"সেভড"},{id:"profile",ic:"👤",lb:"আমি"}];
+
+  const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"ট্রেন্ড"},{id:"saved",ic:"🔖",lb:"সেভড"},{id:"profile",ic:"👤",lb:"আমি"}];
 
   if(appLoading)return(
     <div style={{minHeight:"100vh",background:"#080810",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -1080,17 +1123,13 @@ const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"�
 
   return(
     <div style={{minHeight:"100vh",background:TC.bg,position:"relative"}}>
-
       {/* Topbar */}
       <div style={{background:TC.nav,backdropFilter:"blur(20px)",borderBottom:`1px solid ${TC.border}`,padding:"0 10px",height:54,display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:100}}>
-        {searchOpen
-          ?<input autoFocus value={searchQ} onChange={e=>setSearchQ(e.target.value)} placeholder="পোস্ট খোঁজো..." style={{flex:1,background:TC.input,border:"none",borderRadius:20,padding:"8px 14px",color:TC.text,fontSize:14,outline:"none"}}/>
-          :<span style={{fontWeight:900,fontSize:20,background:"linear-gradient(90deg,#a855f7,#3b82f6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-0.5px"}}>AnonLogos</span>
-        }
+        {searchOpen?<input autoFocus value={searchQ} onChange={e=>setSearchQ(e.target.value)} placeholder="পোস্ট খোঁজো..." style={{flex:1,background:TC.input,border:"none",borderRadius:20,padding:"8px 14px",color:TC.text,fontSize:14,outline:"none"}}/>
+          :<span style={{fontWeight:900,fontSize:20,background:"linear-gradient(90deg,#a855f7,#3b82f6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-0.5px"}}>AnonLogos</span>}
         <div style={{display:"flex",gap:5,marginLeft:6,alignItems:"center"}}>
           <button onClick={()=>{setSearchOpen(!searchOpen);setSearchQ("");}} style={{background:TC.input,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:13,color:"#64748b"}}>{searchOpen?"✕":"🔍"}</button>
           <button onClick={()=>setShowSearch(true)} style={{background:TC.input,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:13,color:"#64748b"}}>👥</button>
-          <button onClick={()=>setShowRooms(true)} style={{background:TC.input,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:13,color:"#64748b"}}>💬</button>
           {profile&&(
             <>
               <div style={{position:"relative"}}>
@@ -1103,25 +1142,18 @@ const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"�
               </div>
             </>
           )}
-          {profile
-            ?<button onClick={()=>setViewProfile(profile.id)} style={{background:"none",border:"none",cursor:"pointer",padding:0}}><Av u={me.username} color={me.color} size={32} verified={me.verified||false} isReg={true}/></button>
-            :<button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:16,padding:"6px 12px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12}}>লগইন</button>
-          }
+          {profile?<button onClick={()=>setViewProfile(profile.id)} style={{background:"none",border:"none",cursor:"pointer",padding:0}}><Av u={me.username} color={me.color} size={32} verified={me.verified||false} isReg={true}/></button>
+            :<button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:16,padding:"6px 12px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12}}>লগইন</button>}
         </div>
       </div>
 
-      {/* Guest banner */}
       {!profile&&(
         <div style={{background:"linear-gradient(135deg,#7c3aed22,#3b82f622)",borderBottom:"1px solid #7c3aed33",padding:"9px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div>
-            <div style={{color:"#a78bfa",fontSize:13,fontWeight:600}}>🎭 গেস্ট মোডে আছো</div>
-            <div style={{color:"#475569",fontSize:11}}>রেজিস্ট্রেশন করলে পাবে ফলো, মেসেজ ও আরো!</div>
-          </div>
+          <div><div style={{color:"#a78bfa",fontSize:13,fontWeight:600}}>🎭 গেস্ট মোডে আছো</div><div style={{color:"#475569",fontSize:11}}>রেজিস্ট্রেশন করলে পাবে ফলো, মেসেজ ও আরো!</div></div>
           <button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"8px 14px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12,whiteSpace:"nowrap"}}>রেজিস্টার</button>
         </div>
       )}
 
-      {/* Tag + Sort strip */}
       {tab==="feed"&&(
         <div style={{background:TC.strip,borderBottom:`1px solid ${TC.border}`}}>
           <div style={{display:"flex",gap:6,overflowX:"auto",padding:"8px 10px 5px"}}>
@@ -1135,7 +1167,6 @@ const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"�
         </div>
       )}
 
-      {/* Content */}
       <div style={{padding:"10px 10px 80px"}}>
         <div ref={feedTopRef}/>
         {tab==="feed"&&(
@@ -1163,10 +1194,8 @@ const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"�
                   <button onClick={()=>setShowSettings(true)} style={{background:TC.input,border:`1px solid ${TC.border}`,borderRadius:12,padding:"7px 12px",color:TC.sub,cursor:"pointer",fontSize:12}}>⚙️ সেটিংস</button>
                 </div>
               )}
-              {me.type!=="registered"
-                ?<button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"10px 24px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginTop:14}}>🆅 রেজিস্ট্রেশন করো</button>
-                :(
-                  <div>
+              {me.type!=="registered"?<button onClick={()=>setShowAuth(true)} style={{background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:14,padding:"10px 24px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:14,marginTop:14}}>🆅 রেজিস্ট্রেশন করো</button>
+                :(<div>
                     <div style={{display:"flex",justifyContent:"center",gap:0,marginTop:14,background:TC.input,borderRadius:14,overflow:"hidden",border:`1px solid ${TC.border}`}}>
                       {[["পোস্ট",mine.length,"#a855f7"],["লাইক",mine.reduce((a,p)=>a+(p.likes||[]).length,0),"#ec4899"],["সেভড",saved.length,"#f59e0b"],["ফলোয়ার",(me.followers||[]).length,"#3b82f6"]].map(([l,v,c],i,arr)=>(
                         <div key={i} style={{flex:1,padding:"11px 2px",textAlign:"center",borderRight:i<arr.length-1?`1px solid ${TC.border}`:"none"}}>
@@ -1185,28 +1214,20 @@ const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"�
         )}
       </div>
 
-      {/* FAB */}
       <button onClick={()=>setCompose(true)} style={{position:"fixed",bottom:68,right:14,width:52,height:52,background:"linear-gradient(135deg,#7c3aed,#3b82f6)",border:"none",borderRadius:"50%",color:"#fff",fontSize:22,cursor:"pointer",boxShadow:"0 6px 24px #7c3aed66",zIndex:99,display:"flex",alignItems:"center",justifyContent:"center"}}>✏️</button>
 
-      {/* Bottom Nav */}
       <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:TC.nav,backdropFilter:"blur(20px)",borderTop:`1px solid ${TC.border}`,display:"flex",zIndex:100,height:56}}>
         {TABS.map(t=>(
-          <button key={t.id} onClick={()=>{
-            if(t.id==="feed"&&tab==="feed"){feedTopRef.current?.scrollIntoView({behavior:"smooth"});loadPosts(true);}
-            else setTab(t.id);
-          }} style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:tab===t.id?"#a855f7":"#2a2a45"}}>
+          <button key={t.id} onClick={()=>{if(t.id==="feed"&&tab==="feed"){feedTopRef.current?.scrollIntoView({behavior:"smooth"});loadPosts(true);}else setTab(t.id);}} style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:tab===t.id?"#a855f7":"#2a2a45"}}>
             <span style={{fontSize:18,filter:tab===t.id?"drop-shadow(0 0 6px #a855f7)":"none"}}>{t.ic}</span>
             <span style={{fontSize:9,fontWeight:tab===t.id?700:400}}>{t.lb}</span>
           </button>
         ))}
       </div>
 
-      {/* All modals */}
       {compose&&<Compose me={me} tc={TC} onPost={addPost} onClose={()=>setCompose(false)}/>}
       {showAuth&&<AuthModal onSuccess={p=>{setProfile(p);setShowAuth(false);msg("✅ স্বাগতম "+p.username,"success");}} onClose={()=>setShowAuth(false)} tc={TC}/>}
-      {showInbox&&profile&&<Inbox me={me} tc={TC} onClose={()=>setShowInbox(false)} setShowGroups={setShowGroups} />}
-      {showRooms&&<Rooms me={me} tc={TC} onClose={()=>setShowRooms(false)} isGroup={false}/>}
-      {showGroups&&<Rooms me={me} tc={TC} onClose={()=>setShowGroups(false)} isGroup={true}/>}
+      {showInbox&&profile&&<InboxPanel me={me} tc={TC} onClose={()=>setShowInbox(false)}/>}
       {showNotif&&profile&&<Notifs me={me} tc={TC} onClose={()=>setShowNotif(false)}/>}
       {showSearch&&<UserSearch me={me} tc={TC} onViewProfile={setViewProfile} onFollow={onFollow} onClose={()=>setShowSearch(false)}/>}
       {showSettings&&<Settings theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} tc={TC} onClose={()=>setShowSettings(false)}/>}
@@ -1214,6 +1235,7 @@ const TABS=[{id:"feed",ic:"🌐",lb:"ফিড"},{id:"trending",ic:"🔥",lb:"�
     </div>
   );
 }
+
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
