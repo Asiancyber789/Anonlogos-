@@ -1,1345 +1,777 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Anonlogos</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
-<style>
-:root{
-  --p:#8B5CF6;--pl:#C4B5FD;--pd:#6D28D9;
-  --a:#06B6D4;--g:#10B981;--r:#F87171;--w:#FBBF24;
-  --bg:#06061A;--s1:#0C0C22;--s2:#111130;--s3:#181848;--s4:#1E1E52;
-  --b1:rgba(196,181,253,.07);--b2:rgba(196,181,253,.14);--b3:rgba(196,181,253,.22);
-  --t1:#F1F5F9;--t2:#B0B8CC;--t3:#4A5270;
-  --grd:linear-gradient(135deg,#8B5CF6,#06B6D4);
-  --shadow:0 6px 28px rgba(139,92,246,.32);
-  --r8:8px;--r12:12px;--r16:16px;--r20:20px;--r24:24px;--r99:9999px;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;background:var(--bg);}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--t1);max-width:480px;margin:0 auto;display:flex;flex-direction:column;}
-button,input,textarea{font-family:inherit;border:none;outline:none;background:none;color:inherit;}
-button{cursor:pointer;}
-::-webkit-scrollbar{width:2px;}
-::-webkit-scrollbar-thumb{background:var(--b2);border-radius:1px;}
-.grd{background:var(--grd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-/* ── HEADER ── */
-.hdr{background:rgba(6,6,26,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:50;}
-.logo{font-size:22px;font-weight:900;letter-spacing:-.5px;display:flex;align-items:center;gap:8px;}
-.logodot{width:9px;height:9px;border-radius:50%;background:var(--grd);box-shadow:0 0 10px var(--p);}
-.hbtns{display:flex;gap:8px;}
-.hbtn{width:38px;height:38px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);display:flex;align-items:center;justify-content:center;transition:all .18s;position:relative;font-size:15px;}
-.hbtn:active{transform:scale(.9);}
-.hbtn.dot::after{content:'';position:absolute;top:7px;right:7px;width:7px;height:7px;background:var(--r);border-radius:50%;border:2px solid var(--bg);}
-/* ── LAYOUT ── */
-#app{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.pages{flex:1;overflow:hidden;position:relative;}
-.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;padding-bottom:76px;}
-.page.show{display:flex;animation:pgin .22s ease;}
-@keyframes pgin{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
-/* ── BOTTOM NAV ── */
-.bnav{flex-shrink:0;background:rgba(11,11,32,.97);backdrop-filter:blur(24px);border-top:1px solid var(--b1);height:64px;display:flex;align-items:center;justify-content:space-around;padding:0 2px calc(env(safe-area-inset-bottom));z-index:50;}
-.nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:40px;height:56px;border-radius:var(--r12);color:var(--t3);transition:all .18s;position:relative;padding:0 5px;font-size:8.5px;font-weight:700;}
-.nb i{font-size:20px;transition:all .18s;}
-.nb.on{color:var(--pl);}
-.nb.on i{filter:drop-shadow(0 0 6px rgba(196,181,253,.7));transform:scale(1.12);}
-.nb-line{position:absolute;bottom:4px;left:50%;transform:translateX(-50%) scaleX(0);width:16px;height:2px;background:var(--grd);border-radius:1px;transition:transform .18s;}
-.nb.on .nb-line{transform:translateX(-50%) scaleX(1);}
-.nbdot{position:absolute;top:8px;right:3px;width:6px;height:6px;background:var(--r);border-radius:50%;border:2px solid var(--bg);}
-.fab{width:48px;height:48px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);transition:all .2s;margin-top:-4px;color:#fff;font-size:22px;}
-.fab:active{transform:scale(.92) rotate(90deg);}
-/* ── STORIES ── */
-.stories{display:flex;gap:10px;padding:13px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
-.stories::-webkit-scrollbar{display:none;}
-.stc{flex-shrink:0;width:70px;text-align:center;cursor:pointer;}
-.stc:active{transform:scale(.94);}
-.str{width:62px;height:62px;border-radius:50%;padding:2.5px;margin:0 auto 5px;background:var(--grd);}
-.stri{width:100%;height:100%;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:21px;}
-.stl{font-size:10px;color:var(--t3);}
-.st-add .str{background:var(--s3);border:2px dashed var(--pl);}
-.st-add .stri{color:var(--pl);font-size:23px;background:none;}
-/* ── QUICK POST ── */
-.qp{margin:0 14px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r20);padding:13px;}
-.qpr{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.qav{width:42px;height:42px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;flex-shrink:0;}
-.qinp{flex:1;background:var(--s4);border:1px solid var(--b1);border-radius:var(--r99);padding:10px 16px;color:var(--t3);font-size:13px;text-align:left;transition:all .18s;}
-.qtls{display:flex;gap:6px;padding-top:11px;border-top:1px solid var(--b1);}
-.qtl{flex:1;background:transparent;color:var(--t3);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 4px;border-radius:var(--r8);transition:all .18s;}
-.qtl:active{background:var(--s4);color:var(--t1);}
-.qtl i{font-size:14px;}
-/* ── FEED TABS ── */
-.ftabs{display:flex;gap:7px;padding:0 14px 12px;overflow-x:auto;scrollbar-width:none;}
-.ftabs::-webkit-scrollbar{display:none;}
-.ftab{flex-shrink:0;padding:8px 16px;border-radius:var(--r99);border:1px solid var(--b1);background:transparent;color:var(--t3);font-size:12px;font-weight:700;transition:all .18s;}
-.ftab.on{background:var(--grd);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(139,92,246,.35);}
-/* ── POST CARD ── */
-.pc{margin:0 14px 11px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r20);overflow:hidden;transition:border-color .18s;}
-.pch{display:flex;align-items:center;gap:10px;padding:13px 13px 9px;}
-.pav{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex-shrink:0;}
-.pm{flex:1;}
-.pn{font-size:13px;font-weight:800;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
-.vtick{color:var(--g);font-size:12px;}
-.abadge{background:rgba(139,92,246,.2);color:var(--pl);font-size:9px;font-weight:800;padding:2px 8px;border-radius:var(--r99);border:1px solid rgba(139,92,246,.3);}
-.pt{font-size:11px;color:var(--t3);margin-top:2px;}
-.pn-link{cursor:pointer;transition:color .18s;}
-.pn-link:hover{color:var(--pl);}
-.pmor{width:30px;height:30px;border-radius:50%;color:var(--t3);display:flex;align-items:center;justify-content:center;font-size:15px;}
-.pb{padding:0 13px 10px;font-size:13px;line-height:1.7;color:var(--t1);}
-.pstats{padding:7px 13px;display:flex;gap:8px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1);border-bottom:1px solid var(--b1);}
-.pacts{display:flex;}
-.pa{flex:1;background:transparent;color:var(--t2);font-size:12px;font-weight:700;padding:10px 4px;border-radius:var(--r12);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .18s;}
-.pa:active{background:var(--s4);}
-.pa.lkd{color:var(--r);}
-.pa i{font-size:14px;}
-/* ── SEARCH ── */
-.sbar{margin:12px 14px 10px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r99);padding:11px 16px;display:flex;align-items:center;gap:9px;}
-.sbar i{color:var(--t3);font-size:14px;}
-.sinp{flex:1;background:transparent;color:var(--t1);font-size:13px;}
-.sinp::placeholder{color:var(--t3);}
-.sr-res{padding:0 14px;display:flex;flex-direction:column;gap:8px;}
-.sr-item{display:flex;align-items:center;gap:11px;padding:11px 13px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r16);cursor:pointer;transition:all .18s;}
-.sr-item:active{background:var(--s3);}
-.sr-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex-shrink:0;}
-.sr-info{flex:1;}
-.sr-name{font-size:13px;font-weight:800;display:flex;align-items:center;gap:5px;}
-.sr-sub{font-size:11px;color:var(--t3);margin-top:2px;}
-.sr-act{padding:7px 14px;background:var(--grd);border-radius:var(--r99);color:#fff;font-size:11px;font-weight:800;}
-/* ── FULLSCREEN CHAT ── */
-.fschat{position:fixed;inset:0;z-index:300;background:var(--bg);display:none;flex-direction:column;max-width:480px;margin:0 auto;}
-.fschat.show{display:flex;animation:pgin .22s ease;}
-.fsch-hdr{background:rgba(6,6,26,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);padding:12px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
-.fsch-back{width:36px;height:36px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .18s;}
-.fsch-back:active{background:var(--s4);}
-.fsch-info{flex:1;}
-.fsch-name{font-size:16px;font-weight:800;}
-.fsch-sub{font-size:11px;color:var(--t3);margin-top:1px;}
-.fsch-actions{display:flex;gap:8px;}
-.fsch-act{width:34px;height:34px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:14px;}
-.fsch-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
-.fsch-msgs::-webkit-scrollbar{width:2px;}
-.mrow{display:flex;gap:8px;align-items:flex-end;}
-.mrow.me{flex-direction:row-reverse;}
-.mav-sm{width:30px;height:30px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;flex-shrink:0;}
-.mbub{max-width:74%;}
-.mn{font-size:10px;color:var(--t3);margin-bottom:3px;display:flex;align-items:center;gap:3px;}
-.mtxt{background:var(--s3);padding:9px 12px;border-radius:3px var(--r12) var(--r12) var(--r12);font-size:13px;line-height:1.55;word-break:break-word;border:1px solid var(--b1);}
-.mrow.me .mtxt{background:linear-gradient(135deg,#6D28D9,#8B5CF6);border-radius:var(--r12) 3px var(--r12) var(--r12);border:none;}
-.mts{font-size:9px;color:var(--t3);margin-top:3px;text-align:right;}
-.fsch-inp{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--b1);background:rgba(6,6,26,.96);backdrop-filter:blur(20px);}
-.ci{flex:1;background:var(--s3);border:1px solid var(--b1);border-radius:var(--r99);padding:10px 14px;color:var(--t1);font-size:13px;transition:all .18s;}
-.ci:focus{border-color:var(--pl);}
-.csnd{width:38px;height:38px;border-radius:50%;background:var(--grd);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(139,92,246,.4);}
-.csnd:active{transform:scale(.9);}
-/* ── ROOMS LIST PAGE ── */
-.lounge-card{margin:0 14px 14px;border:1px solid rgba(139,92,246,.3);border-radius:var(--r20);overflow:hidden;cursor:pointer;transition:all .18s;}
-.lounge-card:active{transform:scale(.98);}
-.lcard-hdr{background:linear-gradient(135deg,#6D28D9,#0891B2);padding:18px;display:flex;align-items:center;gap:14px;}
-.lcard-ico{font-size:36px;}
-.lcard-info{flex:1;}
-.lcard-title{font-size:17px;font-weight:800;margin-bottom:3px;}
-.lcard-sub{font-size:12px;opacity:.75;}
-.lcard-arr{font-size:18px;opacity:.7;}
-.rg{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px;}
-.rc{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r20);padding:15px;text-align:center;cursor:pointer;transition:all .18s;}
-.rc:active{transform:scale(.97);border-color:var(--b3);}
-.rc-ico{width:52px;height:52px;border-radius:var(--r16);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 9px;}
-.rc-name{font-size:13px;font-weight:800;margin-bottom:3px;}
-.rc-cnt{font-size:11px;color:var(--t3);}
-.rc-badge{font-size:9px;font-weight:800;padding:2px 7px;border-radius:var(--r99);display:inline-block;margin-top:5px;}
-.rc-pub{background:rgba(16,185,129,.15);color:var(--g);}
-.rc-prv{background:rgba(251,191,36,.15);color:var(--w);}
-.crbtn{margin:0 14px 14px;padding:13px;background:var(--grd);border-radius:var(--r16);color:#fff;font-size:14px;font-weight:800;width:calc(100% - 28px);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--shadow);}
-.info-bar{margin:0 14px 12px;padding:10px 14px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:var(--r12);font-size:12px;color:var(--w);display:flex;align-items:center;gap:8px;}
-/* ── DM LIST ── */
-.sec{padding:12px 14px 9px;font-size:16px;font-weight:900;}
-.sec-sm{padding:4px 14px 8px;font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;}
-.msg-list{padding:0 14px;display:flex;flex-direction:column;gap:8px;}
-.ml-item{display:flex;align-items:center;gap:11px;padding:11px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r16);cursor:pointer;transition:all .18s;}
-.ml-item:active{background:var(--s3);}
-.ml-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;flex-shrink:0;position:relative;}
-.onl{position:absolute;bottom:1px;right:1px;width:11px;height:11px;background:var(--g);border-radius:50%;border:2px solid var(--s2);}
-.ml-info{flex:1;min-width:0;}
-.ml-name{font-size:13px;font-weight:800;display:flex;align-items:center;gap:5px;margin-bottom:3px;}
-.ml-prev{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.unrd{min-width:18px;height:18px;background:var(--p);border-radius:var(--r99);font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px;}
-.newmsg{margin:0 14px 14px;padding:12px;background:var(--grd);border-radius:var(--r16);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:var(--shadow);}
-/* ── PROFILE ── */
-.prof-hdr{background:linear-gradient(180deg,rgba(139,92,246,.15) 0%,transparent 100%);padding:28px 16px 18px;text-align:center;}
-.prof-av{width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;margin:0 auto 12px;border:3px solid rgba(196,181,253,.35);position:relative;}
-.prof-cam{position:absolute;bottom:0;right:0;width:25px;height:25px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;}
-.prof-name{font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:3px;}
-.prof-handle{font-size:13px;color:var(--t3);margin-bottom:9px;}
-.prof-bio{font-size:13px;color:var(--t2);margin-bottom:13px;line-height:1.5;}
-.prof-stats{display:flex;justify-content:center;gap:28px;margin-bottom:13px;}
-.pst{text-align:center;}
-.psn{font-size:20px;font-weight:900;}
-.psl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;}
-.edt-btn{padding:9px 24px;background:transparent;border:1.5px solid var(--pl);border-radius:var(--r99);color:var(--pl);font-size:13px;font-weight:800;}
-/* ── VIEW PROFILE (fullscreen overlay) ── */
-.view-prof{position:fixed;inset:0;z-index:400;background:var(--bg);display:none;flex-direction:column;max-width:480px;margin:0 auto;overflow-y:auto;}
-.view-prof.show{display:flex;animation:pgin .22s ease;}
-.vp-hdr{background:rgba(6,6,26,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);padding:12px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;position:sticky;top:0;z-index:10;}
-.vp-hero{background:linear-gradient(180deg,rgba(139,92,246,.18) 0%,transparent 100%);padding:28px 18px 20px;text-align:center;}
-.vp-av{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;margin:0 auto 14px;border:3px solid rgba(196,181,253,.4);}
-.vp-name{font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;}
-.vp-handle{font-size:13px;color:var(--t3);margin-bottom:10px;}
-.vp-bio{font-size:13px;color:var(--t2);margin-bottom:16px;line-height:1.5;}
-.vp-stats{display:flex;justify-content:center;gap:28px;margin-bottom:16px;}
-.vp-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-.vp-btn{padding:10px 22px;border-radius:var(--r99);font-size:13px;font-weight:800;transition:all .18s;}
-.vp-btn.primary{background:var(--grd);color:#fff;box-shadow:var(--shadow);}
-.vp-btn.secondary{background:transparent;border:1.5px solid var(--pl);color:var(--pl);}
-.vp-btn.copy{background:var(--s3);border:1px solid var(--b2);color:var(--t2);display:flex;align-items:center;gap:6px;}
-.vp-btn:active{transform:scale(.97);}
-.vp-posts{padding:14px;}
-/* ── SETTINGS ── */
-.sets{padding:0 14px;}
-.sg{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r20);overflow:hidden;margin-bottom:10px;}
-.si{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;transition:all .18s;border-bottom:1px solid var(--b1);}
-.si:last-child{border-bottom:none;}
-.si:active{background:var(--s3);}
-.si-ico{width:34px;height:34px;border-radius:var(--r8);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
-.si-txt{flex:1;font-size:13px;font-weight:700;}
-.si-r{font-size:11px;color:var(--t3);}
-.tsw{width:44px;height:24px;background:var(--s4);border-radius:var(--r99);position:relative;cursor:pointer;transition:all .25s;border:1px solid var(--b2);}
-.tsw.on{background:var(--grd);border-color:transparent;}
-.tsw::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .25s;box-shadow:0 2px 5px rgba(0,0,0,.35);}
-.tsw.on::after{left:22px;}
-.lang-row{display:flex;gap:6px;}
-.lbtn{padding:5px 12px;border-radius:var(--r99);border:1px solid var(--b2);color:var(--t3);font-size:11px;font-weight:800;transition:all .18s;}
-.lbtn.on{background:var(--grd);border-color:transparent;color:#fff;}
-/* ── GRPS ── */
-.grp-card{display:flex;align-items:center;gap:10px;padding:11px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r16);cursor:pointer;transition:all .18s;}
-.grp-ico{font-size:26px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--s3);border-radius:var(--r12);flex-shrink:0;}
-.grp-info{flex:1;}
-.grp-name{font-size:13px;font-weight:800;margin-bottom:3px;}
-.grp-meta{font-size:11px;color:var(--t3);}
-.grp-role{font-size:9px;font-weight:800;padding:3px 8px;border-radius:var(--r99);background:rgba(139,92,246,.2);color:var(--pl);}
-/* ── MODALS ── */
-.ovl{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);z-index:200;display:none;align-items:flex-end;justify-content:center;}
-.ovl.show{display:flex;animation:ovi .2s ease;}
-@keyframes ovi{from{opacity:0;}to{opacity:1;}}
-.modal{width:100%;max-width:480px;max-height:92vh;background:var(--s1);border-radius:var(--r24) var(--r24) 0 0;display:flex;flex-direction:column;animation:mup .3s cubic-bezier(.34,1.56,.64,1);}
-@keyframes mup{from{transform:translateY(100%);}to{transform:none;}}
-.auth-ovl .modal{border-radius:var(--r24);margin:auto;max-height:88vh;}
-.mh{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 13px;border-bottom:1px solid var(--b1);flex-shrink:0;}
-.mt{font-size:16px;font-weight:900;}
-.mcl{width:30px;height:30px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:14px;}
-.mb{flex:1;overflow-y:auto;padding:16px;}
-/* ── CREATE POST ── */
-.cu{display:flex;align-items:center;gap:10px;margin-bottom:13px;}
-.cname{font-size:14px;font-weight:800;}
-.cmode{font-size:11px;color:var(--t3);margin-top:2px;}
-.cta{width:100%;min-height:110px;background:transparent;color:var(--t1);font-size:14px;resize:none;line-height:1.65;}
-.cta::placeholder{color:var(--t3);}
-.cdv{height:1px;background:var(--b1);margin:13px 0;}
-.at-row{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border-radius:var(--r12);padding:12px;margin-bottom:11px;gap:10px;}
-.at-inf{display:flex;align-items:center;gap:9px;}
-.at-b{font-size:13px;font-weight:800;}
-.at-sm{font-size:11px;color:var(--t3);margin-top:1px;}
-.ptools{display:flex;gap:6px;margin-bottom:11px;flex-wrap:wrap;}
-.ptool{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r8);padding:7px 12px;color:var(--t2);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;}
-.ptool i{font-size:13px;}
-.subp{width:100%;padding:13px;background:var(--grd);border-radius:var(--r16);color:#fff;font-size:14px;font-weight:800;box-shadow:var(--shadow);}
-/* ── AUTH ── */
-.al-hdr{text-align:center;padding:24px 16px 16px;}
-.al-logo{font-size:30px;font-weight:900;}
-.al-sub{font-size:13px;color:var(--t2);margin-top:5px;}
-.fg{margin-bottom:13px;}
-.fl{font-size:12px;font-weight:700;color:var(--t2);margin-bottom:5px;}
-.fi{width:100%;padding:11px 13px;background:var(--s3);border:1.5px solid var(--b1);border-radius:var(--r12);color:var(--t1);font-size:13px;transition:all .18s;}
-.fi:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(139,92,246,.12);}
-.fi::placeholder{color:var(--t3);}
-.frow{display:flex;gap:10px;}
-.frow .fg{flex:1;}
-.abtn{width:100%;padding:13px;background:var(--grd);border-radius:var(--r16);color:#fff;font-size:14px;font-weight:800;box-shadow:var(--shadow);margin-bottom:13px;}
-.or-div{display:flex;align-items:center;gap:9px;margin:13px 0;color:var(--t3);font-size:11px;}
-.or-div::before,.or-div::after{content:'';flex:1;height:1px;background:var(--b1);}
-.srow{display:flex;gap:8px;margin-bottom:13px;}
-.sbtn{flex:1;padding:11px;background:var(--s3);border:1px solid var(--b1);border-radius:var(--r12);color:var(--t1);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;}
-.aswitch{text-align:center;color:var(--t2);font-size:13px;padding-bottom:5px;}
-.aswitch a{color:var(--pl);font-weight:800;cursor:pointer;}
-/* ── GATE ── */
-.gate{padding:32px 18px;text-align:center;}
-.gate .g-ico{font-size:44px;margin-bottom:13px;}
-.gate h3{font-size:16px;font-weight:900;margin-bottom:6px;}
-.gate p{font-size:12px;color:var(--t2);margin-bottom:16px;line-height:1.5;}
-.gate-btn{padding:10px 28px;background:var(--grd);border-radius:var(--r99);color:#fff;font-size:13px;font-weight:800;box-shadow:var(--shadow);}
-/* ── STATUS INDICATOR ── */
-.sb-bar{padding:6px 14px;background:rgba(16,185,129,.08);border-bottom:1px solid rgba(16,185,129,.15);font-size:11px;color:var(--g);display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.sb-bar.offline{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.15);color:var(--r);}
-/* ── TOAST ── */
-.tw{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);z-index:500;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:88%;max-width:340px;}
-.t{background:var(--s3);border:1px solid var(--b2);border-radius:var(--r12);padding:11px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:9px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:tin .28s ease,tout .28s ease 2.7s forwards;}
-.t.ok{border-color:rgba(16,185,129,.35);}
-.t.er{border-color:rgba(248,113,113,.35);}
-.tok{color:var(--g);}.ter{color:var(--r);}.tin{color:var(--pl);}
-@keyframes tin{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
-@keyframes tout{from{opacity:1;}to{opacity:0;}}
-.spin{width:30px;height:30px;border:2px solid var(--b2);border-top-color:var(--pl);border-radius:50%;animation:sp .7s linear infinite;margin:40px auto;}
-@keyframes sp{to{transform:rotate(360deg);}}
-.empty{text-align:center;padding:44px 18px;color:var(--t3);}
-.empty p{font-size:13px;margin-top:10px;}
-/* ── TYPING ── */
-.typing-ind{display:flex;align-items:center;gap:8px;padding:6px 12px;}
-.typing-dots{display:flex;gap:4px;}
-.typing-dots span{width:6px;height:6px;background:var(--t3);border-radius:50%;animation:td .9s infinite;}
-.typing-dots span:nth-child(2){animation-delay:.2s;}
-.typing-dots span:nth-child(3){animation-delay:.4s;}
-@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-5px);opacity:1;}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Anonlogos • Premium Social Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F8FAFC;
+            color: #1E293B;
+            padding-bottom: 70px;
+            transition: background 0.3s, color 0.3s;
+        }
+        body.dark { background: #0F172A; color: #F1F5F9; }
+        .app-container { max-width: 600px; margin: 0 auto; background: inherit; min-height: 100vh; position: relative; }
+        
+        /* Dark mode overrides */
+        body.dark .post-card, body.dark .room-card, body.dark .composer, body.dark .auth-card {
+            background: #1E293B; border-color: #334155;
+        }
+        body.dark .post-content, body.dark .username, body.dark h2, body.dark h3 { color: #F1F5F9; }
+        body.dark .composer textarea, body.dark .chat-input-area input { background: #0F172A; color: white; }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; max-width: 600px; margin: 0 auto;
+            background: rgba(255,255,255,0.96); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around; padding: 10px 20px 20px;
+            border-top: 1px solid #E2E8F0; z-index: 100;
+        }
+        body.dark .bottom-nav { background: rgba(30,41,59,0.96); border-top-color: #334155; }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            font-size: 12px; color: #94A3B8; cursor: pointer; transition: all 0.2s;
+            background: none; border: none; font-family: inherit;
+        }
+        .nav-item i { font-size: 22px; }
+        .nav-item.active { color: #6366F1; font-weight: 600; }
+        .screen { display: none; padding: 16px; padding-bottom: 80px; }
+        .screen.active-screen { display: block; }
+        
+        /* Cards */
+        .post-card, .room-card {
+            background: white; border-radius: 20px; padding: 16px; margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #E2E8F0;
+        }
+        .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .username { font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .verified-badge { color: #10B981; font-size: 14px; }
+        .anonymous-label { color: #64748B; font-style: italic; font-size: 13px; }
+        .post-content { margin: 12px 0; line-height: 1.4; }
+        .post-media { margin: 12px 0; border-radius: 16px; overflow: hidden; max-height: 300px; }
+        .post-media img { width: 100%; height: auto; }
+        .post-actions { display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap; }
+        .post-actions button {
+            background: none; border: none; display: flex; align-items: center;
+            gap: 6px; cursor: pointer; font-size: 13px; color: #64748B;
+        }
+        
+        /* Composer */
+        .composer {
+            background: white; border-radius: 24px; padding: 12px; margin-bottom: 24px;
+            border: 1px solid #E2E8F0;
+        }
+        .composer textarea {
+            width: 100%; border: none; padding: 10px 0; font-size: 14px;
+            outline: none; background: transparent; resize: none; font-family: inherit;
+        }
+        .composer-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .media-preview { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .preview-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
+        
+        /* Chat Fullscreen */
+        .chat-fullscreen {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: white; z-index: 200; display: flex; flex-direction: column;
+            max-width: 600px; margin: 0 auto;
+        }
+        body.dark .chat-fullscreen { background: #1E293B; }
+        .chat-header {
+            padding: 16px; border-bottom: 1px solid #E2E8F0;
+            background: inherit; display: flex; align-items: center; gap: 12px;
+        }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .message-bubble { max-width: 80%; padding: 10px 14px; border-radius: 24px; font-size: 14px; }
+        .sent {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white; align-self: flex-end; border-bottom-right-radius: 4px;
+        }
+        .received {
+            background: #F1F5F9; color: #1E293B; align-self: flex-start; border-bottom-left-radius: 4px;
+        }
+        body.dark .received { background: #334155; color: white; }
+        .chat-input-area {
+            padding: 16px; border-top: 1px solid #E2E8F0;
+            display: flex; gap: 8px; background: inherit;
+        }
+        .chat-input-area input {
+            flex: 1; padding: 12px; border: 1px solid #E2E8F0;
+            border-radius: 40px; outline: none; background: white;
+        }
+        body.dark .chat-input-area input { background: #0F172A; border-color: #334155; color: white; }
+        
+        .btn-primary { background: #6366F1; color: white; border: none; padding: 10px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; }
+        .btn-outline { background: transparent; border: 1px solid #6366F1; color: #6366F1; padding: 8px 16px; border-radius: 40px; cursor: pointer; }
+        
+        .auth-card { background: white; border-radius: 24px; padding: 24px; text-align: center; }
+        .auth-card input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #E2E8F0; border-radius: 40px; }
+        
+        .toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: #1E293B; color: white; padding: 8px 16px; border-radius: 40px;
+            font-size: 14px; z-index: 300; animation: fadeOut 2s ease forwards;
+        }
+        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+        .dark-toggle { background: none; border: none; font-size: 20px; cursor: pointer; padding: 8px; color: inherit; }
+        .loading { text-align: center; padding: 40px; color: #64748B; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #E2E8F0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 10px; }
+        body.dark ::-webkit-scrollbar-track { background: #334155; }
+        body.dark ::-webkit-scrollbar-thumb { background: #64748B; }
+    </style>
 </head>
 <body>
-<div id="app">
-<!-- HEADER -->
-<div class="hdr">
-  <div class="logo"><div class="logodot"></div><span class="grd">Anonlogos</span></div>
-  <div class="hbtns">
-    <button class="hbtn" onclick="goSearch()"><i class="fa fa-search"></i></button>
-    <button class="hbtn dot" id="hbtn-notif" onclick="showNotifs()"><i class="fa fa-bell"></i></button>
-    <button class="hbtn" id="hbtn-auth" onclick="hdrAuth()"><i class="fa fa-user"></i></button>
-  </div>
-</div>
-<!-- SUPABASE STATUS -->
-<div id="sb-status" class="sb-bar" style="display:none;"></div>
-
-<!-- PAGES -->
-<div class="pages">
-  <!-- HOME -->
-  <div id="pg-home" class="page show">
-    <div class="stories" id="stories"></div>
-    <div class="qp" onclick="openPost()">
-      <div class="qpr">
-        <div class="qav" id="qav" style="color:#fff;">?</div>
-        <button class="qinp">What's on your mind?</button>
-      </div>
-      <div class="qtls">
-        <button class="qtl" onclick="event.stopPropagation();openPost()"><i class="fa fa-video" style="color:#EF4444;"></i>Live</button>
-        <button class="qtl" onclick="event.stopPropagation();openPost()"><i class="fa fa-image" style="color:#10B981;"></i>Photo</button>
-        <button class="qtl" onclick="event.stopPropagation();openPost()"><i class="fa fa-smile" style="color:#FBBF24;"></i>Feeling</button>
-      </div>
-    </div>
-    <div class="ftabs" id="ftabs">
-      <button class="ftab on" onclick="switchTab(this,'all')">For You</button>
-      <button class="ftab" onclick="switchTab(this,'following')">Following</button>
-      <button class="ftab" onclick="switchTab(this,'anon')">Anonymous</button>
-      <button class="ftab" onclick="switchTab(this,'verified')">Verified ✔</button>
-      <button class="ftab" onclick="switchTab(this,'trending')">🔥 Trending</button>
-    </div>
-    <div id="feed"><div class="spin"></div></div>
-  </div>
-  <!-- SEARCH -->
-  <div id="pg-search" class="page">
-    <div class="sbar"><i class="fa fa-search"></i><input class="sinp" id="sinp" placeholder="Search people, posts…" oninput="doSearch(this.value)"></div>
-    <div id="sres"><div class="empty"><i class="fa fa-search" style="font-size:36px;opacity:.3;"></i><p>Search for people, posts, rooms…</p></div></div>
-  </div>
-  <!-- ROOMS -->
-  <div id="pg-rooms" class="page">
-    <div class="sec">💬 Chat & Rooms</div>
-    <div class="lounge-card" onclick="openFullChat('global','🌍 Global Lounge','3,247 online',null,null,true)">
-      <div class="lcard-hdr">
-        <div class="lcard-ico">🌍</div>
-        <div class="lcard-info">
-          <div class="lcard-title">Global Lounge</div>
-          <div class="lcard-sub">3,247 members • 128 online • Open to all</div>
+<div class="app-container">
+    <div id="feedScreen" class="screen active-screen">
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2 style="font-weight: 700; background: linear-gradient(135deg, #6366F1, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Anonlogos</h2>
+                <p style="color:#64748B">Speak freely, connect deeply</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button id="darkModeToggle" class="dark-toggle"><i class="fas fa-moon"></i></button>
+                <div id="authStatus" style="font-size: 12px; background: #6366F120; padding: 6px 12px; border-radius: 40px;"></div>
+            </div>
         </div>
-        <div class="lcard-arr"><i class="fa fa-chevron-right"></i></div>
-      </div>
-    </div>
-    <div class="sec" style="padding-top:6px;">🏠 Chat Rooms</div>
-    <div id="crm-area"></div>
-    <div class="rg" id="rgrid"></div>
-    <div class="sec" style="padding-top:18px;">👥 Private Groups</div>
-    <div id="grps" style="padding:0 14px;display:flex;flex-direction:column;gap:8px;"></div>
-    <div style="height:10px;"></div>
-  </div>
-  <!-- MESSAGES -->
-  <div id="pg-msgs" class="page">
-    <div class="sec">✉️ Messages</div>
-    <div id="dmg-area"></div>
-    <div id="dm-list"></div>
-  </div>
-  <!-- PROFILE -->
-  <div id="pg-profile" class="page"><div id="prof-body"></div></div>
-  <!-- SETTINGS -->
-  <div id="pg-settings" class="page"><div class="sec">⚙️ Settings</div><div id="sets-body"></div></div>
-</div><!-- /pages -->
-
-<!-- BOTTOM NAV -->
-<div class="bnav">
-  <button class="nb on" id="nb-home" onclick="go('home',this)"><i class="fa fa-home"></i><span>Home</span><div class="nb-line"></div></button>
-  <button class="nb" id="nb-search" onclick="go('search',this);goSearch()"><i class="fa fa-search"></i><span>Search</span><div class="nb-line"></div></button>
-  <button class="fab" onclick="openPost()"><i class="fa fa-plus"></i></button>
-  <button class="nb" id="nb-rooms" onclick="go('rooms',this)"><i class="fa fa-door-open"></i><span>Rooms</span><div class="nb-line"></div></button>
-  <button class="nb" id="nb-msgs" onclick="go('msgs',this)"><i class="fa fa-comment-dots"></i><span>Messages</span><div class="nb-line"></div><div class="nbdot" id="msgdot" style="display:none;"></div></button>
-  <button class="nb" id="nb-profile" onclick="go('profile',this)"><i class="fa fa-user"></i><span>Profile</span><div class="nb-line"></div></button>
-  <button class="nb" id="nb-settings" onclick="go('settings',this)"><i class="fa fa-cog"></i><span>More</span><div class="nb-line"></div></button>
-</div>
-</div><!-- /app -->
-
-<!-- ══════════════════════════════════════ -->
-<!-- FULLSCREEN CHAT -->
-<div class="fschat" id="fschat">
-  <div class="fsch-hdr">
-    <button class="fsch-back" onclick="closeFullChat()"><i class="fa fa-arrow-left"></i></button>
-    <div style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex-shrink:0;" id="fsch-av">🌍</div>
-    <div class="fsch-info">
-      <div class="fsch-name" id="fsch-name">Global Lounge</div>
-      <div class="fsch-sub" id="fsch-sub">3,247 online</div>
-    </div>
-    <div class="fsch-actions">
-      <button class="fsch-act" onclick="toast('Voice call coming!','in')"><i class="fa fa-phone"></i></button>
-      <button class="fsch-act" onclick="toast('Video call coming!','in')"><i class="fa fa-video"></i></button>
-    </div>
-  </div>
-  <div class="fsch-msgs" id="fsch-msgs"></div>
-  <div id="fsch-typing" style="display:none;" class="typing-ind"><div class="typing-dots"><span></span><span></span><span></span></div><span id="fsch-typing-name" style="font-size:11px;color:var(--t3);"></span></div>
-  <div class="fsch-inp">
-    <button style="width:36px;height:36px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:14px;" onclick="toast('Attach file coming!','in')"><i class="fa fa-paperclip"></i></button>
-    <input class="ci" id="fsch-inp" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendFSMsg()">
-    <button class="csnd" onclick="sendFSMsg()"><i class="fa fa-paper-plane"></i></button>
-  </div>
-</div>
-
-<!-- VIEW PROFILE FULLSCREEN -->
-<div class="view-prof" id="view-prof">
-  <div class="vp-hdr">
-    <button class="fsch-back" onclick="closeViewProf()"><i class="fa fa-arrow-left"></i></button>
-    <div class="mt" id="vp-title">Profile</div>
-    <button class="fsch-act" onclick="copyProfileLink()"><i class="fa fa-share-alt"></i></button>
-  </div>
-  <div id="vp-body"></div>
-</div>
-
-<!-- TOASTS -->
-<div class="tw" id="tw"></div>
-
-<!-- CREATE POST -->
-<div class="ovl" id="ov-post" onclick="bgC(event,'ov-post')">
-  <div class="modal">
-    <div class="mh"><div class="mt">Create Post</div><button class="mcl" onclick="cls('ov-post')"><i class="fa fa-times"></i></button></div>
-    <div class="mb">
-      <div class="cu">
-        <div class="pav" id="c-av" style="width:42px;height:42px;font-size:16px;flex-shrink:0;background:var(--grd);">?</div>
-        <div><div class="cname" id="c-name">Guest</div><div class="cmode" id="c-mode">Anonymous post</div></div>
-      </div>
-      <textarea class="cta" id="cta" placeholder="Share your thoughts…"></textarea>
-      <div class="cdv"></div>
-      <div class="at-row">
-        <div class="at-inf">
-          <i class="fa fa-mask" style="font-size:18px;color:var(--pl);"></i>
-          <div><div class="at-b">Post Anonymously</div><div class="at-sm" id="an-prev">Will appear as: —</div></div>
+        <div class="composer">
+            <textarea id="postInput" rows="2" placeholder="What's on your mind?"></textarea>
+            <div id="imagePreview" class="media-preview"></div>
+            <div class="composer-actions">
+                <div style="display: flex; gap: 12px;">
+                    <label style="cursor: pointer; color:#6366F1;"><i class="fas fa-image"></i><input type="file" id="imageUpload" accept="image/*" style="display: none;"></label>
+                    <label style="cursor: pointer; color:#6366F1; display: flex; align-items: center; gap: 5px;"><i class="fas fa-user-secret"></i><input type="checkbox" id="anonymousCheckbox"> Anonymous</label>
+                </div>
+                <button id="publishPostBtn" style="background:#6366F1; color:white; border:none; padding:8px 24px; border-radius:40px; cursor:pointer;">Post</button>
+            </div>
         </div>
-        <div class="tsw" id="atog" onclick="toggleAnon()"></div>
-      </div>
-      <div class="ptools">
-        <button class="ptool"><i class="fa fa-image" style="color:#10B981;"></i>Photo</button>
-        <button class="ptool"><i class="fa fa-smile" style="color:#FBBF24;"></i>Feeling</button>
-        <button class="ptool"><i class="fa fa-map-marker-alt" style="color:#F87171;"></i>Location</button>
-      </div>
-      <button class="subp" onclick="submitPost()"><i class="fa fa-paper-plane" style="margin-right:7px;"></i>Publish Post</button>
+        <div id="postsContainer"><div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading posts...</div></div>
     </div>
-  </div>
-</div>
 
-<!-- AUTH MODAL -->
-<div class="ovl auth-ovl" id="ov-auth" onclick="bgC(event,'ov-auth')">
-  <div class="modal" style="border-radius:var(--r24);margin:auto;max-width:440px;max-height:88vh;"><div id="auth-cnt"></div></div>
-</div>
-
-<!-- COMMENTS -->
-<div class="ovl" id="ov-cmt" onclick="bgC(event,'ov-cmt')">
-  <div class="modal" style="max-height:86vh;">
-    <div class="mh"><div class="mt">Comments</div><button class="mcl" onclick="cls('ov-cmt')"><i class="fa fa-times"></i></button></div>
-    <div style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;" id="cmt-list"></div>
-    <div style="display:flex;gap:7px;padding:9px;border-top:1px solid var(--b1);background:var(--s1);">
-      <div class="mav-sm" id="cmt-myav" style="width:32px;height:32px;font-size:12px;border-radius:50%;flex-shrink:0;background:var(--grd);display:flex;align-items:center;justify-content:center;font-weight:900;"></div>
-      <input class="ci" id="cmt-inp" placeholder="Write a comment…" onkeydown="if(event.key==='Enter')sendCmt()">
-      <button class="csnd" onclick="sendCmt()"><i class="fa fa-paper-plane"></i></button>
+    <div id="globalScreen" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3>🌍 Global Rooms</h3>
+            <button id="createRoomBtnGlobal" class="btn-outline" style="padding:6px 12px; font-size:12px;">+ New Room (✔ only)</button>
+        </div>
+        <div id="globalRoomList"><div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading rooms...</div></div>
+        <div id="activeRoomPanel" style="margin-top: 20px;">
+            <div style="background: white; border-radius: 20px; padding: 12px;">
+                <h4 id="activeRoomName" style="margin-bottom: 12px;"># General</h4>
+                <div id="globalChatMessages" class="chat-messages" style="height: 300px;"></div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <input type="text" id="globalChatInput" placeholder="Message..." style="flex:1; padding: 10px; border-radius: 40px; border:1px solid #E2E8F0;">
+                    <button id="sendGlobalMsg" style="background:#6366F1; border:none; color:white; padding:0 20px; border-radius:40px; cursor:pointer;">Send</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- GROUP SETTINGS -->
-<div class="ovl" id="ov-grpset" onclick="bgC(event,'ov-grpset')">
-  <div class="modal" style="max-height:88vh;">
-    <div class="mh"><div class="mt" id="gs-title">Group Settings</div><button class="mcl" onclick="cls('ov-grpset')"><i class="fa fa-times"></i></button></div>
-    <div class="mb" id="gs-body"></div>
-  </div>
-</div>
-<!-- NEW DM -->
-<div class="ovl" id="ov-newdm" onclick="bgC(event,'ov-newdm')">
-  <div class="modal">
-    <div class="mh"><div class="mt">New Message</div><button class="mcl" onclick="cls('ov-newdm')"><i class="fa fa-times"></i></button></div>
-    <div class="mb"><div id="newdm-list" style="display:flex;flex-direction:column;gap:8px;"></div></div>
-  </div>
+    <div id="dmScreen" class="screen">
+        <div id="dmInboxView">
+            <h3>💬 Direct Messages</h3>
+            <div id="dmInboxList"><div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div>
+        </div>
+    </div>
+
+    <div id="profileScreen" class="screen">
+        <div id="profileLoggedOut" class="auth-card">
+            <i class="fas fa-user-circle fa-3x" style="color:#6366F1"></i>
+            <h3>Join Anonlogos</h3>
+            <input type="email" id="regEmail" placeholder="Email">
+            <input type="text" id="regUsername" placeholder="Username">
+            <input type="password" id="regPassword" placeholder="Password">
+            <button class="btn-primary" id="doSignupBtn">Sign Up</button>
+            <button class="btn-outline" id="doLoginBtn" style="margin-top: 8px;">Login</button>
+            <hr>
+            <button id="continueAnonymousBtn" style="background:none; border:none; color:#6366F1; cursor:pointer;">Continue as Anonymous</button>
+        </div>
+        <div id="profileLoggedIn" style="display: none;">
+            <div class="post-card" style="text-align:center">
+                <img id="profileAvatar" src="" style="width:80px; height:80px; border-radius:50%; margin:0 auto 10px; object-fit:cover;">
+                <div class="username" style="justify-content:center"><span id="profileUsername"></span> <span id="profileBadge"></span></div>
+                <p id="profileBio" style="color:#64748B; margin-top:8px;"></p>
+                <div style="display: flex; justify-content: center; gap: 12px; margin: 12px 0;">
+                    <button id="copyProfileLink" class="copy-link-btn" style="background:none; border:none; color:#6366F1; cursor:pointer;"><i class="fas fa-link"></i> Copy Profile Link</button>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 24px; margin: 16px 0;">
+                    <div><strong id="followerCount">0</strong><br>followers</div>
+                    <div><strong id="followingCount">0</strong><br>following</div>
+                </div>
+                <button id="logoutBtn" class="btn-outline">Logout</button>
+            </div>
+            <h4>Your Posts</h4>
+            <div id="userPostsContainer"></div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item" data-screen="feed"><i class="fas fa-home"></i><span>Feed</span></button>
+        <button class="nav-item" data-screen="global"><i class="fas fa-globe"></i><span>Global</span></button>
+        <button class="nav-item" data-screen="dm"><i class="fas fa-envelope"></i><span>DMs</span></button>
+        <button class="nav-item" data-screen="profile"><i class="fas fa-user"></i><span>Profile</span></button>
+    </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════
-// SUPABASE CLIENT
-// ═══════════════════════════════════════
-const SB_URL='https://stfxqkrotaffyafwatdp.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0Znhxa3JvdGFmZnlhZndhdGRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MDQwNTcsImV4cCI6MjA5MjA4MDA1N30.m2U9ubKElKndq3lVvWbPRtu6mIuEHmis3V6nnNX4ySM';
-let sbOnline=false;
-
-async function sbFetch(endpoint,opts={}){
-  const url=SB_URL+'/rest/v1/'+endpoint;
-  const headers={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})};
-  try{
-    const r=await fetch(url,{...opts,headers});
-    if(!r.ok){const e=await r.text();throw new Error(e);}
-    const txt=await r.text();
-    return txt?JSON.parse(txt):[];
-  }catch(e){console.warn('SB Error:',e.message);throw e;}
-}
-
-async function sbAuth(email,pass,signup=false,meta={}){
-  const ep=signup?'/auth/v1/signup':'/auth/v1/token?grant_type=password';
-  const body=signup?{email,password:pass,data:meta}:{email,password:pass};
-  const r=await fetch(SB_URL+ep,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const d=await r.json();
-  if(d.error)throw new Error(d.error_description||d.error);
-  return d;
-}
-
-let sbChannel=null;
-function sbRealtime(table,cb){
-  // Polling fallback (realtime via REST polling every 3s)
-  return setInterval(async()=>{
-    try{
-      const rows=await sbFetch(table+'?order=created_at.asc&limit=50');
-      cb(rows);
-    }catch(e){}
-  },3000);
-}
-
-async function checkSBConnection(){
-  const bar=document.getElementById('sb-status');
-  try{
-    await sbFetch('profiles?limit=1');
-    sbOnline=true;
-    bar.style.display='flex';
-    bar.className='sb-bar';
-    bar.innerHTML='<i class="fa fa-circle" style="font-size:8px;"></i> Connected to Supabase database';
-    setTimeout(()=>bar.style.display='none',3000);
-  }catch(e){
-    sbOnline=false;
-    bar.style.display='flex';
-    bar.className='sb-bar offline';
-    bar.innerHTML='<i class="fa fa-circle" style="font-size:8px;"></i> Offline mode — changes saved locally';
-  }
-}
-
-// ═══════════════════════════════════════
-// STATE & DATA
-// ═══════════════════════════════════════
-let LANG='en', U=null, isAnon=false, anonName='', feedTab='all';
-let liked=new Set(), posts=[], gMsgs=[], rmMsgs={}, dmMsgs={};
-let curFSChat=null, curCmtPid=null, viewProfUser=null;
-let fsPolling=null;
-
-const ANON=['ShadowFox','SilentWave','NightOwl','MysticWolf','PhantomByte','GhostRider','DarkPhoenix','VoidWalker','CipherNode','NeonShadow','CryptoViper','PixelNinja','QuantumGhost','EchoHawk','IronMask','CloudRunner','ThunderMind','CosmicDrift','SilverWing','RedNova'];
-const COLORS=['#8B5CF6,#06B6D4','#EC4899,#F97316','#10B981,#3B82F6','#F59E0B,#EF4444','#8B5CF6,#EC4899','#06B6D4,#10B981'];
-const BOTS=['Interesting! 🤔','Agree 💯','Love this!','Tell me more…','Thanks 🙏','So relatable!','🔥 Fire!'];
-const USERS=[
-  {n:'Rahim Ahmed',h:'rahim_a',v:true,i:'R',c:'#8B5CF6,#06B6D4',bio:'Full-stack developer & tech enthusiast from Dhaka 🇧🇩'},
-  {n:'Sarah Khan',h:'sarah_k',v:true,i:'S',c:'#EC4899,#F97316',bio:'Designer & creative soul ✨ Building beautiful things'},
-  {n:'Dev Hossain',h:'dev_h',v:false,i:'D',c:'#10B981,#3B82F6',bio:'Learning to code, one line at a time 💻'},
-  {n:'Nadia Islam',h:'nadia_i',v:true,i:'N',c:'#8B5CF6,#EC4899',bio:'Book lover 📚 | Coffee addict ☕ | Dreamer'},
-];
-const ROOMS_DATA=[
-  {id:1,ico:'💻',n:'Tech Talk',m:'1.2K',pub:true,c:'#3B82F6,#06B6D4'},
-  {id:2,ico:'🚀',n:'Startup BD',m:'856',pub:true,c:'#8B5CF6,#EC4899'},
-  {id:3,ico:'🎨',n:'Creatives',m:'2.3K',pub:true,c:'#F59E0B,#EF4444'},
-  {id:4,ico:'🎵',n:'Music',m:'987',pub:false,c:'#EC4899,#8B5CF6'},
-  {id:5,ico:'📚',n:'Book Club',m:'654',pub:false,c:'#10B981,#3B82F6'},
-  {id:6,ico:'💪',n:'Fitness',m:'1.5K',pub:true,c:'#F97316,#EF4444'},
-];
-const GROUPS_DATA=[
-  {id:101,ico:'🦉',n:'Night Owls Squad',m:18,max:30,role:'Admin',msgs:247},
-  {id:102,ico:'⚡',n:'Dev Community BD',m:26,max:30,role:'Member',msgs:1200},
-];
-const SEED_GMSG=[
-  {n:'ShadowFox99',t:'Welcome to Anonlogos! 🎉',ts:'10:28',anon:true},
-  {n:'Rahim Ahmed',t:'Finally a privacy-first platform! 💜',ts:'10:31',v:true},
-  {n:'CipherNode07',t:'কেউ আছো বাংলাদেশ থেকে? 🇧🇩',ts:'10:36',anon:true},
-];
-const SEED_POSTS=[
-  {id:1,u:USERS[0],txt:'আজকে ঢাকায় দারুণ সূর্যাস্ত দেখলাম! 🌅 প্রকৃতির এই সৌন্দর্য সত্যিই অসাধারণ।',t:'2m ago',lk:47,anon:false},
-  {id:2,u:null,txt:'🎭 সত্যি কথা বলতে গেলে — সাহস নিয়ে নিজের মতামত দাও। সেটাই আসল স্বাধীনতা।',t:'8m ago',lk:128,anon:true,an:'ShadowFox42'},
-  {id:3,u:USERS[1],txt:'Working on something exciting for Bangladesh\'s tech scene! 🚀 Stay tuned. #startup #bd',t:'15m ago',lk:89,anon:false},
-  {id:4,u:USERS[2],txt:'কোডিং শিখতে সেরা platform কোনটা? React? Python? Flutter? 💻',t:'32m ago',lk:56,anon:false},
-  {id:5,u:null,txt:'আমরা সবাই একটা মুখোশ পরি সমাজের সামনে। সেই মুখোশের পেছনে কি আমরা সত্যিই সুন্দর?',t:'1h ago',lk:203,anon:true,an:'NightOwl99'},
-  {id:6,u:USERS[3],txt:'"Atomic Habits" শেষ করলাম। 1% daily improvement — অসাধারণ! 📚',t:'2h ago',lk:134,anon:false},
-];
-
-// ═══════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════
-window.onload=async()=>{
-  posts=SEED_POSTS.map(p=>({...p,cmts:genCmts(3)}));
-  gMsgs=[...SEED_GMSG];
-  buildStories();renderFeed();buildRooms();buildGroups();buildMsgs();buildProfile();buildSettings();genAnon();
-  checkSBConnection();
-  // Load posts from Supabase
-  loadPostsFromSB();
-  // Load global msgs from SB
-  loadGlobalMsgs();
-};
-
-// ═══════════════════════════════════════
-// SUPABASE DATA LAYER
-// ═══════════════════════════════════════
-async function loadPostsFromSB(){
-  try{
-    const rows=await sbFetch('posts?select=*,profiles(username,display_name,is_verified,avatar_color)&order=created_at.desc&limit=30');
-    if(rows&&rows.length){
-      const sbPosts=rows.map(r=>({
-        id:r.id, u:r.profiles?{n:r.profiles.display_name||r.profiles.username,h:r.profiles.username,v:r.profiles.is_verified,i:(r.profiles.display_name||r.profiles.username||'U')[0].toUpperCase(),c:r.profiles.avatar_color||'#8B5CF6,#06B6D4'}:null,
-        txt:r.content, t:timeAgo(r.created_at), lk:r.likes_count||0,
-        anon:r.is_anonymous, an:r.anon_display_name, cmts:[]
-      }));
-      posts=[...sbPosts,...SEED_POSTS.map(p=>({...p,cmts:genCmts(3)}))];
-      renderFeed();
-      toast('✅ Posts loaded from database','ok');
+    // ============ SUPABASE CONFIG ============
+    const SUPABASE_URL = "https://stfxqkrotaffyafwatdp.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0Znhxa3JvdGFmZnlhZndhdGRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MDQwNTcsImV4cCI6MjA5MjA4MDA1N30.m2U9ubKElKndq3lVvWbPRtu6mIuEHmis3V6nnNX4ySM";
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // ============ GLOBAL STATE ============
+    let currentUser = null;
+    let currentSession = null;
+    let selectedImage = null;
+    let activeRoomId = null;
+    let roomsList = [];
+    
+    const randomNames = ['SilentFox', 'BlueTiger', 'MysticWolf', 'ShadowCat', 'GoldenEagle', 'CrimsonFox', 'PhantomOwl', 'NeonPanda', 'CosmicBear', 'ThunderHawk'];
+    function getRandomAvatar(seed) { return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}`; }
+    function getRandomUsername() { return randomNames[Math.floor(Math.random() * randomNames.length)] + Math.floor(Math.random() * 100); }
+    function showToast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2000); }
+    function escapeHtml(str) { return String(str || '').replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    
+    // Update auth status display
+    function updateAuthStatus() {
+        const statusDiv = document.getElementById('authStatus');
+        if(statusDiv) {
+            if(currentUser) {
+                statusDiv.innerHTML = `<i class="fas fa-check-circle" style="color:#10B981;"></i> ${escapeHtml(currentUser.username)}`;
+                statusDiv.style.background = "#10B98120";
+            } else {
+                statusDiv.innerHTML = `<i class="fas fa-user-secret"></i> Anonymous`;
+                statusDiv.style.background = "#64748B20";
+            }
+        }
     }
-  }catch(e){/* use local data */}
-}
-
-async function loadGlobalMsgs(){
-  try{
-    const rows=await sbFetch('global_chat?order=created_at.asc&limit=50');
-    if(rows&&rows.length){
-      gMsgs=[...SEED_GMSG,...rows.map(r=>({n:r.sender_name,t:r.content,ts:fmtTime(r.created_at),anon:r.is_anonymous,v:false}))];
+    
+    // ============ AUTH FUNCTIONS ============
+    async function checkSession() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if(session) {
+            currentSession = session;
+            const { data: userData } = await supabase.from('users').select('*').eq('id', session.user.id).single();
+            if(userData) {
+                currentUser = userData;
+            } else {
+                const newUser = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    username: session.user.email.split('@')[0],
+                    avatar: getRandomAvatar(session.user.email.split('@')[0]),
+                    verified: true,
+                    bio: 'New to Anonlogos! ✨',
+                    followers: [],
+                    following: []
+                };
+                await supabase.from('users').insert([newUser]);
+                currentUser = newUser;
+            }
+        }
+        updateAuthStatus();
+        return currentUser;
     }
-  }catch(e){}
-  // Start polling for new msgs
-  fsPolling=setInterval(pollGlobalMsgs,5000);
-}
-
-let lastMsgTs=null;
-async function pollGlobalMsgs(){
-  if(curFSChat?.key!=='global')return;
-  try{
-    const q=lastMsgTs?`global_chat?created_at=gt.${lastMsgTs}&order=created_at.asc&limit=20`:'global_chat?order=created_at.asc&limit=50';
-    const rows=await sbFetch(q);
-    if(rows&&rows.length){
-      rows.forEach(r=>{
-        const m={n:r.sender_name,t:r.content,ts:fmtTime(r.created_at),anon:r.is_anonymous,v:false,fromSB:true};
-        if(!gMsgs.find(x=>x.sbId===r.id)){gMsgs.push({...m,sbId:r.id});}
-      });
-      lastMsgTs=rows[rows.length-1].created_at;
-      if(curFSChat?.key==='global')renderFSMsgs();
+    
+    async function signup(email, username, password) {
+        if(!email || !username || !password) { showToast('All fields required'); return false; }
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if(error) { showToast(error.message); return false; }
+        if(data.user) {
+            const newUser = {
+                id: data.user.id,
+                email: email,
+                username: username,
+                avatar: getRandomAvatar(username),
+                verified: true,
+                bio: 'New to Anonlogos! ✨',
+                followers: [],
+                following: []
+            };
+            await supabase.from('users').insert([newUser]);
+            currentUser = newUser;
+            updateAuthStatus();
+            showToast(`Welcome ${username}!`);
+            renderFeed();
+            showScreen('feed');
+            return true;
+        }
+        return false;
     }
-  }catch(e){}
-}
-
-async function savePostToSB(content,isAnonPost,anonDisplayName){
-  if(!sbOnline)return;
-  try{
-    await sbFetch('posts',{method:'POST',body:JSON.stringify({
-      content, is_anonymous:isAnonPost, anon_display_name:anonDisplayName||null,
-      user_id:U?.sbId||null, likes_count:0, comments_count:0
-    })});
-  }catch(e){console.warn('Post save failed:',e.message);}
-}
-
-async function saveGlobalMsg(content,senderName,isAnonMsg){
-  if(!sbOnline)return;
-  try{
-    await sbFetch('global_chat',{method:'POST',body:JSON.stringify({
-      content, sender_name:senderName, is_anonymous:isAnonMsg,
-      user_id:U?.sbId||null
-    })});
-  }catch(e){}
-}
-
-async function saveDMToSB(toUserId,content){
-  if(!sbOnline||!U?.sbId)return;
-  try{
-    await sbFetch('messages',{method:'POST',body:JSON.stringify({
-      sender_id:U.sbId, receiver_id:toUserId, content
-    })});
-  }catch(e){}
-}
-
-// ═══════════════════════════════════════
-// NAV
-// ═══════════════════════════════════════
-function go(pg,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  const el=document.getElementById('pg-'+pg);
-  if(el)el.classList.add('show');
-  if(btn)btn.classList.add('on');
-  if(pg==='profile')buildProfile();
-  if(pg==='settings')buildSettings();
-  if(pg==='msgs')buildMsgs();
-  if(pg==='rooms'){buildRooms();buildGroups();}
-}
-function hdrAuth(){if(U)go('profile',document.getElementById('nb-profile'));else showLogin();}
-function goSearch(){go('search',document.getElementById('nb-search'));setTimeout(()=>document.getElementById('sinp')?.focus(),200);}
-function showNotifs(){document.getElementById('hbtn-notif').classList.remove('dot');toast('3 new notifications: 2 likes, 1 comment','in');}
-
-// ═══════════════════════════════════════
-// FULLSCREEN CHAT
-// ═══════════════════════════════════════
-function openFullChat(key,name,sub,avContent,avColor,isGlobal){
-  curFSChat={key,name,sub,avContent,avColor,isGlobal};
-  document.getElementById('fsch-name').textContent=name;
-  document.getElementById('fsch-sub').textContent=sub||'';
-  const av=document.getElementById('fsch-av');
-  av.textContent=avContent||'🌍';
-  if(avColor)av.style.background=`linear-gradient(135deg,${avColor})`;
-  else av.style.background='linear-gradient(135deg,#6D28D9,#0891B2)';
-  av.style.borderRadius='50%';av.style.fontSize='15px';av.style.fontWeight='900';av.style.color='#fff';
-  if(isGlobal){
-    renderFSMsgs();
-  } else {
-    if(!rmMsgs[key])rmMsgs[key]=[{n:'System',t:`Welcome to ${name}! 👋`,ts:now(),sys:true}];
-    renderFSMsgs();
-  }
-  document.getElementById('fschat').classList.add('show');
-  document.body.style.overflow='hidden';
-  setTimeout(()=>document.getElementById('fsch-inp').focus(),300);
-}
-
-function closeFullChat(){
-  document.getElementById('fschat').classList.remove('show');
-  document.body.style.overflow='';
-  curFSChat=null;
-}
-function renderFSMsgs(){
-  const c=document.getElementById('fsch-msgs');
-  const msgs=curFSChat?.isGlobal?gMsgs:(rmMsgs[curFSChat?.key]||[]);
-  c.innerHTML=msgs.map(m=>{
-    const me=U&&m.n===U.n;
-    const avBg=m.sys?'background:var(--s4);color:var(--t3);':(me?`background:linear-gradient(135deg,${U?.c||'#8B5CF6,#06B6D4'})`:'background:var(--grd)');
-    const avTxt=m.sys?'🤖':(me?(U?.i||'?'):m.n.charAt(0).toUpperCase());
-    return `<div class="mrow ${me?'me':''}">
-      <div class="mav-sm" style="${avBg}">${avTxt}</div>
-      <div class="mbub">
-        <div class="mn">${esc(m.n)} ${m.v?'<span style="color:var(--g);">✔</span>':''}</div>
-        <div class="mtxt" style="${m.sys?'background:var(--s4);color:var(--t2);border-color:transparent;':''}">${esc(m.t)}</div>
-        <div class="mts">${m.ts}</div>
-      </div>
-    </div>`;
-  }).join('');
-  c.scrollTop=c.scrollHeight;
-}
-
-function sendFSMsg(){
-  const inp=document.getElementById('fsch-inp');
-  const txt=inp.value.trim();
-  if(!txt)return;
-  const nm=U?U.n:(anonName||genAnon());
-  const msg={n:nm,t:txt,ts:now(),v:U?.v,anon:!U};
-  if(curFSChat?.isGlobal){
-    gMsgs.push(msg);
-    saveGlobalMsg(txt,nm,!U);
-  } else {
-    if(!rmMsgs[curFSChat.key])rmMsgs[curFSChat.key]=[];
-    rmMsgs[curFSChat.key].push(msg);
-  }
-  inp.value='';renderFSMsgs();
-  // Show typing then bot reply
-  const tyEl=document.getElementById('fsch-typing');
-  const tyNm=document.getElementById('fsch-typing-name');
-  const botN=ANON[Math.floor(Math.random()*ANON.length)]+(Math.floor(Math.random()*90)+10);
-  setTimeout(()=>{tyEl.style.display='flex';tyNm.textContent=botN+' is typing…';},700);
-  setTimeout(()=>{
-    tyEl.style.display='none';
-    const botMsg={n:botN,t:BOTS[Math.floor(Math.random()*BOTS.length)],ts:now(),anon:true};
-    if(curFSChat?.isGlobal)gMsgs.push(botMsg);
-    else if(rmMsgs[curFSChat?.key])rmMsgs[curFSChat.key].push(botMsg);
-    renderFSMsgs();
-  },2200+Math.random()*1500);
-}
-
-// DM Fullscreen
-function openDMChat(name,ini,color,handle){
-  if(!U){showLogin();return;}
-  curFSChat={key:'dm_'+handle,name,sub:handle?'@'+handle:'',avContent:ini,avColor:color,isDM:true,dmTarget:{name,ini,color,handle}};
-  document.getElementById('fsch-name').textContent=name;
-  document.getElementById('fsch-sub').textContent=handle?'@'+handle:'● Online';
-  const av=document.getElementById('fsch-av');
-  av.textContent=ini;av.style.background=`linear-gradient(135deg,${color})`;av.style.borderRadius='50%';av.style.fontSize='15px';av.style.fontWeight='900';av.style.color='#fff';
-  const key='dm_'+handle;
-  if(!dmMsgs[key])dmMsgs[key]=[{n:name,t:'Hey! 👋 How are you?',ts:now(),other:true}];
-  renderDMFSMsgs(key);
-  document.getElementById('fschat').classList.add('show');
-  document.body.style.overflow='hidden';
-  setTimeout(()=>document.getElementById('fsch-inp').focus(),300);
-}
-
-function renderDMFSMsgs(key){
-  const c=document.getElementById('fsch-msgs');
-  const msgs=dmMsgs[key]||[];
-  c.innerHTML=msgs.map(m=>{
-    const me=!m.other;
-    const avBg=me?`background:linear-gradient(135deg,${U?.c||'#8B5CF6,#06B6D4'})`:`background:linear-gradient(135deg,${curFSChat?.dmTarget?.color||'#8B5CF6,#06B6D4'})`;
-    return `<div class="mrow ${me?'me':''}">
-      <div class="mav-sm" style="${avBg}">${me?(U?.i||'?'):(curFSChat?.dmTarget?.ini||'?')}</div>
-      <div class="mbub"><div class="mn">${me?(U?.n||'You'):esc(m.n)}</div>
-      <div class="mtxt">${esc(m.t)}</div><div class="mts">${m.ts}</div></div></div>`;
-  }).join('');
-  c.scrollTop=c.scrollHeight;
-}
-
-// Override sendFSMsg for DM
-const origSendFS=sendFSMsg;
-document.getElementById('fsch-inp').addEventListener('keydown',function(e){
-  if(e.key==='Enter'){e.preventDefault();
-    if(curFSChat?.isDM){
-      const txt=this.value.trim();if(!txt)return;
-      const key='dm_'+curFSChat.dmTarget.handle;
-      dmMsgs[key].push({n:U.n,t:txt,ts:now(),other:false});
-      this.value='';renderDMFSMsgs(key);
-      saveDMToSB(curFSChat.dmTarget.handle,txt);
-      const tyEl=document.getElementById('fsch-typing');
-      const tyNm=document.getElementById('fsch-typing-name');
-      setTimeout(()=>{tyEl.style.display='flex';tyNm.textContent=curFSChat.dmTarget.name+' is typing…';},600);
-      setTimeout(()=>{
-        tyEl.style.display='none';
-        dmMsgs[key].push({n:curFSChat.dmTarget.name,t:BOTS[Math.floor(Math.random()*BOTS.length)],ts:now(),other:true});
-        renderDMFSMsgs(key);
-      },2000+Math.random()*1500);
+    
+    async function login(email, password) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if(error) { showToast(error.message); return false; }
+        await checkSession();
+        updateAuthStatus();
+        showToast(`Welcome back!`);
+        renderFeed();
+        showScreen('feed');
+        return true;
     }
-  }
-});
-document.getElementById('fschat').querySelector('.csnd').addEventListener('click',function(){
-  if(curFSChat?.isDM){
-    const inp=document.getElementById('fsch-inp');
-    const txt=inp.value.trim();if(!txt)return;
-    const key='dm_'+curFSChat.dmTarget.handle;
-    dmMsgs[key].push({n:U.n,t:txt,ts:now(),other:false});
-    inp.value='';renderDMFSMsgs(key);
-    saveDMToSB(curFSChat.dmTarget.handle,txt);
-    setTimeout(()=>{
-      dmMsgs[key].push({n:curFSChat.dmTarget.name,t:BOTS[Math.floor(Math.random()*BOTS.length)],ts:now(),other:true});
-      renderDMFSMsgs(key);
-    },2000+Math.random()*1500);
-  }else{sendFSMsg();}
-});
-
-// ═══════════════════════════════════════
-// VIEW PROFILE
-// ═══════════════════════════════════════
-function openViewProf(userData){
-  viewProfUser=userData;
-  document.getElementById('vp-title').textContent=userData.n||'Profile';
-  const userPosts=posts.filter(p=>!p.anon&&p.u?.n===userData.n);
-  document.getElementById('vp-body').innerHTML=`
-    <div class="vp-hero">
-      <div class="vp-av" style="background:linear-gradient(135deg,${userData.c||'#8B5CF6,#06B6D4'});">${userData.i}</div>
-      <div class="vp-name">${esc(userData.n)} ${userData.v?'<span style="color:var(--g);font-size:18px;">✔</span>':''}</div>
-      <div class="vp-handle">@${esc(userData.h)}</div>
-      <div class="vp-bio">${esc(userData.bio||'Hey there! I am using Anonlogos 👋')}</div>
-      <div class="vp-stats">
-        <div class="pst"><div class="psn">${userPosts.length}</div><div class="psl">Posts</div></div>
-        <div class="pst"><div class="psn">${Math.floor(Math.random()*900)+50}</div><div class="psl">Followers</div></div>
-        <div class="pst"><div class="psn">${Math.floor(Math.random()*300)+10}</div><div class="psl">Following</div></div>
-      </div>
-      <div class="vp-btns">
-        ${U&&U.n!==userData.n?`<button class="vp-btn primary" onclick="openDMChat('${esc(userData.n)}','${userData.i}','${userData.c}','${esc(userData.h)}');closeViewProf();"><i class="fa fa-comment" style="margin-right:6px;"></i>Message</button>`:''}
-        ${U&&U.n!==userData.n?`<button class="vp-btn secondary" onclick="toast('Following ${esc(userData.n)}! ✅','ok')"><i class="fa fa-user-plus" style="margin-right:6px;"></i>Follow</button>`:''}
-        <button class="vp-btn copy" onclick="copyProfileLink()"><i class="fa fa-link"></i>Copy Link</button>
-      </div>
-    </div>
-    <div class="vp-posts">
-      <div class="sec-sm" style="padding-left:0;margin-bottom:10px;">Recent Posts</div>
-      ${userPosts.slice(0,5).map(p=>`
-        <div class="pc" style="margin:0 0 10px;" onclick="openCmts(${p.id})">
-          <div class="pb" style="padding:12px;font-size:13px;">${esc(p.txt.slice(0,100))}${p.txt.length>100?'…':''}</div>
-          <div class="pstats" style="border-bottom:none;"><span>${p.lk} reactions</span><span>•</span><span>${p.cmts.length} comments</span></div>
-        </div>`).join('')||'<div class="empty" style="padding:22px 0;"><p>No posts yet</p></div>'}
-    </div>`;
-  document.getElementById('view-prof').classList.add('show');
-  document.body.style.overflow='hidden';
-}
-
-function closeViewProf(){
-  document.getElementById('view-prof').classList.remove('show');
-  document.body.style.overflow='';
-  viewProfUser=null;
-}
-
-function copyProfileLink(){
-  const u=viewProfUser||U;
-  if(!u)return;
-  const link=`https://anonlogos.app/@${u.h}`;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(link).then(()=>toast('🔗 Profile link copied! Share with friends','ok')).catch(()=>{
-      prompt('Copy this link:',link);
+    
+    async function logout() {
+        await supabase.auth.signOut();
+        currentUser = null;
+        currentSession = null;
+        updateAuthStatus();
+        showToast('Logged out');
+        renderFeed();
+        showScreen('feed');
+    }
+    
+    // ============ POSTS ============
+    async function renderFeed() {
+        const container = document.getElementById('postsContainer');
+        if(!container) return;
+        container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading posts...</div>';
+        
+        const { data: posts, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
+        if(error) { container.innerHTML = '<div class="loading">Error loading posts</div>'; return; }
+        
+        if(!posts || posts.length === 0) {
+            container.innerHTML = '<div class="loading">No posts yet. Be the first to post!</div>';
+            return;
+        }
+        
+        container.innerHTML = posts.map(post => {
+            const isLiked = post.liked_by?.includes(currentUser?.id);
+            const isBookmarked = post.bookmarked_by?.includes(currentUser?.id);
+            const isFollowing = currentUser?.following?.includes(post.user_id);
+            return `
+            <div class="post-card" data-post-id="${post.id}">
+                <div class="post-header">
+                    <img src="${post.user_avatar || getRandomAvatar(post.username)}" class="avatar-img" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=default'">
+                    <div class="user-info">
+                        <div class="username">
+                            ${escapeHtml(post.username)} ${post.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
+                            ${post.is_anonymous ? '<span class="anonymous-label">Anonymous</span>' : ''}
+                        </div>
+                        <div style="font-size:11px; color:#94A3B8;">${new Date(post.created_at).toLocaleString()}</div>
+                    </div>
+                </div>
+                <div class="post-content">${escapeHtml(post.content)}</div>
+                ${post.media ? `<div class="post-media"><img src="${post.media}" alt="Post media"></div>` : ''}
+                <div class="post-actions">
+                    <button onclick="window.toggleLike('${post.id}')"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i> <span class="like-count">${post.likes || 0}</span></button>
+                    <button onclick="showToast('Comment feature coming soon!')"><i class="far fa-comment"></i> ${post.comments || 0}</button>
+                    <button onclick="window.sharePost('${post.id}', '${escapeHtml(post.content).replace(/'/g, "\\'")}')"><i class="far fa-share-square"></i> Share</button>
+                    <button onclick="window.toggleBookmark('${post.id}')"><i class="${isBookmarked ? 'fas' : 'far'} fa-bookmark"></i> Save</button>
+                    ${post.user_id && currentUser && post.user_id !== currentUser.id ? `<button onclick="window.followUser('${post.user_id}')"><i class="fas fa-user-plus"></i> ${isFollowing ? 'Following' : 'Follow'}</button>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+    
+    async function createPost(content, media, isAnonymous) {
+        if(!content.trim() && !media) { showToast('Please write something or add media'); return false; }
+        
+        let username, userAvatar, userId, verified;
+        if(isAnonymous || !currentUser) {
+            username = getRandomUsername();
+            userAvatar = getRandomAvatar(username);
+            userId = null;
+            verified = false;
+        } else {
+            username = currentUser.username;
+            userAvatar = currentUser.avatar;
+            userId = currentUser.id;
+            verified = currentUser.verified;
+        }
+        
+        const { error } = await supabase.from('posts').insert([{
+            user_id: userId,
+            username: username,
+            user_avatar: userAvatar,
+            verified: verified,
+            content: content,
+            media: media || null,
+            is_anonymous: isAnonymous || !currentUser,
+            likes: 0,
+            comments: 0,
+            liked_by: [],
+            bookmarked_by: []
+        }]);
+        
+        if(error) { showToast('Error posting: ' + error.message); return false; }
+        showToast('Posted successfully!');
+        renderFeed();
+        return true;
+    }
+    
+    window.toggleLike = async (postId) => {
+        const { data: post } = await supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
+        if(!post) return;
+        let likedBy = post.liked_by || [];
+        let newLikes = post.likes || 0;
+        if(likedBy.includes(currentUser?.id)) {
+            newLikes--;
+            likedBy = likedBy.filter(id => id !== currentUser?.id);
+        } else {
+            newLikes++;
+            if(currentUser?.id) likedBy.push(currentUser.id);
+        }
+        await supabase.from('posts').update({ likes: newLikes, liked_by: likedBy }).eq('id', postId);
+        renderFeed();
+    };
+    
+    window.toggleBookmark = async (postId) => {
+        if(!currentUser) { showToast('Login to bookmark'); return; }
+        const { data: post } = await supabase.from('posts').select('bookmarked_by').eq('id', postId).single();
+        let bookmarkedBy = post?.bookmarked_by || [];
+        if(bookmarkedBy.includes(currentUser?.id)) {
+            bookmarkedBy = bookmarkedBy.filter(id => id !== currentUser?.id);
+            showToast('Removed from bookmarks');
+        } else {
+            bookmarkedBy.push(currentUser?.id);
+            showToast('Saved to bookmarks');
+        }
+        await supabase.from('posts').update({ bookmarked_by: bookmarkedBy }).eq('id', postId);
+        renderFeed();
+    };
+    
+    window.sharePost = (postId, content) => {
+        navigator.clipboard.writeText(`${content}\n\n- Posted on Anonlogos`);
+        showToast('Post link copied!');
+    };
+    
+    // ============ FOLLOW SYSTEM ============
+    window.followUser = async (userId) => {
+        if(!currentUser) { showToast('Login to follow users'); return false; }
+        const { data: userToFollow } = await supabase.from('users').select('followers').eq('id', userId).single();
+        if(!userToFollow) return false;
+        
+        let followers = userToFollow.followers || [];
+        let currentFollowing = currentUser.following || [];
+        
+        if(currentFollowing.includes(userId)) {
+            currentFollowing = currentFollowing.filter(id => id !== userId);
+            followers = followers.filter(id => id !== currentUser.id);
+            showToast('Unfollowed');
+        } else {
+            currentFollowing.push(userId);
+            followers.push(currentUser.id);
+            showToast('Following');
+        }
+        
+        await supabase.from('users').update({ following: currentFollowing }).eq('id', currentUser.id);
+        await supabase.from('users').update({ followers: followers }).eq('id', userId);
+        currentUser.following = currentFollowing;
+        renderFeed();
+        if(document.querySelector('.nav-item.active')?.dataset.screen === 'profile') showProfileScreen();
+    };
+    
+    // ============ PROFILE ============
+    async function showProfileScreen() {
+        if(currentUser) {
+            document.getElementById('profileLoggedOut').style.display = 'none';
+            document.getElementById('profileLoggedIn').style.display = 'block';
+            document.getElementById('profileUsername').innerText = currentUser.username;
+            document.getElementById('profileAvatar').src = currentUser.avatar;
+            document.getElementById('profileBio').innerText = currentUser.bio;
+            document.getElementById('profileBadge').innerHTML = currentUser.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : '';
+            document.getElementById('followerCount').innerText = currentUser.followers?.length || 0;
+            document.getElementById('followingCount').innerText = currentUser.following?.length || 0;
+            
+            const { data: userPosts } = await supabase.from('posts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+            const container = document.getElementById('userPostsContainer');
+            if(container) {
+                if(!userPosts || userPosts.length === 0) {
+                    container.innerHTML = '<div class="loading">No posts yet</div>';
+                } else {
+                    container.innerHTML = userPosts.map(post => `<div class="post-card"><div class="post-content">${escapeHtml(post.content)}</div><div style="font-size:12px; color:#64748B;">${new Date(post.created_at).toLocaleString()}</div></div>`).join('');
+                }
+            }
+        } else {
+            document.getElementById('profileLoggedOut').style.display = 'block';
+            document.getElementById('profileLoggedIn').style.display = 'none';
+        }
+    }
+    
+    function copyProfileLink() {
+        if(currentUser) {
+            navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?user=${currentUser.username}`);
+            showToast('Profile link copied!');
+        }
+    }
+    
+    // ============ GLOBAL CHAT ============
+    async function renderGlobalRooms() {
+        const container = document.getElementById('globalRoomList');
+        if(!container) return;
+        const { data: rooms } = await supabase.from('rooms').select('*').order('created_at');
+        roomsList = rooms || [];
+        if(!roomsList || roomsList.length === 0) {
+            container.innerHTML = '<div class="loading">No rooms yet. Create one!</div>';
+            return;
+        }
+        container.innerHTML = roomsList.map(room => `
+            <div class="room-card" style="display:flex; justify-content:space-between; align-items:center;">
+                <div><strong>#${escapeHtml(room.name)}</strong><div style="font-size:11px;">by ${escapeHtml(room.created_by)}</div></div>
+                <button class="btn-outline" onclick="window.joinRoom('${room.id}')" style="padding:4px 12px;">Join</button>
+            </div>
+        `).join('');
+        if(!activeRoomId && roomsList[0]) {
+            activeRoomId = roomsList[0].id;
+            document.getElementById('activeRoomName').innerHTML = `# ${escapeHtml(roomsList[0].name)}`;
+        }
+        if(activeRoomId) renderChatMessages();
+    }
+    
+    window.joinRoom = (roomId) => { 
+        activeRoomId = roomId; 
+        const room = roomsList.find(r => r.id === roomId);
+        if(room) document.getElementById('activeRoomName').innerHTML = `# ${escapeHtml(room.name)}`;
+        renderChatMessages(); 
+        showToast(`Joined room`);
+    };
+    
+    async function renderChatMessages() {
+        if(!activeRoomId) return;
+        const { data: messages } = await supabase.from('room_messages').select('*').eq('room_id', activeRoomId).order('created_at', { ascending: true }).limit(100);
+        const container = document.getElementById('globalChatMessages');
+        if(!container) return;
+        if(!messages || messages.length === 0) {
+            container.innerHTML = '<div class="loading">No messages yet. Say hi!</div>';
+            return;
+        }
+        container.innerHTML = messages.map(msg => `
+            <div class="message-bubble ${msg.sender === (currentUser?.username || 'Anonymous') ? 'sent' : 'received'}">
+                <strong>${escapeHtml(msg.sender)} ${msg.verified ? '✓' : ''}</strong><br/>
+                ${escapeHtml(msg.text)}
+                <div class="msg-meta">${new Date(msg.created_at).toLocaleTimeString()}</div>
+            </div>
+        `).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    async function sendGlobalMessage(text) {
+        if(!text.trim() || !activeRoomId) return;
+        const { error } = await supabase.from('room_messages').insert([{
+            room_id: activeRoomId,
+            sender: currentUser ? currentUser.username : getRandomUsername(),
+            verified: currentUser ? currentUser.verified : false,
+            text: text
+        }]);
+        if(!error) {
+            document.getElementById('globalChatInput').value = '';
+            renderChatMessages();
+        }
+    }
+    
+    async function createNewRoom(roomName) {
+        if(!currentUser || !currentUser.verified) { showToast("Only verified users can create rooms. Sign up!"); return false; }
+        const { error } = await supabase.from('rooms').insert([{ name: roomName, created_by: currentUser.username }]);
+        if(error) { showToast(error.message); return false; }
+        renderGlobalRooms();
+        showToast(`Room "${roomName}" created!`);
+        return true;
+    }
+    
+    // ============ DM ============
+    async function renderDMInbox() {
+        const container = document.getElementById('dmInboxList');
+        if(!container) return;
+        if(!currentUser) {
+            container.innerHTML = `<div class="auth-card"><i class="fas fa-lock" style="font-size:32px;"></i><p>Login to send messages</p><button class="btn-primary" onclick="window.showScreen('profile')">Login</button></div>`;
+            return;
+        }
+        const { data: otherUsers } = await supabase.from('users').select('*').neq('id', currentUser.id);
+        if(!otherUsers || otherUsers.length === 0) {
+            container.innerHTML = `<div class="auth-card"><p>No other users yet. Share your profile link!</p></div>`;
+            return;
+        }
+        container.innerHTML = otherUsers.map(user => `
+            <div class="post-card" style="cursor:pointer" onclick='window.openDMFullscreen(${JSON.stringify(user).replace(/'/g, "&#39;")})'>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <img src="${user.avatar}" style="width:50px; height:50px; border-radius:50%;" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=default'">
+                    <div style="flex:1">
+                        <strong>${escapeHtml(user.username)}</strong> ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
+                        <div style="font-size:12px; color:#64748B;">Click to chat</div>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    window.openDMFullscreen = (user) => {
+        let chatSubscription = null;
+        
+        const chatHTML = `
+        <div id="dmFullscreen" class="chat-fullscreen">
+            <div class="chat-header">
+                <button id="closeDMChat" style="background:none; border:none; font-size:24px; cursor:pointer; color:inherit;">←</button>
+                <img src="${user.avatar}" style="width:40px; height:40px; border-radius:50%;" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=default'">
+                <div><strong>${escapeHtml(user.username)}</strong><br><span style="font-size:12px;">Online</span></div>
+            </div>
+            <div id="dmFullscreenMessages" class="chat-messages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="dmFullscreenInput" placeholder="Type a message...">
+                <button id="sendDmFullscreen" style="background:#6366F1; border:none; color:white; padding:10px 20px; border-radius:40px; cursor:pointer;">Send</button>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', chatHTML);
+        
+        const messagesDiv = document.getElementById('dmFullscreenMessages');
+        
+        const loadMessages = async () => {
+            const { data } = await supabase.from('dm_messages').select('*').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${user.id}),and(sender_id.eq.${user.id},receiver_id.eq.${currentUser.id})`).order('created_at', { ascending: true });
+            if(data && messagesDiv) {
+                messagesDiv.innerHTML = data.map(msg => `
+                    <div class="message-bubble ${msg.sender_id === currentUser.id ? 'sent' : 'received'}">
+                        ${escapeHtml(msg.text)}
+                        <div class="msg-meta">${new Date(msg.created_at).toLocaleTimeString()}</div>
+                    </div>
+                `).join('');
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        };
+        
+        const sendMsg = async () => {
+            const inp = document.getElementById('dmFullscreenInput');
+            if(!inp || !inp.value.trim()) return;
+            await supabase.from('dm_messages').insert([{
+                sender_id: currentUser.id,
+                receiver_id: user.id,
+                text: inp.value
+            }]);
+            inp.value = '';
+            loadMessages();
+        };
+        
+        loadMessages();
+        
+        // Real-time subscription for DM
+        chatSubscription = supabase.channel(`dm_${currentUser.id}_${user.id}`)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'dm_messages' }, (payload) => {
+                if((payload.new.sender_id === currentUser.id && payload.new.receiver_id === user.id) ||
+                   (payload.new.sender_id === user.id && payload.new.receiver_id === currentUser.id)) {
+                    loadMessages();
+                }
+            }).subscribe();
+        
+        document.getElementById('closeDMChat')?.addEventListener('click', () => {
+            if(chatSubscription) chatSubscription.unsubscribe();
+            document.getElementById('dmFullscreen')?.remove();
+        });
+        document.getElementById('sendDmFullscreen')?.addEventListener('click', sendMsg);
+        document.getElementById('dmFullscreenInput')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMsg(); });
+    };
+    
+    // ============ NAVIGATION ============
+    window.showScreen = (screenId) => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+        document.getElementById(screenId+'Screen').classList.add('active-screen');
+        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.nav-item[data-screen="${screenId}"]`).classList.add('active');
+        if(screenId === 'feed') renderFeed();
+        if(screenId === 'global') { renderGlobalRooms(); renderChatMessages(); }
+        if(screenId === 'dm') renderDMInbox();
+        if(screenId === 'profile') showProfileScreen();
+    };
+    
+    // ============ DARK MODE ============
+    function initDarkMode() {
+        const darkMode = localStorage.getItem('darkMode') === 'true';
+        if(darkMode) document.body.classList.add('dark');
+        document.getElementById('darkModeToggle')?.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+        });
+    }
+    
+    // ============ EVENT LISTENERS ============
+    document.getElementById('publishPostBtn')?.addEventListener('click', () => {
+        const input = document.getElementById('postInput');
+        const isAnonymous = document.getElementById('anonymousCheckbox')?.checked;
+        createPost(input.value, selectedImage, isAnonymous);
+        input.value = ''; selectedImage = null;
+        document.getElementById('imagePreview').innerHTML = '';
+        document.getElementById('anonymousCheckbox').checked = false;
     });
-  }else{prompt('Copy this link:',link);}
-}
-
-// ═══════════════════════════════════════
-// STORIES
-// ═══════════════════════════════════════
-function buildStories(){
-  const c=document.getElementById('stories');
-  c.innerHTML=`<div class="stc st-add" onclick="openPost()"><div class="str"><div class="stri">+</div></div><div class="stl">Add Story</div></div>`;
-  USERS.forEach(u=>{
-    c.innerHTML+=`<div class="stc" onclick="openViewProf(${JSON.stringify(u).replace(/"/g,'&quot;')})">
-      <div class="str"><div class="stri" style="background:linear-gradient(135deg,${u.c});">${u.i}</div></div>
-      <div class="stl">${u.n.split(' ')[0]}</div></div>`;
-  });
-}
-
-// ═══════════════════════════════════════
-// FEED
-// ═══════════════════════════════════════
-function renderFeed(){
-  let fp=[...posts];
-  if(feedTab==='anon')fp=fp.filter(p=>p.anon);
-  else if(feedTab==='verified')fp=fp.filter(p=>!p.anon&&p.u?.v);
-  else if(feedTab==='following')fp=fp.filter(p=>!p.anon);
-  else if(feedTab==='trending')fp=[...fp].sort((a,b)=>b.lk-a.lk);
-  const f=document.getElementById('feed');
-  f.innerHTML=fp.length?fp.map(postHTML).join(''):'<div class="empty"><i class="fa fa-wind" style="font-size:36px;opacity:.3;"></i><p>No posts here</p></div>';
-}
-
-function postHTML(p){
-  const lkd=liked.has(p.id);
-  const nm=p.anon?p.an:(p.u?.n||'User');
-  const avbg=p.anon?'background:linear-gradient(135deg,#374151,#4B5563)':`background:linear-gradient(135deg,${p.u?.c||'#8B5CF6,#06B6D4'})`;
-  const canClick=!p.anon&&p.u;
-  const nameClick=canClick?`onclick="openViewProf(${JSON.stringify(p.u||{}).replace(/"/g,'&quot;')})" style="cursor:pointer;" class="pn-link"`:'';
-  return `<div class="pc" id="pc${p.id}">
-    <div class="pch">
-      <div class="pav" style="${avbg};cursor:${canClick?'pointer':'default'};" ${canClick?`onclick="openViewProf(${JSON.stringify(p.u||{}).replace(/"/g,'&quot;')})"`:''}>
-        ${p.anon?'🎭':(p.u?.i||'?')}
-      </div>
-      <div class="pm">
-        <div class="pn"><span ${nameClick}>${esc(nm)}</span> ${p.u?.v&&!p.anon?'<span style="color:var(--g);font-size:12px;">✔</span>':''} ${p.anon?'<span class="abadge">ANON</span>':''}</div>
-        <div class="pt">${p.t}</div>
-      </div>
-      <button class="pmor" onclick="postOpts(${p.id})"><i class="fa fa-ellipsis-h"></i></button>
-    </div>
-    <div class="pb">${esc(p.txt)}</div>
-    <div class="pstats"><span>${p.lk+(lkd?1:0)} reactions</span><span>•</span><span>${p.cmts.length} comments</span></div>
-    <div class="pacts">
-      <button class="pa ${lkd?'lkd':''}" onclick="like(${p.id})"><i class="${lkd?'fa':'far'} fa-heart"></i>${lkd?'Liked':'Like'}</button>
-      <button class="pa" onclick="openCmts(${p.id})"><i class="far fa-comment"></i>Comment</button>
-      <button class="pa" onclick="sharePost()"><i class="fa fa-share"></i>Share</button>
-    </div>
-  </div>`;
-}
-
-function like(id){
-  if(!U){showLogin();toast('Login to like posts','er');return;}
-  liked.has(id)?liked.delete(id):liked.add(id);
-  renderFeed();
-  toast(liked.has(id)?'❤️ Liked!':'Unliked','ok');
-}
-function sharePost(){toast('🔗 Link copied!','ok');}
-function postOpts(id){
-  const p=posts.find(x=>x.id===id);
-  if(U&&p?.u?.n===U.n)toast('Edit / Delete (backend needed)','in');
-  else toast('Report / Hide (coming soon)','in');
-}
-function switchTab(el,t){
-  document.querySelectorAll('.ftab').forEach(x=>x.classList.remove('on'));
-  el.classList.add('on');feedTab=t;renderFeed();
-}
-
-// ═══════════════════════════════════════
-// SEARCH
-// ═══════════════════════════════════════
-function doSearch(q){
-  const c=document.getElementById('sres');
-  if(!q.trim()){c.innerHTML='<div class="empty"><i class="fa fa-search" style="font-size:36px;opacity:.3;"></i><p>Search for people, posts, rooms…</p></div>';return;}
-  const uR=USERS.filter(u=>u.n.toLowerCase().includes(q.toLowerCase())||u.h.toLowerCase().includes(q.toLowerCase()));
-  const pR=posts.filter(p=>p.txt.toLowerCase().includes(q.toLowerCase())&&!p.anon);
-  if(!uR.length&&!pR.length){c.innerHTML='<div class="empty"><p>No results found</p></div>';return;}
-  let html='';
-  if(uR.length){
-    html+='<div class="sec-sm">People</div><div class="sr-res">';
-    uR.forEach(u=>{html+=`<div class="sr-item" onclick="openViewProf(${JSON.stringify(u).replace(/"/g,'&quot;')})">
-      <div class="sr-av" style="background:linear-gradient(135deg,${u.c});">${u.i}</div>
-      <div class="sr-info"><div class="sr-name">${esc(u.n)} ${u.v?'<span style="color:var(--g);">✔</span>':''}</div><div class="sr-sub">@${u.h}</div></div>
-      <button class="sr-act" onclick="event.stopPropagation();openDMChat('${esc(u.n)}','${u.i}','${u.c}','${esc(u.h)}')">Message</button>
-    </div>`;});
-    html+='</div>';
-  }
-  if(pR.length){
-    html+='<div class="sec-sm" style="margin-top:10px;">Posts</div><div style="padding:0 14px;display:flex;flex-direction:column;gap:8px;">';
-    pR.forEach(p=>{html+=`<div class="pc" onclick="openCmts(${p.id})"><div class="pb" style="padding:12px;">${esc(p.txt.slice(0,100))}${p.txt.length>100?'…':''}</div></div>`;});
-    html+='</div>';
-  }
-  c.innerHTML=html;
-}
-// ═══════════════════════════════════════
-// COMMENTS
-// ═══════════════════════════════════════
-function genCmts(n){
-  const s=['Great post! 👏','Agree 💯','So relatable!','Love this ❤️','Thanks 🙏'];
-  return Array.from({length:n},(_,i)=>({un:USERS[i%USERS.length].n,ui:USERS[i%USERS.length].i,uc:USERS[i%USERS.length].c,t:s[i%s.length]}));
-}
-function openCmts(id){
-  curCmtPid=id;
-  const p=posts.find(x=>x.id===id);
-  const av=document.getElementById('cmt-myav');
-  av.textContent=U?U.i:'?';
-  av.style.background=U?`linear-gradient(135deg,${U.c})`:'var(--grd)';
-  renderCmts(p);open_ov('ov-cmt');
-}
-function renderCmts(p){
-  const c=document.getElementById('cmt-list');
-  c.innerHTML=p.cmts.length?p.cmts.map(cm=>`
-    <div style="display:flex;gap:9px;">
-      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,${cm.uc});display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;cursor:pointer;" onclick="openViewProf({n:'${esc(cm.un)}',h:'${cm.un.toLowerCase().replace(' ','_')}',i:'${cm.ui}',c:'${cm.uc}',v:false})">${cm.ui}</div>
-      <div style="flex:1;background:var(--s3);padding:9px 11px;border-radius:3px var(--r12) var(--r12) var(--r12);">
-        <div style="font-size:12px;font-weight:800;margin-bottom:3px;cursor:pointer;" onclick="openViewProf({n:'${esc(cm.un)}',h:'${cm.un.toLowerCase().replace(' ','_')}',i:'${cm.ui}',c:'${cm.uc}',v:false})">${esc(cm.un)}</div>
-        <div style="font-size:12px;color:var(--t2);">${esc(cm.t)}</div>
-      </div>
-    </div>`).join(''):'<div class="empty" style="padding:22px;"><p>No comments yet. Be first!</p></div>';
-}
-function sendCmt(){
-  if(!U){cls('ov-cmt');showLogin();toast('Login to comment','er');return;}
-  const inp=document.getElementById('cmt-inp');
-  const txt=inp.value.trim();if(!txt)return;
-  const p=posts.find(x=>x.id===curCmtPid);
-  if(p){p.cmts.unshift({un:U.n,ui:U.i,uc:U.c,t:txt});renderCmts(p);inp.value='';renderFeed();toast('💬 Comment posted!','ok');}
-}
-
-// ═══════════════════════════════════════
-// CREATE POST
-// ═══════════════════════════════════════
-function openPost(){
-  genAnon();isAnon=!U;
-  document.getElementById('atog').classList.toggle('on',isAnon);
-  updateCompose();document.getElementById('cta').value='';
-  open_ov('ov-post');
-  setTimeout(()=>document.getElementById('cta').focus(),360);
-}
-function genAnon(){
-  anonName=ANON[Math.floor(Math.random()*ANON.length)]+(Math.floor(Math.random()*90)+10);
-  const el=document.getElementById('an-prev');
-  if(el)el.textContent='Will appear as: '+anonName;
-  return anonName;
-}
-function toggleAnon(){isAnon=!isAnon;document.getElementById('atog').classList.toggle('on',isAnon);updateCompose();}
-function updateCompose(){
-  const av=document.getElementById('c-av'),nm=document.getElementById('c-name'),md=document.getElementById('c-mode');
-  const qa=document.getElementById('qav');
-  if(isAnon||!U){
-    av.textContent='🎭';av.style.background='linear-gradient(135deg,#374151,#4B5563)';
-    nm.textContent=anonName;md.textContent='🎭 Anonymous post';
-  }else{
-    av.textContent=U.i;av.style.background=`linear-gradient(135deg,${U.c})`;
-    nm.textContent=U.n;md.textContent=U.v?'✔ Verified post':'Public post';
-    qa.textContent=U.i;qa.style.background=`linear-gradient(135deg,${U.c})`;
-  }
-}
-function submitPost(){
-  const txt=document.getElementById('cta').value.trim();
-  if(!txt){toast('Please write something!','er');return;}
-  const np={id:Date.now(),u:(isAnon||!U)?null:U,txt,t:'Just now',lk:0,anon:isAnon||!U,an:(isAnon||!U)?genAnon():null,cmts:[]};
-  posts.unshift(np);
-  savePostToSB(txt,isAnon||!U,(isAnon||!U)?np.an:null);
-  cls('ov-post');isAnon=false;document.getElementById('atog').classList.remove('on');
-  renderFeed();toast('✅ Post published!+(sbOnline?' & saved to DB':'')','ok');
-}
-
-// ═══════════════════════════════════════
-// ROOMS
-// ═══════════════════════════════════════
-function buildRooms(){
-  const ca=document.getElementById('crm-area');
-  ca.innerHTML=U?.v
-    ?`<button class="crbtn" onclick="toast('Room creator coming with full backend!','in')"><i class="fa fa-plus"></i> Create New Room</button>`
-    :`<div class="info-bar"><i class="fa fa-star"></i><span>Only ✔ Verified users can create rooms</span></div>`;
-  document.getElementById('rgrid').innerHTML=ROOMS_DATA.map(r=>`
-    <div class="rc" onclick="openFullChat(${r.id},'${r.ico} ${r.n}','${r.m} members','${r.ico}','${r.c}',false)">
-      <div class="rc-ico" style="background:linear-gradient(135deg,${r.c});">${r.ico}</div>
-      <div class="rc-name">${r.n}</div>
-      <div class="rc-cnt">👥 ${r.m}</div>
-      <span class="rc-badge ${r.pub?'rc-pub':'rc-prv'}">${r.pub?'Public':'Private'}</span>
-    </div>`).join('');
-}
-function buildGroups(){
-  const c=document.getElementById('grps');
-  if(!U){
-    c.innerHTML=`<div class="gate" style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r20);margin:0;"><div class="g-ico">👥</div><h3>Private Groups</h3><p>Login to join or create private groups.</p><button class="gate-btn" onclick="showLogin()">Login</button></div>`;
-    return;
-  }
-  c.innerHTML=GROUPS_DATA.map(g=>`
-    <div class="grp-card" onclick="openFullChat(${g.id},'${g.ico} ${g.n}','${g.m}/${g.max} members','${g.ico}',null,false)">
-      <div class="grp-ico">${g.ico}</div>
-      <div class="grp-info"><div class="grp-name">${esc(g.n)}</div><div class="grp-meta">${g.m}/${g.max} members • ${g.msgs>=1000?(g.msgs/1000).toFixed(1)+'K':g.msgs} msgs</div></div>
-      <span class="grp-role">${g.role}</span>
-    </div>`).join('');
-  c.innerHTML+=`<button onclick="toast('Create group — max 30 members (backend coming!)','in')" style="padding:11px;background:transparent;border:1.5px dashed var(--b2);border-radius:var(--r16);color:var(--t3);font-size:13px;font-weight:700;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;"><i class="fa fa-plus"></i> Create New Group</button>`;
-}
-
-// ═══════════════════════════════════════
-// MESSAGES
-// ═══════════════════════════════════════
-function buildMsgs(){
-  const da=document.getElementById('dmg-area'),dl=document.getElementById('dm-list');
-  if(!U){
-    da.innerHTML='';
-    dl.innerHTML=`<div class="gate"><div class="g-ico">🔒</div><h3>Private Messages</h3><p>Login to send and receive direct messages.</p><button class="gate-btn" onclick="showLogin()">Login / Sign Up</button></div>`;
-    return;
-  }
-  da.innerHTML=`<button class="newmsg" onclick="openNewDM()"><i class="fa fa-pen" style="margin-right:7px;"></i>New Message</button>`;
-  dl.innerHTML=`<div class="msg-list">${USERS.filter(u=>u.n!==U.n).map(u=>`
-    <div class="ml-item" onclick="openDMChat('${esc(u.n)}','${u.i}','${u.c}','${esc(u.h)}')">
-      <div class="ml-av" style="background:linear-gradient(135deg,${u.c});">${u.i}<div class="onl"></div></div>
-      <div class="ml-info">
-        <div class="ml-name" style="cursor:pointer;" onclick="event.stopPropagation();openViewProf(${JSON.stringify(u).replace(/"/g,'&quot;')})">${esc(u.n)} ${u.v?'<span style="color:var(--g);font-size:11px;">✔</span>':''}</div>
-        <div class="ml-prev">${dmMsgs['dm_'+u.h]?dmMsgs['dm_'+u.h].slice(-1)[0].t:'Tap to start chatting 💬'}</div>
-      </div>
-      <div class="unrd">1</div>
-    </div>`).join('')}</div>`;
-}
-function openNewDM(){
-  document.getElementById('newdm-list').innerHTML=USERS.filter(u=>U&&u.n!==U.n).map(u=>`
-    <div class="ml-item" onclick="openDMChat('${esc(u.n)}','${u.i}','${u.c}','${esc(u.h)}');cls('ov-newdm')">
-      <div class="ml-av" style="background:linear-gradient(135deg,${u.c});">${u.i}</div>
-      <div class="ml-info"><div class="ml-name">${esc(u.n)} ${u.v?'<span style="color:var(--g);">✔</span>':''}</div><div class="ml-prev">@${u.h}</div></div>
-    </div>`).join('');
-  open_ov('ov-newdm');
-}
-
-// ═══════════════════════════════════════
-// PROFILE
-// ═══════════════════════════════════════
-function buildProfile(){
-  const c=document.getElementById('prof-body');
-  if(!U){
-    c.innerHTML=`<div style="padding:36px 18px;text-align:center;">
-      <div style="font-size:66px;margin-bottom:16px;">🎭</div>
-      <h2 style="font-size:21px;font-weight:900;margin-bottom:7px;">Join Anonlogos</h2>
-      <p style="color:var(--t2);font-size:13px;line-height:1.6;margin-bottom:20px;">Create account to unlock DMs, groups, verified badge & more!</p>
-      <button class="abtn" style="max-width:250px;margin:0 auto 10px;display:block;" onclick="showSignup()"><i class="fa fa-user-plus" style="margin-right:6px;"></i>Create Account</button><br>
-      <button style="background:transparent;border:1.5px solid var(--pl);border-radius:var(--r99);padding:10px 26px;color:var(--pl);font-size:13px;font-weight:800;" onclick="showLogin()">Already have account? Login</button>
-    </div>`;
-    return;
-  }
-  const myP=posts.filter(p=>!p.anon&&p.u?.n===U.n).length;
-  c.innerHTML=`
-    <div class="prof-hdr">
-      <div class="prof-av" style="background:linear-gradient(135deg,${U.c});">${U.i}
-        <div class="prof-cam" onclick="toast('Photo upload (backend needed)','in')"><i class="fa fa-camera" style="font-size:11px;"></i></div>
-      </div>
-      <div class="prof-name">${esc(U.n)} ${U.v?'<span style="color:var(--g);font-size:18px;">✔</span>':''}</div>
-      <div class="prof-handle">@${esc(U.h)}</div>
-      <div class="prof-bio">${esc(U.bio||"Hey! I'm using Anonlogos 👋")}</div>
-      <div class="prof-stats">
-        <div class="pst"><div class="psn">${myP}</div><div class="psl">Posts</div></div>
-        <div class="pst"><div class="psn">0</div><div class="psl">Followers</div></div>
-        <div class="pst"><div class="psn">0</div><div class="psl">Following</div></div>
-      </div>
-      <div style="display:flex;gap:10px;justify-content:center;">
-        <button class="edt-btn" onclick="toast('Edit profile (backend needed)','in')"><i class="fa fa-pen" style="margin-right:5px;font-size:11px;"></i>Edit Profile</button>
-        <button class="edt-btn" onclick="copyProfileLink()" style="border-color:var(--a);color:var(--a);"><i class="fa fa-link" style="margin-right:5px;font-size:11px;"></i>Copy Link</button>
-      </div>
-    </div>
-    <div style="padding:4px 14px 14px;">
-      <div class="sec-sm" style="padding-left:0;">My Posts</div>
-      ${posts.filter(p=>!p.anon&&p.u?.n===U.n).slice(0,3).map(p=>`<div class="pc" style="margin:0 0 9px;" onclick="openCmts(${p.id})"><div class="pb" style="padding:12px;font-size:12px;color:var(--t2);">${esc(p.txt.slice(0,80))}${p.txt.length>80?'…':''}</div></div>`).join('')||'<div class="empty" style="padding:22px 0;"><p>No posts yet. Share something!</p></div>'}
-    </div>`;
-}
-// ═══════════════════════════════════════
-// SETTINGS
-// ═══════════════════════════════════════
-function buildSettings(){
-  const c=document.getElementById('sets-body');
-  c.innerHTML=`<div class="sets">
-    <div class="sec-sm">Account</div>
-    <div class="sg">
-      <div class="si" onclick="${U?`toast('Edit profile coming!','in')`:'showLogin()'}">
-        <div class="si-ico" style="background:rgba(139,92,246,.15);">👤</div><div class="si-txt">${U?'Edit Profile':'Login / Sign Up'}</div><span class="si-r">›</span>
-      </div>
-      ${U?`<div class="si" onclick="copyProfileLink()"><div class="si-ico" style="background:rgba(6,182,212,.15);">🔗</div><div class="si-txt">My Profile Link</div><span class="si-r">Copy</span></div>`:''}
-      ${U?`<div class="si" onclick="toast('Verified badge application coming!','in')"><div class="si-ico" style="background:rgba(16,185,129,.15);">✔</div><div class="si-txt">Get Verified ✔</div><span class="si-r">›</span></div>`:''}
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Appearance</div>
-    <div class="sg">
-      <div class="si"><div class="si-ico" style="background:rgba(139,92,246,.15);">🌙</div><div class="si-txt">Dark Mode</div><div class="tsw on" onclick="toast('Dark mode always on 🌙','in')"></div></div>
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Language</div>
-    <div class="sg">
-      <div class="si"><div class="si-ico" style="background:rgba(6,182,212,.15);">🌐</div><div class="si-txt">App Language</div>
-        <div class="lang-row"><button class="lbtn on" onclick="toast('English active ✓','ok')">EN</button><button class="lbtn" onclick="toast('বাংলা সাপোর্ট শীঘ্রই!','ok')">বাং</button></div>
-      </div>
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Database</div>
-    <div class="sg">
-      <div class="si" onclick="checkSBConnection()"><div class="si-ico" style="background:rgba(16,185,129,.15);">🗄️</div><div class="si-txt">Supabase Connection</div><span class="si-r" id="sb-status-btn">${sbOnline?'✅ Live':'⚡ Check'}</span></div>
-      <div class="si" onclick="loadPostsFromSB()"><div class="si-ico" style="background:rgba(139,92,246,.15);">🔄</div><div class="si-txt">Sync Posts from DB</div><span class="si-r">Sync</span></div>
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Privacy</div>
-    <div class="sg">
-      <div class="si" onclick="toast('Profile visibility settings coming!','in')"><div class="si-ico" style="background:rgba(16,185,129,.15);">🔒</div><div class="si-txt">Profile Visibility</div><span class="si-r">Public</span></div>
-      <div class="si"><div class="si-ico" style="background:rgba(139,92,246,.15);">🎭</div><div class="si-txt">Anonymous Posting</div><div class="tsw on"></div></div>
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Notifications</div>
-    <div class="sg">
-      <div class="si"><div class="si-ico" style="background:rgba(251,191,36,.15);">🔔</div><div class="si-txt">Push Notifications</div><div class="tsw on"></div></div>
-      <div class="si"><div class="si-ico" style="background:rgba(248,113,113,.15);">❤️</div><div class="si-txt">Like Notifications</div><div class="tsw on"></div></div>
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Support</div>
-    <div class="sg">
-      <div class="si" onclick="toast('Report sent! Thank you 🛡️','ok')"><div class="si-ico" style="background:rgba(248,113,113,.15);">🚩</div><div class="si-txt">Report a Problem</div><span class="si-r">›</span></div>
-      <div class="si" onclick="toast('Anonlogos v8.0 — Made with 💜 in Bangladesh','in')"><div class="si-ico" style="background:rgba(139,92,246,.15);">ℹ️</div><div class="si-txt">About Anonlogos</div><span class="si-r">v8.0</span></div>
-      ${U?`<div class="si" onclick="logout()"><div class="si-ico" style="background:rgba(248,113,113,.15);">🚪</div><div class="si-txt" style="color:var(--r);">Log Out</div></div>`:''}
-    </div>
-    <div style="text-align:center;padding:18px 0 6px;color:var(--t3);font-size:11px;">Anonlogos v8.0 • Supabase Connected • 💜 Bangladesh</div>
-  </div>`;
-}
-
-// ═══════════════════════════════════════
-// AUTH (Supabase)
-// ═══════════════════════════════════════
-function showLogin(){
-  document.getElementById('auth-cnt').innerHTML=`
-    <div class="al-hdr"><div class="al-logo grd">Anonlogos</div><div class="al-sub">Welcome back! Sign in to continue.</div></div>
-    <div class="mb" style="padding-top:0;">
-      <div class="fg"><div class="fl">Email</div><input class="fi" id="le" type="email" placeholder="your@email.com"></div>
-      <div class="fg"><div class="fl">Password</div><input class="fi" id="lp" type="password" placeholder="Enter password"></div>
-      <button class="abtn" onclick="doLogin()"><i class="fa fa-sign-in-alt" style="margin-right:7px;"></i>Sign In</button>
-      <div class="or-div">or</div>
-      <div class="srow">
-        <button class="sbtn" onclick="toast('Google Sign-In coming!','in')">🌐 Google</button>
-        <button class="sbtn" onclick="toast('Apple Sign-In coming!','in')">🍎 Apple</button>
-      </div>
-      <div class="aswitch">Don't have an account? <a onclick="showSignup()">Sign Up</a></div>
-    </div>`;
-  open_ov('ov-auth');
-}
-function showSignup(){
-  document.getElementById('auth-cnt').innerHTML=`
-    <div class="al-hdr"><div class="al-logo grd">Anonlogos</div><div class="al-sub">Create your free account today.</div></div>
-    <div class="mb" style="padding-top:0;">
-      <div class="frow">
-        <div class="fg"><div class="fl">First Name</div><input class="fi" id="sf" placeholder="First"></div>
-        <div class="fg"><div class="fl">Last Name</div><input class="fi" id="sl" placeholder="Last"></div>
-      </div>
-      <div class="fg"><div class="fl">Username</div><input class="fi" id="su" placeholder="@username"></div>
-      <div class="fg"><div class="fl">Email</div><input class="fi" id="se" type="email" placeholder="your@email.com"></div>
-      <div class="fg"><div class="fl">Password</div><input class="fi" id="sp" type="password" placeholder="Min. 6 characters"></div>
-      <button class="abtn" onclick="doSignup()"><i class="fa fa-user-plus" style="margin-right:7px;"></i>Create Account</button>
-      <div class="aswitch">Already have account? <a onclick="showLogin()">Sign In</a></div>
-    </div>`;
-  open_ov('ov-auth');
-}
-
-async function doLogin(){
-  const e=document.getElementById('le')?.value.trim();
-  const p=document.getElementById('lp')?.value.trim();
-  if(!e||!p){toast('Fill all fields','er');return;}
-  const btn=document.querySelector('#auth-cnt .abtn');
-  if(btn){btn.textContent='Signing in…';btn.disabled=true;}
-  try{
-    if(sbOnline){
-      const d=await sbAuth(e,p,false);
-      const prof=await sbFetch(`profiles?id=eq.${d.user.id}&limit=1`);
-      const pr=prof[0]||{};
-      U={n:pr.display_name||e.split('@')[0],h:pr.username||e.split('@')[0],i:(pr.display_name||e)[0].toUpperCase(),v:pr.is_verified||false,bio:pr.bio||'',c:pr.avatar_color||'#8B5CF6,#06B6D4',sbId:d.user.id};
-      toast(`Welcome back, ${U.n}! 🎉 (Supabase Auth)`,'ok');
-    }else{throw new Error('offline');}
-  }catch(err){
-    // Fallback local auth
-    const c=COLORS[Math.floor(Math.random()*COLORS.length)];
-    U={n:e.split('@')[0],h:e.split('@')[0].toLowerCase(),i:(e[0]||'U').toUpperCase(),v:false,bio:'',c};
-    toast(`Welcome, ${U.n}! (Local mode — DB offline)`,'ok');
-  }
-  afterAuth();
-}
-
-async function doSignup(){
-  const f=document.getElementById('sf')?.value.trim();
-  const l=document.getElementById('sl')?.value.trim();
-  const u=document.getElementById('su')?.value.trim().replace('@','');
-  const e=document.getElementById('se')?.value.trim();
-  const p=document.getElementById('sp')?.value.trim();
-  if(!f||!e||!p){toast('Fill required fields','er');return;}
-  if(p.length<6){toast('Password min 6 chars','er');return;}
-  const btn=document.querySelector('#auth-cnt .abtn');
-  if(btn){btn.textContent='Creating account…';btn.disabled=true;}
-  const c=COLORS[Math.floor(Math.random()*COLORS.length)];
-  const dispName=(f+' '+l).trim();
-  try{
-    if(sbOnline){
-      const d=await sbAuth(e,p,true,{display_name:dispName,username:u||f.toLowerCase()});
-      // Create profile
-      try{await sbFetch('profiles',{method:'POST',body:JSON.stringify({id:d.user?.id||d.id,username:u||f.toLowerCase(),display_name:dispName,email:e,avatar_color:c,is_verified:false})});}catch(pe){}
-      U={n:dispName,h:u||f.toLowerCase(),i:f[0].toUpperCase(),v:false,bio:'',c,sbId:d.user?.id};
-      toast(`Account created! Welcome ${U.n} 🎉 (Supabase)`,'ok');
-    }else{throw new Error('offline');}
-  }catch(err){
-    U={n:dispName,h:(u||f).toLowerCase(),i:f[0].toUpperCase(),v:false,bio:'',c};
-    toast(`Account created! Welcome ${U.n} 🎉 (Local mode)`,'ok');
-  }
-  afterAuth();
-}
-
-function afterAuth(){
-  cls('ov-auth');updateHdrBtn();updateCompose();
-  buildMsgs();buildGroups();buildProfile();buildSettings();buildRooms();renderFeed();
-}
-function logout(){
-  U=null;liked.clear();updateHdrBtn();updateCompose();
-  buildMsgs();buildGroups();buildProfile();buildSettings();buildRooms();renderFeed();
-  go('home',document.getElementById('nb-home'));
-  toast('Logged out successfully','in');
-}
-function updateHdrBtn(){
-  const btn=document.getElementById('hbtn-auth');
-  if(U){
-    btn.innerHTML=`<span style="font-size:11px;font-weight:900;">${U.i}</span>`;
-    btn.style.background=`linear-gradient(135deg,${U.c})`;
-    btn.style.color='#fff';btn.style.border='none';
-    btn.onclick=hdrAuth;
-  }else{
-    btn.innerHTML='<i class="fa fa-user"></i>';
-    btn.style.background='';btn.style.color='';btn.style.border='';
-    btn.onclick=hdrAuth;
-  }
-}
-
-// ═══════════════════════════════════════
-// MODAL HELPERS
-// ═══════════════════════════════════════
-function open_ov(id){document.getElementById(id).classList.add('show');document.body.style.overflow='hidden';}
-function cls(id){document.getElementById(id).classList.remove('show');document.body.style.overflow='';}
-function bgC(e,id){if(e.target.id===id)cls(id);}
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){
-    if(document.getElementById('view-prof').classList.contains('show')){closeViewProf();return;}
-    if(document.getElementById('fschat').classList.contains('show')){closeFullChat();return;}
-    document.querySelectorAll('.ovl.show').forEach(o=>{o.classList.remove('show');document.body.style.overflow='';});
-  }
-});
-
-// ═══════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════
-function toast(msg,type='in'){
-  const ic={ok:'tok',er:'ter',in:'tin'};
-  const em={ok:'✓',er:'✕',in:'i'};
-  const w=document.getElementById('tw');
-  const el=document.createElement('div');
-  el.className=`t ${type}`;
-  el.innerHTML=`<span class="${ic[type]}" style="font-weight:900;font-size:14px;">${em[type]}</span><span>${msg}</span>`;
-  w.appendChild(el);
-  setTimeout(()=>el.remove(),3200);
-}
-
-// ═══════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════
-function now(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
-function fmtTime(ts){if(!ts)return now();const d=new Date(ts);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
-function timeAgo(ts){if(!ts)return'Just now';const s=Math.floor((Date.now()-new Date(ts))/1000);if(s<60)return s+'s ago';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
-function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    
+    document.getElementById('sendGlobalMsg')?.addEventListener('click', () => {
+        const inp = document.getElementById('globalChatInput');
+        sendGlobalMessage(inp.value);
+        inp.value = '';
+    });
+    
+    document.getElementById('createRoomBtnGlobal')?.addEventListener('click', () => {
+        const name = prompt("New room name:");
+        if(name && name.trim()) createNewRoom(name.trim());
+    });
+    
+    document.getElementById('doSignupBtn')?.addEventListener('click', () => {
+        signup(document.getElementById('regEmail').value, document.getElementById('regUsername').value, document.getElementById('regPassword').value);
+    });
+    
+    document.getElementById('doLoginBtn')?.addEventListener('click', () => {
+        login(document.getElementById('regEmail').value, document.getElementById('regPassword').value);
+    });
+    
+    document.getElementById('continueAnonymousBtn')?.addEventListener('click', () => { 
+        currentUser = null; 
+        currentSession = null;
+        updateAuthStatus();
+        renderFeed(); 
+        showScreen('feed'); 
+        showToast('Continuing as Anonymous');
+    });
+    
+    document.getElementById('logoutBtn')?.addEventListener('click', logout);
+    document.getElementById('copyProfileLink')?.addEventListener('click', copyProfileLink);
+    
+    document.getElementById('imageUpload')?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if(file) {
+            if(file.size > 5 * 1024 * 1024) { showToast('Image too large (max 5MB)'); return; }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                selectedImage = ev.target.result;
+                document.getElementById('imagePreview').innerHTML = `<div style="position:relative; display:inline-block;"><img src="${selectedImage}" class="preview-img"><span onclick="document.getElementById('imagePreview').innerHTML=''; selectedImage=null;" style="position:absolute; top:-8px; right:-8px; background:red; color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;">×</span></div>`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
+    
+    // Real-time subscriptions
+    supabase.channel('public_posts')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => { 
+            if(document.querySelector('.nav-item.active')?.dataset.screen === 'feed') renderFeed(); 
+        })
+        .subscribe();
+    
+    supabase.channel('public_room_messages')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_messages' }, () => { 
+            if(activeRoomId) renderChatMessages(); 
+        })
+        .subscribe();
+    
+    supabase.channel('public_rooms')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, () => { 
+            renderGlobalRooms(); 
+        })
+        .subscribe();
+    
+    // Initialize
+    initDarkMode();
+    checkSession().then(() => {
+        renderFeed();
+        renderGlobalRooms();
+        showScreen('feed');
+    });
 </script>
 </body>
 </html>
