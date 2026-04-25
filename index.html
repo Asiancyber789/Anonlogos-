@@ -4,458 +4,504 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Anonlogos</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 :root{
-  --p:#8B5CF6;--pl:#C4B5FD;--pd:#6D28D9;
-  --a:#06B6D4;--g:#10B981;--r:#F87171;--w:#FBBF24;
-  --bg:#06061A;--s1:#0C0C22;--s2:#111130;--s3:#181848;--s4:#1E1E52;
-  --b1:rgba(196,181,253,.07);--b2:rgba(196,181,253,.14);--b3:rgba(196,181,253,.22);
-  --t1:#F1F5F9;--t2:#B0B8CC;--t3:#4A5270;
-  --grd:linear-gradient(135deg,#8B5CF6,#06B6D4);
-  --shadow:0 6px 28px rgba(139,92,246,.32);
-  --r8:8px;--r12:12px;--r16:16px;--r20:20px;--r24:24px;--r99:9999px;
+  --p:#7C3AED;--pl:#A78BFA;--pd:#5B21B6;
+  --a:#06B6D4;--al:#22D3EE;
+  --g:#10B981;--r:#EF4444;--w:#F59E0B;--pk:#EC4899;
+  --bg:#07071A;--s1:#0D0D23;--s2:#12122E;--s3:#181838;--s4:#1E1E42;--s5:#242450;
+  --b1:rgba(167,139,250,.08);--b2:rgba(167,139,250,.14);--b3:rgba(167,139,250,.22);
+  --t1:#F8FAFC;--t2:#CBD5E1;--t3:#64748B;--t4:#334155;
+  --grd:linear-gradient(135deg,var(--p),var(--a));
+  --grd2:linear-gradient(135deg,var(--pk),var(--w));
+  --shadow:0 8px 32px rgba(124,58,237,.25);
+  --r6:6px;--r10:10px;--r14:14px;--r18:18px;--r24:24px;--r99:9999px;
+  --dur:.2s;--ease:cubic-bezier(.34,1.56,.64,1);
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;background:var(--bg);}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--t1);max-width:480px;margin:0 auto;display:flex;flex-direction:column;}
-button,input,textarea{font-family:inherit;border:none;outline:none;background:none;color:inherit;}
+body{font-family:var(--font);color:var(--t1);max-width:480px;margin:0 auto;display:flex;flex-direction:column;position:relative;}
+button,input,textarea,select{font-family:var(--font);border:none;outline:none;background:none;color:inherit;}
 button{cursor:pointer;}
-::-webkit-scrollbar{width:2px;}
+a{color:var(--pl);text-decoration:none;font-weight:700;}
+::-webkit-scrollbar{width:2px;height:2px;}
 ::-webkit-scrollbar-thumb{background:var(--b2);border-radius:1px;}
-.grd{background:var(--grd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.grd-text{background:var(--grd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
 /* ── HEADER ── */
-.hdr{background:rgba(6,6,26,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:50;}
-.logo{font-size:22px;font-weight:900;letter-spacing:-.5px;display:flex;align-items:center;gap:8px;}
-.logodot{width:9px;height:9px;border-radius:50%;background:var(--grd);box-shadow:0 0 10px var(--p);}
-.hbtns{display:flex;gap:8px;}
-.hbtn{width:38px;height:38px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);display:flex;align-items:center;justify-content:center;transition:all .18s;position:relative;font-size:15px;}
+.hdr{position:sticky;top:0;z-index:50;background:rgba(7,7,26,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-size:21px;font-weight:900;letter-spacing:-.5px;}
+.hactions{display:flex;gap:7px;}
+.hbtn{width:36px;height:36px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);font-size:14px;display:flex;align-items:center;justify-content:center;transition:all var(--dur);position:relative;}
 .hbtn:active{transform:scale(.9);}
-.hbtn.dot::after{content:'';position:absolute;top:7px;right:7px;width:7px;height:7px;background:var(--r);border-radius:50%;border:2px solid var(--bg);}
+.hbtn.has-dot::after{content:'';position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--r);border-radius:50%;border:2px solid var(--bg);}
+
 /* ── LAYOUT ── */
 #app{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .pages{flex:1;overflow:hidden;position:relative;}
-.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;padding-bottom:76px;}
-.page.show{display:flex;animation:pgin .22s ease;}
-@keyframes pgin{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;padding-bottom:78px;}
+.page.show{display:flex;animation:pgIn .22s ease;}
+@keyframes pgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
 /* ── BOTTOM NAV ── */
-.bnav{flex-shrink:0;background:rgba(11,11,32,.97);backdrop-filter:blur(24px);border-top:1px solid var(--b1);height:64px;display:flex;align-items:center;justify-content:space-around;padding:0 2px calc(env(safe-area-inset-bottom));z-index:50;}
-.nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:40px;height:56px;border-radius:var(--r12);color:var(--t3);transition:all .18s;position:relative;padding:0 5px;font-size:8.5px;font-weight:700;}
-.nb i{font-size:20px;transition:all .18s;}
+.bnav{flex-shrink:0;background:rgba(13,13,35,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--b1);padding:0 4px calc(env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-around;z-index:50;height:62px;}
+.nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 8px;border-radius:var(--r14);color:var(--t4);transition:all var(--dur);min-width:44px;height:52px;position:relative;}
+.nb i{font-size:19px;transition:all var(--dur);}
+.nb span{font-size:9px;font-weight:700;letter-spacing:.2px;transition:all var(--dur);}
 .nb.on{color:var(--pl);}
-.nb.on i{filter:drop-shadow(0 0 6px rgba(196,181,253,.7));transform:scale(1.12);}
-.nb-line{position:absolute;bottom:4px;left:50%;transform:translateX(-50%) scaleX(0);width:16px;height:2px;background:var(--grd);border-radius:1px;transition:transform .18s;}
-.nb.on .nb-line{transform:translateX(-50%) scaleX(1);}
-.nbdot{position:absolute;top:8px;right:3px;width:6px;height:6px;background:var(--r);border-radius:50%;border:2px solid var(--bg);}
-.fab{width:48px;height:48px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);transition:all .2s;margin-top:-4px;color:#fff;font-size:22px;}
-.fab:active{transform:scale(.92) rotate(90deg);}
+.nb.on i{transform:scale(1.15);filter:drop-shadow(0 0 6px rgba(167,139,250,.6));}
+.nb-dot{position:absolute;top:8px;right:10px;width:6px;height:6px;background:var(--r);border-radius:50%;border:2px solid var(--bg);}
+.nb-fab{width:46px;height:46px;border-radius:50%;background:var(--grd);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);transition:all var(--dur);}
+.nb-fab:active{transform:scale(.92) rotate(90deg);}
+
 /* ── STORIES ── */
-.stories{display:flex;gap:10px;padding:13px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+.stories{display:flex;gap:9px;padding:12px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
 .stories::-webkit-scrollbar{display:none;}
 .stc{flex-shrink:0;width:70px;text-align:center;cursor:pointer;}
-.stc:active{transform:scale(.94);}
-.str{width:62px;height:62px;border-radius:50%;padding:2.5px;margin:0 auto 5px;background:var(--grd);}
+.stc:active{transform:scale(.95);}
+.str{width:60px;height:60px;border-radius:50%;padding:2px;margin:0 auto 5px;background:var(--grd);}
 .stri{width:100%;height:100%;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:21px;}
-.stl{font-size:10px;color:var(--t3);}
+.stl{font-size:10px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .st-add .str{background:var(--s3);border:2px dashed var(--pl);}
-.st-add .stri{color:var(--pl);font-size:23px;background:none;}
+.st-add .stri{color:var(--pl);font-size:22px;background:transparent;}
+
 /* ── QUICK POST ── */
-.qp{margin:0 14px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r20);padding:13px;}
-.qpr{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.qav{width:42px;height:42px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;flex-shrink:0;}
-.qinp{flex:1;background:var(--s4);border:1px solid var(--b1);border-radius:var(--r99);padding:10px 16px;color:var(--t3);font-size:13px;text-align:left;transition:all .18s;}
-.qtls{display:flex;gap:6px;padding-top:11px;border-top:1px solid var(--b1);}
-.qtl{flex:1;background:transparent;color:var(--t3);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 4px;border-radius:var(--r8);transition:all .18s;}
-.qtl:active{background:var(--s4);color:var(--t1);}
+.qp{margin:0 14px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r18);padding:12px;}
+.qpr{display:flex;align-items:center;gap:10px;}
+.qav{width:40px;height:40px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff;flex-shrink:0;}
+.qinp{flex:1;background:var(--s4);border:1px solid var(--b1);border-radius:var(--r99);padding:9px 14px;color:var(--t3);font-size:13px;text-align:left;transition:all var(--dur);}
+.qinp:hover{border-color:var(--pl);color:var(--t2);}
+.qtls{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--b1);}
+.qtl{flex:1;background:transparent;color:var(--t3);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px;border-radius:var(--r6);transition:all var(--dur);}
+.qtl:hover,.qtl:active{background:var(--s4);}
 .qtl i{font-size:14px;}
+
 /* ── FEED TABS ── */
-.ftabs{display:flex;gap:7px;padding:0 14px 12px;overflow-x:auto;scrollbar-width:none;}
+.ftabs{display:flex;gap:6px;padding:0 14px 11px;overflow-x:auto;scrollbar-width:none;}
 .ftabs::-webkit-scrollbar{display:none;}
-.ftab{flex-shrink:0;padding:8px 16px;border-radius:var(--r99);border:1px solid var(--b1);background:transparent;color:var(--t3);font-size:12px;font-weight:700;transition:all .18s;}
-.ftab.on{background:var(--grd);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(139,92,246,.35);}
+.ftab{flex-shrink:0;padding:7px 15px;border-radius:var(--r99);border:1px solid var(--b1);background:transparent;color:var(--t3);font-size:12px;font-weight:700;transition:all var(--dur);}
+.ftab.on{background:var(--grd);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.35);}
+
 /* ── POST CARD ── */
-.pc{margin:0 14px 11px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r20);overflow:hidden;transition:border-color .18s;}
-.pch{display:flex;align-items:center;gap:10px;padding:13px 13px 9px;}
-.pav{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex-shrink:0;}
+.pc{margin:0 14px 11px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r18);overflow:hidden;transition:border-color var(--dur);}
+.pc:hover{border-color:var(--b2);}
+.pch{display:flex;align-items:center;gap:9px;padding:12px 12px 8px;}
+.pav{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:#fff;flex-shrink:0;}
 .pm{flex:1;}
 .pn{font-size:13px;font-weight:800;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .vtick{color:var(--g);font-size:12px;}
-.abadge{background:rgba(139,92,246,.2);color:var(--pl);font-size:9px;font-weight:800;padding:2px 8px;border-radius:var(--r99);border:1px solid rgba(139,92,246,.3);}
+.abadge{background:rgba(124,58,237,.2);color:var(--pl);font-size:9px;font-weight:800;padding:2px 7px;border-radius:var(--r99);border:1px solid rgba(124,58,237,.3);}
 .pt{font-size:11px;color:var(--t3);margin-top:2px;}
-.pn-link{cursor:pointer;transition:color .18s;}
-.pn-link:hover{color:var(--pl);}
-.pmor{width:30px;height:30px;border-radius:50%;color:var(--t3);display:flex;align-items:center;justify-content:center;font-size:15px;}
-.pb{padding:0 13px 10px;font-size:13px;line-height:1.7;color:var(--t1);}
-.pstats{padding:7px 13px;display:flex;gap:8px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1);border-bottom:1px solid var(--b1);}
+.pmor{width:28px;height:28px;border-radius:50%;background:transparent;color:var(--t3);font-size:13px;display:flex;align-items:center;justify-content:center;}
+.pb{padding:0 12px 10px;font-size:13px;line-height:1.65;color:var(--t1);}
+.pstats{padding:7px 12px;display:flex;gap:8px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1);border-bottom:1px solid var(--b1);}
 .pacts{display:flex;}
-.pa{flex:1;background:transparent;color:var(--t2);font-size:12px;font-weight:700;padding:10px 4px;border-radius:var(--r12);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .18s;}
+.pa{flex:1;background:transparent;color:var(--t2);font-size:12px;font-weight:700;padding:9px 4px;border-radius:var(--r10);display:flex;align-items:center;justify-content:center;gap:5px;transition:all var(--dur);}
 .pa:active{background:var(--s4);}
 .pa.lkd{color:var(--r);}
 .pa i{font-size:14px;}
+.pa.lkd i.fa-heart{animation:hp .3s var(--ease);}
+@keyframes hp{0%{transform:scale(1);}50%{transform:scale(1.6);}100%{transform:scale(1);}}
+
 /* ── SEARCH ── */
-.sbar{margin:12px 14px 10px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r99);padding:11px 16px;display:flex;align-items:center;gap:9px;}
-.sbar i{color:var(--t3);font-size:14px;}
-.sinp{flex:1;background:transparent;color:var(--t1);font-size:13px;}
-.sinp::placeholder{color:var(--t3);}
+.srchbar{margin:12px 14px 10px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r99);padding:11px 16px;display:flex;align-items:center;gap:9px;}
+.srchbar i{color:var(--t3);font-size:14px;}
+.srchi{flex:1;background:transparent;color:var(--t1);font-size:13px;}
+.srchi::placeholder{color:var(--t3);}
 .sr-res{padding:0 14px;display:flex;flex-direction:column;gap:8px;}
-.sr-item{display:flex;align-items:center;gap:11px;padding:11px 13px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r16);cursor:pointer;transition:all .18s;}
+.sr-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r14);cursor:pointer;transition:all var(--dur);}
 .sr-item:active{background:var(--s3);}
-.sr-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex-shrink:0;}
+.sr-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff;flex-shrink:0;}
 .sr-info{flex:1;}
 .sr-name{font-size:13px;font-weight:800;display:flex;align-items:center;gap:5px;}
 .sr-sub{font-size:11px;color:var(--t3);margin-top:2px;}
 .sr-act{padding:7px 14px;background:var(--grd);border-radius:var(--r99);color:#fff;font-size:11px;font-weight:800;}
-/* ── FULLSCREEN CHAT ── */
-.fschat{position:fixed;inset:0;z-index:300;background:var(--bg);display:none;flex-direction:column;max-width:480px;margin:0 auto;}
-.fschat.show{display:flex;animation:pgin .22s ease;}
-.fsch-hdr{background:rgba(6,6,26,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);padding:12px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
-.fsch-back{width:36px;height:36px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .18s;}
-.fsch-back:active{background:var(--s4);}
-.fsch-info{flex:1;}
-.fsch-name{font-size:16px;font-weight:800;}
-.fsch-sub{font-size:11px;color:var(--t3);margin-top:1px;}
-.fsch-actions{display:flex;gap:8px;}
-.fsch-act{width:34px;height:34px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:14px;}
-.fsch-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
-.fsch-msgs::-webkit-scrollbar{width:2px;}
-.mrow{display:flex;gap:8px;align-items:flex-end;}
-.mrow.me{flex-direction:row-reverse;}
-.mav-sm{width:30px;height:30px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;flex-shrink:0;}
-.mbub{max-width:74%;}
-.mn{font-size:10px;color:var(--t3);margin-bottom:3px;display:flex;align-items:center;gap:3px;}
-.mtxt{background:var(--s3);padding:9px 12px;border-radius:3px var(--r12) var(--r12) var(--r12);font-size:13px;line-height:1.55;word-break:break-word;border:1px solid var(--b1);}
-.mrow.me .mtxt{background:linear-gradient(135deg,#6D28D9,#8B5CF6);border-radius:var(--r12) 3px var(--r12) var(--r12);border:none;}
-.mts{font-size:9px;color:var(--t3);margin-top:3px;text-align:right;}
-.fsch-inp{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--b1);background:rgba(6,6,26,.96);backdrop-filter:blur(20px);}
-.ci{flex:1;background:var(--s3);border:1px solid var(--b1);border-radius:var(--r99);padding:10px 14px;color:var(--t1);font-size:13px;transition:all .18s;}
-.ci:focus{border-color:var(--pl);}
-.csnd{width:38px;height:38px;border-radius:50%;background:var(--grd);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(139,92,246,.4);}
-.csnd:active{transform:scale(.9);}
-/* ── ROOMS LIST PAGE ── */
-.lounge-card{margin:0 14px 14px;border:1px solid rgba(139,92,246,.3);border-radius:var(--r20);overflow:hidden;cursor:pointer;transition:all .18s;}
-.lounge-card:active{transform:scale(.98);}
-.lcard-hdr{background:linear-gradient(135deg,#6D28D9,#0891B2);padding:18px;display:flex;align-items:center;gap:14px;}
-.lcard-ico{font-size:36px;}
-.lcard-info{flex:1;}
-.lcard-title{font-size:17px;font-weight:800;margin-bottom:3px;}
-.lcard-sub{font-size:12px;opacity:.75;}
-.lcard-arr{font-size:18px;opacity:.7;}
+
+/* ── ROOMS ── */
 .rg{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px;}
-.rc{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r20);padding:15px;text-align:center;cursor:pointer;transition:all .18s;}
+.rc{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r18);padding:14px;text-align:center;cursor:pointer;transition:all var(--dur);}
 .rc:active{transform:scale(.97);border-color:var(--b3);}
-.rc-ico{width:52px;height:52px;border-radius:var(--r16);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 9px;}
+.rc-ico{width:52px;height:52px;border-radius:var(--r14);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 9px;}
 .rc-name{font-size:13px;font-weight:800;margin-bottom:3px;}
 .rc-cnt{font-size:11px;color:var(--t3);}
 .rc-badge{font-size:9px;font-weight:800;padding:2px 7px;border-radius:var(--r99);display:inline-block;margin-top:5px;}
 .rc-pub{background:rgba(16,185,129,.15);color:var(--g);}
-.rc-prv{background:rgba(251,191,36,.15);color:var(--w);}
-.crbtn{margin:0 14px 14px;padding:13px;background:var(--grd);border-radius:var(--r16);color:#fff;font-size:14px;font-weight:800;width:calc(100% - 28px);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--shadow);}
-.info-bar{margin:0 14px 12px;padding:10px 14px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:var(--r12);font-size:12px;color:var(--w);display:flex;align-items:center;gap:8px;}
-/* ── DM LIST ── */
-.sec{padding:12px 14px 9px;font-size:16px;font-weight:900;}
-.sec-sm{padding:4px 14px 8px;font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;}
+.rc-prv{background:rgba(245,158,11,.15);color:var(--w);}
+.crbtn{margin:0 14px 14px;padding:13px;background:var(--grd);border-radius:var(--r14);color:#fff;font-size:14px;font-weight:800;width:calc(100% - 28px);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--shadow);transition:all var(--dur);}
+.crbtn:active{transform:scale(.98);}
+.info-banner{margin:0 14px 12px;padding:10px 14px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--r10);font-size:12px;color:var(--w);display:flex;align-items:center;gap:8px;}
+
+/* ── MESSAGES ── */
 .msg-list{padding:0 14px;display:flex;flex-direction:column;gap:8px;}
-.ml-item{display:flex;align-items:center;gap:11px;padding:11px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r16);cursor:pointer;transition:all .18s;}
+.ml-item{display:flex;align-items:center;gap:11px;padding:11px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r14);cursor:pointer;transition:all var(--dur);}
 .ml-item:active{background:var(--s3);}
-.ml-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;flex-shrink:0;position:relative;}
+.ml-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;color:#fff;flex-shrink:0;position:relative;}
 .onl{position:absolute;bottom:1px;right:1px;width:11px;height:11px;background:var(--g);border-radius:50%;border:2px solid var(--s2);}
 .ml-info{flex:1;min-width:0;}
 .ml-name{font-size:13px;font-weight:800;display:flex;align-items:center;gap:5px;margin-bottom:3px;}
-.ml-prev{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.unrd{min-width:18px;height:18px;background:var(--p);border-radius:var(--r99);font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px;}
-.newmsg{margin:0 14px 14px;padding:12px;background:var(--grd);border-radius:var(--r16);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:var(--shadow);}
+.ml-prev{font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ml-time{font-size:10px;color:var(--t3);}
+.unrd{min-width:18px;height:18px;background:var(--p);color:#fff;font-size:9px;font-weight:800;border-radius:var(--r99);display:flex;align-items:center;justify-content:center;padding:0 4px;}
+.new-msg-btn{margin:0 14px 14px;padding:12px;background:transparent;border:1.5px dashed var(--b3);border-radius:var(--r14);color:var(--t3);font-size:13px;font-weight:700;width:calc(100%-28px);display:flex;align-items:center;justify-content:center;gap:8px;transition:all var(--dur);}
+.new-msg-btn:active{background:var(--s2);}
+
 /* ── PROFILE ── */
-.prof-hdr{background:linear-gradient(180deg,rgba(139,92,246,.15) 0%,transparent 100%);padding:28px 16px 18px;text-align:center;}
-.prof-av{width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;margin:0 auto 12px;border:3px solid rgba(196,181,253,.35);position:relative;}
-.prof-cam{position:absolute;bottom:0;right:0;width:25px;height:25px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;}
+.prof-hdr{background:linear-gradient(180deg,rgba(124,58,237,.15) 0%,transparent 100%);padding:26px 16px 16px;text-align:center;}
+.prof-av{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:#fff;margin:0 auto 11px;border:3px solid rgba(167,139,250,.4);position:relative;}
+.prof-cam{position:absolute;bottom:0;right:0;width:24px;height:24px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;}
 .prof-name{font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:3px;}
 .prof-handle{font-size:13px;color:var(--t3);margin-bottom:9px;}
 .prof-bio{font-size:13px;color:var(--t2);margin-bottom:13px;line-height:1.5;}
-.prof-stats{display:flex;justify-content:center;gap:28px;margin-bottom:13px;}
+.prof-stats{display:flex;justify-content:center;gap:26px;margin-bottom:13px;}
 .pst{text-align:center;}
-.psn{font-size:20px;font-weight:900;}
+.psn{font-size:19px;font-weight:900;}
 .psl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;}
-.edt-btn{padding:9px 24px;background:transparent;border:1.5px solid var(--pl);border-radius:var(--r99);color:var(--pl);font-size:13px;font-weight:800;}
-/* ── VIEW PROFILE (fullscreen overlay) ── */
-.view-prof{position:fixed;inset:0;z-index:400;background:var(--bg);display:none;flex-direction:column;max-width:480px;margin:0 auto;overflow-y:auto;}
-.view-prof.show{display:flex;animation:pgin .22s ease;}
-.vp-hdr{background:rgba(6,6,26,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);padding:12px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;position:sticky;top:0;z-index:10;}
-.vp-hero{background:linear-gradient(180deg,rgba(139,92,246,.18) 0%,transparent 100%);padding:28px 18px 20px;text-align:center;}
-.vp-av{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;margin:0 auto 14px;border:3px solid rgba(196,181,253,.4);}
-.vp-name{font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;}
-.vp-handle{font-size:13px;color:var(--t3);margin-bottom:10px;}
-.vp-bio{font-size:13px;color:var(--t2);margin-bottom:16px;line-height:1.5;}
-.vp-stats{display:flex;justify-content:center;gap:28px;margin-bottom:16px;}
-.vp-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-.vp-btn{padding:10px 22px;border-radius:var(--r99);font-size:13px;font-weight:800;transition:all .18s;}
-.vp-btn.primary{background:var(--grd);color:#fff;box-shadow:var(--shadow);}
-.vp-btn.secondary{background:transparent;border:1.5px solid var(--pl);color:var(--pl);}
-.vp-btn.copy{background:var(--s3);border:1px solid var(--b2);color:var(--t2);display:flex;align-items:center;gap:6px;}
-.vp-btn:active{transform:scale(.97);}
-.vp-posts{padding:14px;}
+.prof-edt{padding:8px 24px;background:transparent;border:1.5px solid var(--pl);border-radius:var(--r99);color:var(--pl);font-size:13px;font-weight:800;transition:all var(--dur);}
+.prof-edt:active{background:rgba(167,139,250,.1);}
+
 /* ── SETTINGS ── */
 .sets{padding:0 14px;}
-.sg{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r20);overflow:hidden;margin-bottom:10px;}
-.si{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;transition:all .18s;border-bottom:1px solid var(--b1);}
+.sg{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r18);overflow:hidden;margin-bottom:10px;}
+.si{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;transition:all var(--dur);border-bottom:1px solid var(--b1);}
 .si:last-child{border-bottom:none;}
 .si:active{background:var(--s3);}
-.si-ico{width:34px;height:34px;border-radius:var(--r8);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
+.si-ico{width:34px;height:34px;border-radius:var(--r10);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
 .si-txt{flex:1;font-size:13px;font-weight:700;}
 .si-r{font-size:11px;color:var(--t3);}
-.tsw{width:44px;height:24px;background:var(--s4);border-radius:var(--r99);position:relative;cursor:pointer;transition:all .25s;border:1px solid var(--b2);}
+.tsw{width:42px;height:22px;background:var(--s4);border-radius:var(--r99);position:relative;cursor:pointer;transition:all .25s;border:1px solid var(--b2);}
 .tsw.on{background:var(--grd);border-color:transparent;}
-.tsw::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .25s;box-shadow:0 2px 5px rgba(0,0,0,.35);}
+.tsw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .25s;box-shadow:0 2px 6px rgba(0,0,0,.35);}
 .tsw.on::after{left:22px;}
-.lang-row{display:flex;gap:6px;}
-.lbtn{padding:5px 12px;border-radius:var(--r99);border:1px solid var(--b2);color:var(--t3);font-size:11px;font-weight:800;transition:all .18s;}
+.lang-btn{display:flex;gap:6px;}
+.lbtn{padding:5px 12px;border-radius:var(--r99);border:1px solid var(--b2);background:transparent;color:var(--t3);font-size:11px;font-weight:800;transition:all var(--dur);}
 .lbtn.on{background:var(--grd);border-color:transparent;color:#fff;}
-/* ── GRPS ── */
-.grp-card{display:flex;align-items:center;gap:10px;padding:11px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r16);cursor:pointer;transition:all .18s;}
-.grp-ico{font-size:26px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--s3);border-radius:var(--r12);flex-shrink:0;}
-.grp-info{flex:1;}
-.grp-name{font-size:13px;font-weight:800;margin-bottom:3px;}
-.grp-meta{font-size:11px;color:var(--t3);}
-.grp-role{font-size:9px;font-weight:800;padding:3px 8px;border-radius:var(--r99);background:rgba(139,92,246,.2);color:var(--pl);}
-/* ── MODALS ── */
-.ovl{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+
+/* ── GLOBAL CHAT ── */
+.lounge{margin:0 14px 16px;border:1px solid rgba(124,58,237,.25);border-radius:var(--r24);overflow:hidden;}
+.lh{background:linear-gradient(135deg,var(--pd),var(--a));padding:16px;text-align:center;}
+.l-ico{font-size:36px;margin-bottom:6px;}
+.l-title{font-size:16px;font-weight:800;margin-bottom:2px;}
+.l-sub{font-size:11px;opacity:.8;}
+.lmsgs{height:200px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;background:var(--s2);scroll-behavior:smooth;}
+.mrow{display:flex;gap:7px;align-items:flex-end;}
+.mrow.me{flex-direction:row-reverse;}
+.mav{width:28px;height:28px;border-radius:50%;background:var(--grd);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;color:#fff;flex-shrink:0;}
+.mbub{max-width:74%;}
+.mn{font-size:10px;color:var(--t3);margin-bottom:3px;display:flex;align-items:center;gap:3px;}
+.mtxt{background:var(--s4);padding:8px 11px;border-radius:3px var(--r10) var(--r10) var(--r10);font-size:12px;line-height:1.5;word-break:break-word;}
+.mrow.me .mtxt{background:linear-gradient(135deg,var(--pd),var(--p));border-radius:var(--r10) 3px var(--r10) var(--r10);}
+.mts{font-size:9px;color:var(--t3);margin-top:3px;text-align:right;}
+.ci-row{display:flex;gap:7px;padding:9px;border-top:1px solid var(--b1);background:var(--s2);}
+.ci{flex:1;background:var(--s4);border:1px solid var(--b1);border-radius:var(--r99);padding:9px 13px;color:var(--t1);font-size:13px;}
+.ci:focus{border-color:var(--pl);}
+.csnd{width:36px;height:36px;border-radius:50%;background:var(--grd);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--dur);}
+.csnd:active{transform:scale(.9);}
+
+/* ── DM GROUPS ── */
+.dmg-create{margin:0 14px 14px;padding:12px;background:var(--grd);border-radius:var(--r14);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:var(--shadow);}
+
+/* ── SECTION TITLE ── */
+.sec{padding:12px 14px 9px;font-size:16px;font-weight:900;}
+
+/* ── OVERLAYS ── */
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:200;display:none;align-items:flex-end;justify-content:center;}
 .ovl.show{display:flex;animation:ovi .2s ease;}
 @keyframes ovi{from{opacity:0;}to{opacity:1;}}
-.modal{width:100%;max-width:480px;max-height:92vh;background:var(--s1);border-radius:var(--r24) var(--r24) 0 0;display:flex;flex-direction:column;animation:mup .3s cubic-bezier(.34,1.56,.64,1);}
-@keyframes mup{from{transform:translateY(100%);}to{transform:none;}}
+.modal{width:100%;max-width:480px;max-height:92vh;background:var(--s1);border-radius:var(--r24) var(--r24) 0 0;display:flex;flex-direction:column;animation:mup .3s var(--ease);}
+@keyframes mup{from{transform:translateY(100%);}to{transform:translateY(0);}}
 .auth-ovl .modal{border-radius:var(--r24);margin:auto;max-height:88vh;}
 .mh{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 13px;border-bottom:1px solid var(--b1);flex-shrink:0;}
 .mt{font-size:16px;font-weight:900;}
-.mcl{width:30px;height:30px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.mcl{width:30px;height:30px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);font-size:13px;display:flex;align-items:center;justify-content:center;transition:all var(--dur);}
+.mcl:active{background:var(--s4);}
 .mb{flex:1;overflow-y:auto;padding:16px;}
+
 /* ── CREATE POST ── */
-.cu{display:flex;align-items:center;gap:10px;margin-bottom:13px;}
-.cname{font-size:14px;font-weight:800;}
-.cmode{font-size:11px;color:var(--t3);margin-top:2px;}
-.cta{width:100%;min-height:110px;background:transparent;color:var(--t1);font-size:14px;resize:none;line-height:1.65;}
+.cu{display:flex;align-items:center;gap:9px;margin-bottom:13px;}
+.cn{font-size:14px;font-weight:800;}
+.cm{font-size:11px;color:var(--t3);margin-top:2px;}
+.cta{width:100%;min-height:110px;background:transparent;color:var(--t1);font-size:14px;resize:none;line-height:1.6;}
 .cta::placeholder{color:var(--t3);}
 .cdv{height:1px;background:var(--b1);margin:13px 0;}
-.at-row{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border-radius:var(--r12);padding:12px;margin-bottom:11px;gap:10px;}
+.at-row{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border-radius:var(--r10);padding:11px;margin-bottom:11px;}
 .at-inf{display:flex;align-items:center;gap:9px;}
+.at-inf i{font-size:18px;color:var(--pl);}
 .at-b{font-size:13px;font-weight:800;}
 .at-sm{font-size:11px;color:var(--t3);margin-top:1px;}
-.ptools{display:flex;gap:6px;margin-bottom:11px;flex-wrap:wrap;}
-.ptool{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r8);padding:7px 12px;color:var(--t2);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;}
-.ptool i{font-size:13px;}
-.subp{width:100%;padding:13px;background:var(--grd);border-radius:var(--r16);color:#fff;font-size:14px;font-weight:800;box-shadow:var(--shadow);}
+.post-tools{display:flex;gap:6px;margin-bottom:11px;flex-wrap:wrap;}
+.ptool{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r6);padding:7px 11px;color:var(--t2);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all var(--dur);}
+.ptool:active{background:var(--s3);}
+.subp{width:100%;padding:13px;background:var(--grd);border-radius:var(--r14);color:#fff;font-size:14px;font-weight:800;box-shadow:var(--shadow);transition:all var(--dur);}
+.subp:active{transform:scale(.98);}
+
 /* ── AUTH ── */
 .al-hdr{text-align:center;padding:24px 16px 16px;}
 .al-logo{font-size:30px;font-weight:900;}
 .al-sub{font-size:13px;color:var(--t2);margin-top:5px;}
 .fg{margin-bottom:13px;}
 .fl{font-size:12px;font-weight:700;color:var(--t2);margin-bottom:5px;}
-.fi{width:100%;padding:11px 13px;background:var(--s3);border:1.5px solid var(--b1);border-radius:var(--r12);color:var(--t1);font-size:13px;transition:all .18s;}
-.fi:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(139,92,246,.12);}
+.fi{width:100%;padding:11px 13px;background:var(--s3);border:1.5px solid var(--b1);border-radius:var(--r10);color:var(--t1);font-size:13px;transition:all var(--dur);}
+.fi:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(124,58,237,.12);}
 .fi::placeholder{color:var(--t3);}
 .frow{display:flex;gap:10px;}
 .frow .fg{flex:1;}
-.abtn{width:100%;padding:13px;background:var(--grd);border-radius:var(--r16);color:#fff;font-size:14px;font-weight:800;box-shadow:var(--shadow);margin-bottom:13px;}
-.or-div{display:flex;align-items:center;gap:9px;margin:13px 0;color:var(--t3);font-size:11px;}
-.or-div::before,.or-div::after{content:'';flex:1;height:1px;background:var(--b1);}
+.abtn{width:100%;padding:13px;background:var(--grd);border-radius:var(--r14);color:#fff;font-size:14px;font-weight:800;box-shadow:var(--shadow);transition:all var(--dur);margin-bottom:13px;}
+.abtn:active{transform:scale(.98);}
+.or{display:flex;align-items:center;gap:9px;margin:13px 0;color:var(--t3);font-size:11px;}
+.or::before,.or::after{content:'';flex:1;height:1px;background:var(--b1);}
 .srow{display:flex;gap:8px;margin-bottom:13px;}
-.sbtn{flex:1;padding:11px;background:var(--s3);border:1px solid var(--b1);border-radius:var(--r12);color:var(--t1);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;}
+.sbtn{flex:1;padding:11px;background:var(--s3);border:1px solid var(--b1);border-radius:var(--r10);color:var(--t1);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:all var(--dur);}
+.sbtn:active{background:var(--s4);}
 .aswitch{text-align:center;color:var(--t2);font-size:13px;padding-bottom:5px;}
-.aswitch a{color:var(--pl);font-weight:800;cursor:pointer;}
+
+/* ── CHAT WINDOW ── */
+.cw-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;scroll-behavior:smooth;}
+.cw-msgs .mrow.me .mtxt{background:var(--grd);}
+.cw-inp{display:flex;gap:7px;padding:9px;border-top:1px solid var(--b1);flex-shrink:0;}
+
 /* ── GATE ── */
 .gate{padding:32px 18px;text-align:center;}
-.gate .g-ico{font-size:44px;margin-bottom:13px;}
+.gate i{font-size:42px;color:var(--pl);margin-bottom:13px;display:block;}
 .gate h3{font-size:16px;font-weight:900;margin-bottom:6px;}
 .gate p{font-size:12px;color:var(--t2);margin-bottom:16px;line-height:1.5;}
 .gate-btn{padding:10px 28px;background:var(--grd);border-radius:var(--r99);color:#fff;font-size:13px;font-weight:800;box-shadow:var(--shadow);}
-/* ── STATUS INDICATOR ── */
-.sb-bar{padding:6px 14px;background:rgba(16,185,129,.08);border-bottom:1px solid rgba(16,185,129,.15);font-size:11px;color:var(--g);display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.sb-bar.offline{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.15);color:var(--r);}
+
+/* ── GROUPS ── */
+.grp-card{display:flex;align-items:center;gap:10px;padding:11px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r14);cursor:pointer;transition:all var(--dur);}
+.grp-card:active{background:var(--s3);}
+.grp-ico{font-size:28px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--s3);border-radius:var(--r10);flex-shrink:0;}
+.grp-info{flex:1;}
+.grp-name{font-size:13px;font-weight:800;margin-bottom:3px;}
+.grp-meta{font-size:11px;color:var(--t3);}
+.grp-role{font-size:9px;font-weight:800;padding:3px 8px;border-radius:var(--r99);background:rgba(124,58,237,.2);color:var(--pl);}
+
 /* ── TOAST ── */
-.tw{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);z-index:500;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:88%;max-width:340px;}
-.t{background:var(--s3);border:1px solid var(--b2);border-radius:var(--r12);padding:11px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:9px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:tin .28s ease,tout .28s ease 2.7s forwards;}
+.tw{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:88%;max-width:340px;}
+.t{background:var(--s3);border:1px solid var(--b2);border-radius:var(--r10);padding:10px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:9px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:tin .28s ease,tout .28s ease 2.7s forwards;}
 .t.ok{border-color:rgba(16,185,129,.35);}
-.t.er{border-color:rgba(248,113,113,.35);}
-.tok{color:var(--g);}.ter{color:var(--r);}.tin{color:var(--pl);}
-@keyframes tin{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+.t.ok i{color:var(--g);}
+.t.er{border-color:rgba(239,68,68,.35);}
+.t.er i{color:var(--r);}
+.t.in i{color:var(--pl);}
+@keyframes tin{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
 @keyframes tout{from{opacity:1;}to{opacity:0;}}
+
+/* ── MISC ── */
 .spin{width:30px;height:30px;border:2px solid var(--b2);border-top-color:var(--pl);border-radius:50%;animation:sp .7s linear infinite;margin:40px auto;}
 @keyframes sp{to{transform:rotate(360deg);}}
 .empty{text-align:center;padding:44px 18px;color:var(--t3);}
-.empty p{font-size:13px;margin-top:10px;}
-/* ── TYPING ── */
-.typing-ind{display:flex;align-items:center;gap:8px;padding:6px 12px;}
-.typing-dots{display:flex;gap:4px;}
-.typing-dots span{width:6px;height:6px;background:var(--t3);border-radius:50%;animation:td .9s infinite;}
-.typing-dots span:nth-child(2){animation-delay:.2s;}
-.typing-dots span:nth-child(3){animation-delay:.4s;}
-@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-5px);opacity:1;}}
+.empty i{font-size:40px;margin-bottom:11px;display:block;opacity:.35;}
+.empty p{font-size:13px;}
+.sec-grp-label{padding:4px 14px 8px;font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;}
+.divbar{height:1px;background:var(--b1);margin:4px 14px 12px;}
 </style>
 </head>
 <body>
 <div id="app">
-<!-- HEADER -->
-<div class="hdr">
-  <div class="logo"><div class="logodot"></div><span class="grd">Anonlogos</span></div>
-  <div class="hbtns">
-    <button class="hbtn" onclick="goSearch()"><i class="fa fa-search"></i></button>
-    <button class="hbtn dot" id="hbtn-notif" onclick="showNotifs()"><i class="fa fa-bell"></i></button>
-    <button class="hbtn" id="hbtn-auth" onclick="hdrAuth()"><i class="fa fa-user"></i></button>
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="logo grd-text">Anonlogos</div>
+    <div class="hactions">
+      <button class="hbtn" onclick="focusSearch()" id="hbtn-search"><i class="fas fa-search"></i></button>
+      <button class="hbtn has-dot" onclick="showNotifs()" id="hbtn-notif"><i class="fas fa-bell"></i></button>
+      <button class="hbtn" id="hbtn-auth" onclick="hdrAuth()"><i class="fas fa-user"></i></button>
+    </div>
   </div>
-</div>
-<!-- SUPABASE STATUS -->
-<div id="sb-status" class="sb-bar" style="display:none;"></div>
 
-<!-- PAGES -->
-<div class="pages">
-  <!-- HOME -->
-  <div id="pg-home" class="page show">
-    <div class="stories" id="stories"></div>
-    <div class="qp" onclick="openPost()">
-      <div class="qpr">
-        <div class="qav" id="qav" style="color:#fff;">?</div>
-        <button class="qinp">What's on your mind?</button>
-      </div>
-      <div class="qtls">
-        <button class="qtl" onclick="event.stopPropagation();openPost()"><i class="fa fa-video" style="color:#EF4444;"></i>Live</button>
-        <button class="qtl" onclick="event.stopPropagation();openPost()"><i class="fa fa-image" style="color:#10B981;"></i>Photo</button>
-        <button class="qtl" onclick="event.stopPropagation();openPost()"><i class="fa fa-smile" style="color:#FBBF24;"></i>Feeling</button>
-      </div>
-    </div>
-    <div class="ftabs" id="ftabs">
-      <button class="ftab on" onclick="switchTab(this,'all')">For You</button>
-      <button class="ftab" onclick="switchTab(this,'following')">Following</button>
-      <button class="ftab" onclick="switchTab(this,'anon')">Anonymous</button>
-      <button class="ftab" onclick="switchTab(this,'verified')">Verified ✔</button>
-      <button class="ftab" onclick="switchTab(this,'trending')">🔥 Trending</button>
-    </div>
-    <div id="feed"><div class="spin"></div></div>
-  </div>
-  <!-- SEARCH -->
-  <div id="pg-search" class="page">
-    <div class="sbar"><i class="fa fa-search"></i><input class="sinp" id="sinp" placeholder="Search people, posts…" oninput="doSearch(this.value)"></div>
-    <div id="sres"><div class="empty"><i class="fa fa-search" style="font-size:36px;opacity:.3;"></i><p>Search for people, posts, rooms…</p></div></div>
-  </div>
-  <!-- ROOMS -->
-  <div id="pg-rooms" class="page">
-    <div class="sec">💬 Chat & Rooms</div>
-    <div class="lounge-card" onclick="openFullChat('global','🌍 Global Lounge','3,247 online',null,null,true)">
-      <div class="lcard-hdr">
-        <div class="lcard-ico">🌍</div>
-        <div class="lcard-info">
-          <div class="lcard-title">Global Lounge</div>
-          <div class="lcard-sub">3,247 members • 128 online • Open to all</div>
+  <div class="pages">
+    <!-- HOME -->
+    <div id="pg-home" class="page show">
+      <div class="stories" id="stories"></div>
+      <div class="qp" onclick="openPost()">
+        <div class="qpr">
+          <div class="qav" id="qav">?</div>
+          <button class="qinp" id="qinp-placeholder" data-en="What's on your mind?" data-bn="তোমার মনে কী আছে?">What's on your mind?</button>
         </div>
-        <div class="lcard-arr"><i class="fa fa-chevron-right"></i></div>
+        <div class="qtls">
+          <button class="qtl" onclick="event.stopPropagation();openPost('live')"><i class="fas fa-video" style="color:#EF4444;"></i><span data-en="Live" data-bn="লাইভ">Live</span></button>
+          <button class="qtl" onclick="event.stopPropagation();openPost('photo')"><i class="fas fa-image" style="color:#10B981;"></i><span data-en="Photo" data-bn="ছবি">Photo</span></button>
+          <button class="qtl" onclick="event.stopPropagation();openPost('feeling')"><i class="fas fa-smile" style="color:#F59E0B;"></i><span data-en="Feeling" data-bn="অনুভূতি">Feeling</span></button>
+        </div>
       </div>
+      <div class="ftabs" id="ftabs">
+        <button class="ftab on" onclick="switchTab(this,'all')" data-en="For You" data-bn="তোমার জন্য">For You</button>
+        <button class="ftab" onclick="switchTab(this,'following')" data-en="Following" data-bn="ফলোইং">Following</button>
+        <button class="ftab" onclick="switchTab(this,'anon')" data-en="Anonymous" data-bn="বেনামী">Anonymous</button>
+        <button class="ftab" onclick="switchTab(this,'verified')" data-en="Verified ✔" data-bn="যাচাইকৃত ✔">Verified ✔</button>
+        <button class="ftab" onclick="switchTab(this,'trending')" data-en="🔥 Trending" data-bn="🔥 ট্রেন্ডিং">🔥 Trending</button>
+      </div>
+      <div id="feed"><div class="spin"></div></div>
     </div>
-    <div class="sec" style="padding-top:6px;">🏠 Chat Rooms</div>
-    <div id="crm-area"></div>
-    <div class="rg" id="rgrid"></div>
-    <div class="sec" style="padding-top:18px;">👥 Private Groups</div>
-    <div id="grps" style="padding:0 14px;display:flex;flex-direction:column;gap:8px;"></div>
-    <div style="height:10px;"></div>
-  </div>
-  <!-- MESSAGES -->
-  <div id="pg-msgs" class="page">
-    <div class="sec">✉️ Messages</div>
-    <div id="dmg-area"></div>
-    <div id="dm-list"></div>
-  </div>
-  <!-- PROFILE -->
-  <div id="pg-profile" class="page"><div id="prof-body"></div></div>
-  <!-- SETTINGS -->
-  <div id="pg-settings" class="page"><div class="sec">⚙️ Settings</div><div id="sets-body"></div></div>
-</div><!-- /pages -->
 
-<!-- BOTTOM NAV -->
-<div class="bnav">
-  <button class="nb on" id="nb-home" onclick="go('home',this)"><i class="fa fa-home"></i><span>Home</span><div class="nb-line"></div></button>
-  <button class="nb" id="nb-search" onclick="go('search',this);goSearch()"><i class="fa fa-search"></i><span>Search</span><div class="nb-line"></div></button>
-  <button class="fab" onclick="openPost()"><i class="fa fa-plus"></i></button>
-  <button class="nb" id="nb-rooms" onclick="go('rooms',this)"><i class="fa fa-door-open"></i><span>Rooms</span><div class="nb-line"></div></button>
-  <button class="nb" id="nb-msgs" onclick="go('msgs',this)"><i class="fa fa-comment-dots"></i><span>Messages</span><div class="nb-line"></div><div class="nbdot" id="msgdot" style="display:none;"></div></button>
-  <button class="nb" id="nb-profile" onclick="go('profile',this)"><i class="fa fa-user"></i><span>Profile</span><div class="nb-line"></div></button>
-  <button class="nb" id="nb-settings" onclick="go('settings',this)"><i class="fa fa-cog"></i><span>More</span><div class="nb-line"></div></button>
-</div>
+    <!-- SEARCH -->
+    <div id="pg-search" class="page">
+      <div class="srchbar">
+        <i class="fas fa-search"></i>
+        <input class="srchi" id="srch-inp" placeholder="Search people, posts, topics…" oninput="doSearch(this.value)">
+      </div>
+      <div id="srch-res"></div>
+    </div>
+
+    <!-- ROOMS -->
+    <div id="pg-rooms" class="page">
+      <div class="sec" data-en="💬 Global Lounge" data-bn="💬 গ্লোবাল লাউঞ্জ">💬 Global Lounge</div>
+      <div class="lounge">
+        <div class="lh">
+          <div class="l-ico">🌍</div>
+          <div class="l-title" data-en="Global Lounge" data-bn="গ্লোবাল লাউঞ্জ">Global Lounge</div>
+          <div class="l-sub" id="lsub">3,247 members • 128 online</div>
+        </div>
+        <div class="lmsgs" id="gmsgs"></div>
+        <div class="ci-row">
+          <input class="ci" id="ginp" data-placeholder-en="Chat with everyone…" data-placeholder-bn="সবার সাথে চ্যাট করুন…" placeholder="Chat with everyone…" onkeydown="if(event.key==='Enter')sendG()">
+          <button class="csnd" onclick="sendG()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+      <div class="sec" data-en="🏠 Chat Rooms" data-bn="🏠 চ্যাট রুম">🏠 Chat Rooms</div>
+      <div id="crm-area"></div>
+      <div class="rg" id="rgrid"></div>
+      <div class="sec" style="padding-top:18px;" data-en="👥 Private Groups" data-bn="👥 প্রাইভেট গ্রুপ">👥 Private Groups</div>
+      <div id="grps" style="padding:0 14px;display:flex;flex-direction:column;gap:8px;"></div>
+      <div style="height:10px;"></div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div id="pg-msgs" class="page">
+      <div class="sec" data-en="✉️ Messages" data-bn="✉️ বার্তা">✉️ Messages</div>
+      <div id="dmg-area"></div>
+      <div id="dm-list"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="pg-profile" class="page">
+      <div id="prof-body"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="pg-settings" class="page">
+      <div class="sec" data-en="⚙️ Settings" data-bn="⚙️ সেটিংস">⚙️ Settings</div>
+      <div id="sets-body"></div>
+    </div>
+  </div><!-- /pages -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bnav">
+    <button class="nb on" id="nb-home" onclick="go('home',this)">
+      <i class="fas fa-home"></i><span data-en="Home" data-bn="হোম">Home</span>
+    </button>
+    <button class="nb" id="nb-search" onclick="go('search',this);focusSearch()">
+      <i class="fas fa-search"></i><span data-en="Search" data-bn="খুঁজুন">Search</span>
+    </button>
+    <button class="nb-fab" onclick="openPost()"><i class="fas fa-plus"></i></button>
+    <button class="nb" id="nb-rooms" onclick="go('rooms',this)">
+      <i class="fas fa-door-open"></i><span data-en="Rooms" data-bn="রুম">Rooms</span>
+    </button>
+    <button class="nb" id="nb-msgs" onclick="go('msgs',this)">
+      <i class="fas fa-comment-dots"></i><span data-en="Messages" data-bn="বার্তা">Messages</span>
+      <div class="nb-dot" id="nb-msgs-dot"></div>
+    </button>
+    <button class="nb" id="nb-profile" onclick="go('profile',this)">
+      <i class="fas fa-user"></i><span data-en="Profile" data-bn="প্রোফাইল">Profile</span>
+    </button>
+    <button class="nb" id="nb-settings" onclick="go('settings',this)">
+      <i class="fas fa-cog"></i><span data-en="Settings" data-bn="সেটিংস">Settings</span>
+    </button>
+  </div>
 </div><!-- /app -->
-
-<!-- ══════════════════════════════════════ -->
-<!-- FULLSCREEN CHAT -->
-<div class="fschat" id="fschat">
-  <div class="fsch-hdr">
-    <button class="fsch-back" onclick="closeFullChat()"><i class="fa fa-arrow-left"></i></button>
-    <div style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex-shrink:0;" id="fsch-av">🌍</div>
-    <div class="fsch-info">
-      <div class="fsch-name" id="fsch-name">Global Lounge</div>
-      <div class="fsch-sub" id="fsch-sub">3,247 online</div>
-    </div>
-    <div class="fsch-actions">
-      <button class="fsch-act" onclick="toast('Voice call coming!','in')"><i class="fa fa-phone"></i></button>
-      <button class="fsch-act" onclick="toast('Video call coming!','in')"><i class="fa fa-video"></i></button>
-    </div>
-  </div>
-  <div class="fsch-msgs" id="fsch-msgs"></div>
-  <div id="fsch-typing" style="display:none;" class="typing-ind"><div class="typing-dots"><span></span><span></span><span></span></div><span id="fsch-typing-name" style="font-size:11px;color:var(--t3);"></span></div>
-  <div class="fsch-inp">
-    <button style="width:36px;height:36px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:14px;" onclick="toast('Attach file coming!','in')"><i class="fa fa-paperclip"></i></button>
-    <input class="ci" id="fsch-inp" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendFSMsg()">
-    <button class="csnd" onclick="sendFSMsg()"><i class="fa fa-paper-plane"></i></button>
-  </div>
-</div>
-<!-- VIEW PROFILE FULLSCREEN -->
-<div class="view-prof" id="view-prof">
-  <div class="vp-hdr">
-    <button class="fsch-back" onclick="closeViewProf()"><i class="fa fa-arrow-left"></i></button>
-    <div class="mt" id="vp-title">Profile</div>
-    <button class="fsch-act" onclick="copyProfileLink()"><i class="fa fa-share-alt"></i></button>
-  </div>
-  <div id="vp-body"></div>
-</div>
-
-<!-- TOASTS -->
 <div class="tw" id="tw"></div>
 
 <!-- CREATE POST -->
 <div class="ovl" id="ov-post" onclick="bgC(event,'ov-post')">
   <div class="modal">
-    <div class="mh"><div class="mt">Create Post</div><button class="mcl" onclick="cls('ov-post')"><i class="fa fa-times"></i></button></div>
+    <div class="mh">
+      <div class="mt" data-en="Create Post" data-bn="পোস্ট তৈরি করুন">Create Post</div>
+      <button class="mcl" onclick="cls('ov-post')"><i class="fas fa-times"></i></button>
+    </div>
     <div class="mb">
       <div class="cu">
-        <div class="pav" id="c-av" style="width:42px;height:42px;font-size:16px;flex-shrink:0;background:var(--grd);">?</div>
-        <div><div class="cname" id="c-name">Guest</div><div class="cmode" id="c-mode">Anonymous post</div></div>
+        <div class="pav" id="c-av" style="width:42px;height:42px;font-size:16px;flex-shrink:0;background:var(--grd)">?</div>
+        <div><div class="cn" id="c-name">Guest</div><div class="cm" id="c-mode">Anonymous post</div></div>
       </div>
-      <textarea class="cta" id="cta" placeholder="Share your thoughts…"></textarea>
+      <textarea class="cta" id="cta" data-placeholder-en="Share your thoughts…" data-placeholder-bn="তোমার চিন্তা শেয়ার করো…" placeholder="Share your thoughts…"></textarea>
       <div class="cdv"></div>
       <div class="at-row">
         <div class="at-inf">
-          <i class="fa fa-mask" style="font-size:18px;color:var(--pl);"></i>
-          <div><div class="at-b">Post Anonymously</div><div class="at-sm" id="an-prev">Will appear as: —</div></div>
+          <i class="fas fa-mask"></i>
+          <div><div class="at-b" data-en="Post Anonymously" data-bn="বেনামে পোস্ট করুন">Post Anonymously</div><div class="at-sm" id="an-prev">Will appear as: —</div></div>
         </div>
         <div class="tsw" id="atog" onclick="toggleAnon()"></div>
       </div>
-      <div class="ptools">
-        <button class="ptool"><i class="fa fa-image" style="color:#10B981;"></i>Photo</button>
-        <button class="ptool"><i class="fa fa-smile" style="color:#FBBF24;"></i>Feeling</button>
-        <button class="ptool"><i class="fa fa-map-marker-alt" style="color:#F87171;"></i>Location</button>
+      <div class="post-tools">
+        <button class="ptool" onclick="toast(T('Photo upload coming!','ছবি আপলোড শীঘ্রই!'),'in')"><i class="fas fa-image" style="color:#10B981;"></i><span data-en="Photo" data-bn="ছবি">Photo</span></button>
+        <button class="ptool" onclick="toast(T('Feeling selector coming!','অনুভূতি সিলেক্টর শীঘ্রই!'),'in')"><i class="fas fa-smile" style="color:#F59E0B;"></i><span data-en="Feeling" data-bn="অনুভূতি">Feeling</span></button>
+        <button class="ptool" onclick="toast(T('Location tag coming!','লোকেশন ট্যাগ শীঘ্রই!'),'in')"><i class="fas fa-map-marker-alt" style="color:#EF4444;"></i><span data-en="Location" data-bn="অবস্থান">Location</span></button>
       </div>
-      <button class="subp" onclick="submitPost()"><i class="fa fa-paper-plane" style="margin-right:7px;"></i>Publish Post</button>
+      <button class="subp" onclick="submitPost()"><i class="fas fa-paper-plane" style="margin-right:7px;"></i><span data-en="Publish Post" data-bn="পোস্ট প্রকাশ করুন">Publish Post</span></button>
     </div>
   </div>
 </div>
 
-<!-- AUTH MODAL -->
+<!-- AUTH -->
 <div class="ovl auth-ovl" id="ov-auth" onclick="bgC(event,'ov-auth')">
-  <div class="modal" style="border-radius:var(--r24);margin:auto;max-width:440px;max-height:88vh;"><div id="auth-cnt"></div></div>
+  <div class="modal" style="border-radius:var(--r24);margin:auto;max-width:440px;max-height:88vh;">
+    <div id="auth-cnt"></div>
+  </div>
+</div>
+
+<!-- ROOM CHAT -->
+<div class="ovl" id="ov-room" onclick="bgC(event,'ov-room')">
+  <div class="modal" style="max-height:92vh;">
+    <div class="mh">
+      <div class="mt" id="rm-title">Room</div>
+      <button class="mcl" onclick="cls('ov-room')"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <div class="cw-msgs" id="rm-msgs"></div>
+      <div class="cw-inp">
+        <input class="ci" id="ri" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendRm()">
+        <button class="csnd" onclick="sendRm()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DM CHAT -->
+<div class="ovl" id="ov-dm" onclick="bgC(event,'ov-dm')">
+  <div class="modal" style="max-height:92vh;">
+    <div class="mh">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <div class="pav" id="dm-av" style="width:36px;height:36px;font-size:14px;flex-shrink:0;background:var(--grd)">?</div>
+        <div><div class="mt" id="dm-title">Chat</div><div style="font-size:11px;color:var(--g);">● Online</div></div>
+      </div>
+      <button class="mcl" onclick="cls('ov-dm')"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <div class="cw-msgs" id="dm-msgs"></div>
+      <div class="cw-inp">
+        <input class="ci" id="dmi" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendDM()">
+        <button class="csnd" onclick="sendDM()"><i class="fas fa-paper-plane"></i></button>
+        <button class="csnd" style="background:var(--s3);color:var(--t2);" onclick="toast(T('Emoji picker coming!','ইমোজি পিকার শীঘ্রই!'),'in')"><i class="fas fa-smile"></i></button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- COMMENTS -->
 <div class="ovl" id="ov-cmt" onclick="bgC(event,'ov-cmt')">
   <div class="modal" style="max-height:86vh;">
-    <div class="mh"><div class="mt">Comments</div><button class="mcl" onclick="cls('ov-cmt')"><i class="fa fa-times"></i></button></div>
-    <div style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;" id="cmt-list"></div>
+    <div class="mh">
+      <div class="mt" data-en="Comments" data-bn="মন্তব্য">Comments</div>
+      <button class="mcl" onclick="cls('ov-cmt')"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="flex:1;overflow-y:auto;">
+      <div id="cmt-list" style="padding:12px 14px;display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
     <div style="display:flex;gap:7px;padding:9px;border-top:1px solid var(--b1);background:var(--s1);">
-      <div class="mav-sm" id="cmt-myav" style="width:32px;height:32px;font-size:12px;border-radius:50%;flex-shrink:0;background:var(--grd);display:flex;align-items:center;justify-content:center;font-weight:900;"></div>
-      <input class="ci" id="cmt-inp" placeholder="Write a comment…" onkeydown="if(event.key==='Enter')sendCmt()">
-      <button class="csnd" onclick="sendCmt()"><i class="fa fa-paper-plane"></i></button>
+      <div class="mav" id="cmt-myav" style="width:32px;height:32px;font-size:12px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:900;background:var(--grd);">?</div>
+      <input class="ci" id="cmt-inp" data-placeholder-en="Write a comment…" data-placeholder-bn="একটি মন্তব্য লিখুন…" placeholder="Write a comment…" onkeydown="if(event.key==='Enter')sendCmt()">
+      <button class="csnd" onclick="sendCmt()"><i class="fas fa-paper-plane"></i></button>
     </div>
   </div>
 </div>
@@ -463,93 +509,76 @@ button{cursor:pointer;}
 <!-- GROUP SETTINGS -->
 <div class="ovl" id="ov-grpset" onclick="bgC(event,'ov-grpset')">
   <div class="modal" style="max-height:88vh;">
-    <div class="mh"><div class="mt" id="gs-title">Group Settings</div><button class="mcl" onclick="cls('ov-grpset')"><i class="fa fa-times"></i></button></div>
+    <div class="mh">
+      <div class="mt" id="gs-title" data-en="Group Settings" data-bn="গ্রুপ সেটিংস">Group Settings</div>
+      <button class="mcl" onclick="cls('ov-grpset')"><i class="fas fa-times"></i></button>
+    </div>
     <div class="mb" id="gs-body"></div>
   </div>
 </div>
 
-<!-- NEW DM -->
+<!-- NEW DM GROUP -->
 <div class="ovl" id="ov-newdm" onclick="bgC(event,'ov-newdm')">
   <div class="modal">
-    <div class="mh"><div class="mt">New Message</div><button class="mcl" onclick="cls('ov-newdm')"><i class="fa fa-times"></i></button></div>
-    <div class="mb"><div id="newdm-list" style="display:flex;flex-direction:column;gap:8px;"></div></div>
+    <div class="mh">
+      <div class="mt" data-en="New Message" data-bn="নতুন বার্তা">New Message</div>
+      <button class="mcl" onclick="cls('ov-newdm')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="mb">
+      <div class="fg"><div class="fl" data-en="Select person to message" data-bn="বার্তা পাঠাতে ব্যক্তি বেছে নিন">Select person to message</div></div>
+      <div id="newdm-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════
-// SUPABASE CLIENT
-// ═══════════════════════════════════════
-const SB_URL='https://stfxqkrotaffyafwatdp.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0Znhxa3JvdGFmZnlhZndhdGRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MDQwNTcsImV4cCI6MjA5MjA4MDA1N30.m2U9ubKElKndq3lVvWbPRtu6mIuEHmis3V6nnNX4ySM';
-let sbOnline=false;
+// ════════════════════════════════════════
+// I18N & STATE
+// ════════════════════════════════════════
+let LANG = 'en';
+let U = null; // current user
+let isAnon = false;
+let anonName = '';
+let feedTab = 'all';
+let liked = new Set();
+let posts = [];
+let gMsgs = [];
+let rmMsgs = {};
+let dmMsgs = {};
+let curRm = null;
+let curDM = null;
+let curCmtPid = null;
+let darkMode = true;
 
-async function sbFetch(endpoint,opts={}){
-  const url=SB_URL+'/rest/v1/'+endpoint;
-  const headers={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})};
-  try{
-    const r=await fetch(url,{...opts,headers});
-    if(!r.ok){const e=await r.text();throw new Error(e);}
-    const txt=await r.text();
-    return txt?JSON.parse(txt):[];
-  }catch(e){console.warn('SB Error:',e.message);throw e;}
+// Translation helper
+function T(en, bn) { return LANG === 'bn' ? bn : en; }
+
+function applyLang() {
+  document.querySelectorAll('[data-en]').forEach(el => {
+    const txt = LANG === 'bn' ? el.getAttribute('data-bn') : el.getAttribute('data-en');
+    if (txt) el.textContent = txt;
+  });
+  document.querySelectorAll('[data-placeholder-en]').forEach(el => {
+    el.placeholder = LANG === 'bn' ? el.getAttribute('data-placeholder-bn') : el.getAttribute('data-placeholder-en');
+  });
+  // Lang button highlights
+  document.querySelectorAll('.lbtn').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
 }
 
-async function sbAuth(email,pass,signup=false,meta={}){
-  const ep=signup?'/auth/v1/signup':'/auth/v1/token?grant_type=password';
-  const body=signup?{email,password:pass,data:meta}:{email,password:pass};
-  const r=await fetch(SB_URL+ep,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const d=await r.json();
-  if(d.error)throw new Error(d.error_description||d.error);
-  return d;
-}
+// ════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════
+const ANON_NAMES = ['ShadowFox','SilentWave','NightOwl','MysticWolf','PhantomByte','GhostRider','DarkPhoenix','VoidWalker','CipherNode','NeonShadow','CryptoViper','PixelNinja','QuantumGhost','EchoHawk','IronMask','CloudRunner','ThunderMind','CosmicDrift','SilverWing','RedNova'];
+const COLORS = ['#7C3AED,#06B6D4','#EC4899,#F97316','#10B981,#3B82F6','#F59E0B,#EF4444','#8B5CF6,#EC4899','#06B6D4,#10B981'];
+const BOTS = ['Interesting! 🤔','Totally agree 💯','Love this!','Tell me more…','Thanks for sharing 🙏','So relatable!','Fire! 🔥'];
 
-let sbChannel=null;
-function sbRealtime(table,cb){
-  // Polling fallback (realtime via REST polling every 3s)
-  return setInterval(async()=>{
-    try{
-      const rows=await sbFetch(table+'?order=created_at.asc&limit=50');
-      cb(rows);
-    }catch(e){}
-  },3000);
-}
-
-async function checkSBConnection(){
-  const bar=document.getElementById('sb-status');
-  try{
-    await sbFetch('profiles?limit=1');
-    sbOnline=true;
-    bar.style.display='flex';
-    bar.className='sb-bar';
-    bar.innerHTML='<i class="fa fa-circle" style="font-size:8px;"></i> Connected to Supabase database';
-    setTimeout(()=>bar.style.display='none',3000);
-  }catch(e){
-    sbOnline=false;
-    bar.style.display='flex';
-    bar.className='sb-bar offline';
-    bar.innerHTML='<i class="fa fa-circle" style="font-size:8px;"></i> Offline mode — changes saved locally';
-  }
-}
-
-// ═══════════════════════════════════════
-// STATE & DATA
-// ═══════════════════════════════════════
-let LANG='en', U=null, isAnon=false, anonName='', feedTab='all';
-let liked=new Set(), posts=[], gMsgs=[], rmMsgs={}, dmMsgs={};
-let curFSChat=null, curCmtPid=null, viewProfUser=null;
-let fsPolling=null;
-
-const ANON=['ShadowFox','SilentWave','NightOwl','MysticWolf','PhantomByte','GhostRider','DarkPhoenix','VoidWalker','CipherNode','NeonShadow','CryptoViper','PixelNinja','QuantumGhost','EchoHawk','IronMask','CloudRunner','ThunderMind','CosmicDrift','SilverWing','RedNova'];
-const COLORS=['#8B5CF6,#06B6D4','#EC4899,#F97316','#10B981,#3B82F6','#F59E0B,#EF4444','#8B5CF6,#EC4899','#06B6D4,#10B981'];
-const BOTS=['Interesting! 🤔','Agree 💯','Love this!','Tell me more…','Thanks 🙏','So relatable!','🔥 Fire!'];
-const USERS=[
-  {n:'Rahim Ahmed',h:'rahim_a',v:true,i:'R',c:'#8B5CF6,#06B6D4',bio:'Full-stack developer & tech enthusiast from Dhaka 🇧🇩'},
-  {n:'Sarah Khan',h:'sarah_k',v:true,i:'S',c:'#EC4899,#F97316',bio:'Designer & creative soul ✨ Building beautiful things'},
-  {n:'Dev Hossain',h:'dev_h',v:false,i:'D',c:'#10B981,#3B82F6',bio:'Learning to code, one line at a time 💻'},
-  {n:'Nadia Islam',h:'nadia_i',v:true,i:'N',c:'#8B5CF6,#EC4899',bio:'Book lover 📚 | Coffee addict ☕ | Dreamer'},
+const DEMO_USERS = [
+  {n:'Rahim Ahmed',h:'rahim_a',v:true,i:'R',c:'#7C3AED,#06B6D4'},
+  {n:'Sarah Khan',h:'sarah_k',v:true,i:'S',c:'#EC4899,#F97316'},
+  {n:'Dev Hossain',h:'dev_h',v:false,i:'D',c:'#10B981,#3B82F6'},
+  {n:'Nadia Islam',h:'nadia_i',v:true,i:'N',c:'#8B5CF6,#EC4899'},
 ];
-const ROOMS_DATA=[
+const ROOMS_DATA = [
   {id:1,ico:'💻',n:'Tech Talk',m:'1.2K',pub:true,c:'#3B82F6,#06B6D4'},
   {id:2,ico:'🚀',n:'Startup BD',m:'856',pub:true,c:'#8B5CF6,#EC4899'},
   {id:3,ico:'🎨',n:'Creatives',m:'2.3K',pub:true,c:'#F59E0B,#EF4444'},
@@ -557,790 +586,770 @@ const ROOMS_DATA=[
   {id:5,ico:'📚',n:'Book Club',m:'654',pub:false,c:'#10B981,#3B82F6'},
   {id:6,ico:'💪',n:'Fitness',m:'1.5K',pub:true,c:'#F97316,#EF4444'},
 ];
-const GROUPS_DATA=[
+const GROUPS_DATA = [
   {id:101,ico:'🦉',n:'Night Owls Squad',m:18,max:30,role:'Admin',msgs:247},
   {id:102,ico:'⚡',n:'Dev Community BD',m:26,max:30,role:'Member',msgs:1200},
 ];
-const SEED_GMSG=[
+const SEED_GMSG = [
   {n:'ShadowFox99',t:'Welcome to Anonlogos! 🎉',ts:'10:28',anon:true},
   {n:'Rahim Ahmed',t:'Finally a privacy-first platform! 💜',ts:'10:31',v:true},
   {n:'CipherNode07',t:'কেউ আছো বাংলাদেশ থেকে? 🇧🇩',ts:'10:36',anon:true},
 ];
-const SEED_POSTS=[
-  {id:1,u:USERS[0],txt:'আজকে ঢাকায় দারুণ সূর্যাস্ত দেখলাম! 🌅 প্রকৃতির এই সৌন্দর্য সত্যিই অসাধারণ।',t:'2m ago',lk:47,anon:false},
+const SEED_POSTS = [
+  {id:1,u:DEMO_USERS[0],txt:'আজকে ঢাকায় দারুণ সূর্যাস্ত দেখলাম! 🌅 প্রকৃতির এই সৌন্দর্য সত্যিই অসাধারণ।',t:'2m ago',lk:47,anon:false},
   {id:2,u:null,txt:'🎭 সত্যি কথা বলতে গেলে — সাহস নিয়ে নিজের মতামত দাও। সেটাই আসল স্বাধীনতা।',t:'8m ago',lk:128,anon:true,an:'ShadowFox42'},
-  {id:3,u:USERS[1],txt:'Working on something exciting for Bangladesh\'s tech scene! 🚀 Stay tuned. #startup #bd',t:'15m ago',lk:89,anon:false},
-  {id:4,u:USERS[2],txt:'কোডিং শিখতে সেরা platform কোনটা? React? Python? Flutter? 💻',t:'32m ago',lk:56,anon:false},
+  {id:3,u:DEMO_USERS[1],txt:'Working on something exciting for Bangladesh\'s tech scene! 🚀 Stay tuned. #startup #bd',t:'15m ago',lk:89,anon:false},
+  {id:4,u:DEMO_USERS[2],txt:'কোডিং শিখতে সেরা platform কোনটা? React? Python? Flutter? 💻 যে কেউ help করো।',t:'32m ago',lk:56,anon:false},
   {id:5,u:null,txt:'আমরা সবাই একটা মুখোশ পরি সমাজের সামনে। সেই মুখোশের পেছনে কি আমরা সত্যিই সুন্দর?',t:'1h ago',lk:203,anon:true,an:'NightOwl99'},
-  {id:6,u:USERS[3],txt:'"Atomic Habits" শেষ করলাম। 1% daily improvement — অসাধারণ! 📚',t:'2h ago',lk:134,anon:false},
+  {id:6,u:DEMO_USERS[3],txt:'"Atomic Habits" শেষ করলাম। 1% daily improvement — এই ধারণাটা অসাধারণ! Highly recommend 📚',t:'2h ago',lk:134,anon:false},
 ];
 
-// ═══════════════════════════════════════
+// ════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════
-window.onload=async()=>{
-  posts=SEED_POSTS.map(p=>({...p,cmts:genCmts(3)}));
-  gMsgs=[...SEED_GMSG];
-  buildStories();renderFeed();buildRooms();buildGroups();buildMsgs();buildProfile();buildSettings();genAnon();
-  checkSBConnection();
-  // Load posts from Supabase
-  loadPostsFromSB();
-  // Load global msgs from SB
-  loadGlobalMsgs();
+// ════════════════════════════════════════
+window.onload = () => {
+  posts = SEED_POSTS.map(p => ({...p, cmts: genCmts(3)}));
+  gMsgs = [...SEED_GMSG];
+  buildStories();
+  renderFeed();
+  renderGlobal();
+  buildRooms();
+  buildGroups();
+  buildMsgs();
+  buildProfile();
+  buildSettings();
+  genAnon();
 };
 
-// ═══════════════════════════════════════
-// SUPABASE DATA LAYER
-// ═══════════════════════════════════════
-async function loadPostsFromSB(){
-  try{
-    const rows=await sbFetch('posts?select=*,profiles(username,display_name,is_verified,avatar_color)&order=created_at.desc&limit=30');
-    if(rows&&rows.length){
-      const sbPosts=rows.map(r=>({
-        id:r.id, u:r.profiles?{n:r.profiles.display_name||r.profiles.username,h:r.profiles.username,v:r.profiles.is_verified,i:(r.profiles.display_name||r.profiles.username||'U')[0].toUpperCase(),c:r.profiles.avatar_color||'#8B5CF6,#06B6D4'}:null,
-        txt:r.content, t:timeAgo(r.created_at), lk:r.likes_count||0,
-        anon:r.is_anonymous, an:r.anon_display_name, cmts:[]
-      }));
-      posts=[...sbPosts,...SEED_POSTS.map(p=>({...p,cmts:genCmts(3)}))];
-      renderFeed();
-      toast('✅ Posts loaded from database','ok');
-    }
-  }catch(e){/* use local data */}
+// ════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════
+function go(pg, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('show'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  const el = document.getElementById('pg-' + pg);
+  if (el) { el.classList.add('show'); }
+  if (btn) btn.classList.add('on');
+  if (pg === 'profile') buildProfile();
+  if (pg === 'settings') buildSettings();
+  if (pg === 'msgs') buildMsgs();
+  if (pg === 'rooms') { buildRooms(); buildGroups(); }
 }
 
-async function loadGlobalMsgs(){
-  try{
-    const rows=await sbFetch('global_chat?order=created_at.asc&limit=50');
-    if(rows&&rows.length){
-      gMsgs=[...SEED_GMSG,...rows.map(r=>({n:r.sender_name,t:r.content,ts:fmtTime(r.created_at),anon:r.is_anonymous,v:false}))];
-    }
-  }catch(e){}
-  // Start polling for new msgs
-  fsPolling=setInterval(pollGlobalMsgs,5000);
+function hdrAuth() {
+  if (U) go('profile', document.getElementById('nb-profile'));
+  else showLogin();
 }
 
-let lastMsgTs=null;
-async function pollGlobalMsgs(){
-  if(curFSChat?.key!=='global')return;
-  try{
-    const q=lastMsgTs?`global_chat?created_at=gt.${lastMsgTs}&order=created_at.asc&limit=20`:'global_chat?order=created_at.asc&limit=50';
-    const rows=await sbFetch(q);
-    if(rows&&rows.length){
-      rows.forEach(r=>{
-        const m={n:r.sender_name,t:r.content,ts:fmtTime(r.created_at),anon:r.is_anonymous,v:false,fromSB:true};
-        if(!gMsgs.find(x=>x.sbId===r.id)){gMsgs.push({...m,sbId:r.id});}
-      });
-      lastMsgTs=rows[rows.length-1].created_at;
-      if(curFSChat?.key==='global')renderFSMsgs();
-    }
-  }catch(e){}
-}
-async function savePostToSB(content,isAnonPost,anonDisplayName){
-  if(!sbOnline)return;
-  try{
-    await sbFetch('posts',{method:'POST',body:JSON.stringify({
-      content, is_anonymous:isAnonPost, anon_display_name:anonDisplayName||null,
-      user_id:U?.sbId||null, likes_count:0, comments_count:0
-    })});
-  }catch(e){console.warn('Post save failed:',e.message);}
+function focusSearch() {
+  go('search', document.getElementById('nb-search'));
+  setTimeout(() => document.getElementById('srch-inp')?.focus(), 200);
 }
 
-async function saveGlobalMsg(content,senderName,isAnonMsg){
-  if(!sbOnline)return;
-  try{
-    await sbFetch('global_chat',{method:'POST',body:JSON.stringify({
-      content, sender_name:senderName, is_anonymous:isAnonMsg,
-      user_id:U?.sbId||null
-    })});
-  }catch(e){}
+function showNotifs() {
+  document.getElementById('hbtn-notif').classList.remove('has-dot');
+  toast(T('3 new notifications: 2 likes, 1 comment', '৩টি নতুন বিজ্ঞপ্তি: ২টি লাইক, ১টি মন্তব্য'), 'in');
 }
 
-async function saveDMToSB(toUserId,content){
-  if(!sbOnline||!U?.sbId)return;
-  try{
-    await sbFetch('messages',{method:'POST',body:JSON.stringify({
-      sender_id:U.sbId, receiver_id:toUserId, content
-    })});
-  }catch(e){}
-}
-
-// ═══════════════════════════════════════
-// NAV
-// ═══════════════════════════════════════
-function go(pg,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  const el=document.getElementById('pg-'+pg);
-  if(el)el.classList.add('show');
-  if(btn)btn.classList.add('on');
-  if(pg==='profile')buildProfile();
-  if(pg==='settings')buildSettings();
-  if(pg==='msgs')buildMsgs();
-  if(pg==='rooms'){buildRooms();buildGroups();}
-}
-function hdrAuth(){if(U)go('profile',document.getElementById('nb-profile'));else showLogin();}
-function goSearch(){go('search',document.getElementById('nb-search'));setTimeout(()=>document.getElementById('sinp')?.focus(),200);}
-function showNotifs(){document.getElementById('hbtn-notif').classList.remove('dot');toast('3 new notifications: 2 likes, 1 comment','in');}
-
-// ═══════════════════════════════════════
-// FULLSCREEN CHAT
-// ═══════════════════════════════════════
-function openFullChat(key,name,sub,avContent,avColor,isGlobal){
-  curFSChat={key,name,sub,avContent,avColor,isGlobal};
-  document.getElementById('fsch-name').textContent=name;
-  document.getElementById('fsch-sub').textContent=sub||'';
-  const av=document.getElementById('fsch-av');
-  av.textContent=avContent||'🌍';
-  if(avColor)av.style.background=`linear-gradient(135deg,${avColor})`;
-  else av.style.background='linear-gradient(135deg,#6D28D9,#0891B2)';
-  av.style.borderRadius='50%';av.style.fontSize='15px';av.style.fontWeight='900';av.style.color='#fff';
-  if(isGlobal){
-    renderFSMsgs();
-  } else {
-    if(!rmMsgs[key])rmMsgs[key]=[{n:'System',t:`Welcome to ${name}! 👋`,ts:now(),sys:true}];
-    renderFSMsgs();
-  }
-  document.getElementById('fschat').classList.add('show');
-  document.body.style.overflow='hidden';
-  setTimeout(()=>document.getElementById('fsch-inp').focus(),300);
-}
-
-function closeFullChat(){
-  document.getElementById('fschat').classList.remove('show');
-  document.body.style.overflow='';
-  curFSChat=null;
-}
-
-function renderFSMsgs(){
-  const c=document.getElementById('fsch-msgs');
-  const msgs=curFSChat?.isGlobal?gMsgs:(rmMsgs[curFSChat?.key]||[]);
-  c.innerHTML=msgs.map(m=>{
-    const me=U&&m.n===U.n;
-    const avBg=m.sys?'background:var(--s4);color:var(--t3);':(me?`background:linear-gradient(135deg,${U?.c||'#8B5CF6,#06B6D4'})`:'background:var(--grd)');
-    const avTxt=m.sys?'🤖':(me?(U?.i||'?'):m.n.charAt(0).toUpperCase());
-    return `<div class="mrow ${me?'me':''}">
-      <div class="mav-sm" style="${avBg}">${avTxt}</div>
-      <div class="mbub">
-        <div class="mn">${esc(m.n)} ${m.v?'<span style="color:var(--g);">✔</span>':''}</div>
-        <div class="mtxt" style="${m.sys?'background:var(--s4);color:var(--t2);border-color:transparent;':''}">${esc(m.t)}</div>
-        <div class="mts">${m.ts}</div>
-      </div>
-    </div>`;
-  }).join('');
-  c.scrollTop=c.scrollHeight;
-}
-
-function sendFSMsg(){
-  const inp=document.getElementById('fsch-inp');
-  const txt=inp.value.trim();
-  if(!txt)return;
-  const nm=U?U.n:(anonName||genAnon());
-  const msg={n:nm,t:txt,ts:now(),v:U?.v,anon:!U};
-  if(curFSChat?.isGlobal){
-    gMsgs.push(msg);
-    saveGlobalMsg(txt,nm,!U);
-  } else {
-    if(!rmMsgs[curFSChat.key])rmMsgs[curFSChat.key]=[];
-    rmMsgs[curFSChat.key].push(msg);
-  }
-  inp.value='';renderFSMsgs();
-  // Show typing then bot reply
-  const tyEl=document.getElementById('fsch-typing');
-  const tyNm=document.getElementById('fsch-typing-name');
-  const botN=ANON[Math.floor(Math.random()*ANON.length)]+(Math.floor(Math.random()*90)+10);
-  setTimeout(()=>{tyEl.style.display='flex';tyNm.textContent=botN+' is typing…';},700);
-  setTimeout(()=>{
-    tyEl.style.display='none';
-    const botMsg={n:botN,t:BOTS[Math.floor(Math.random()*BOTS.length)],ts:now(),anon:true};
-    if(curFSChat?.isGlobal)gMsgs.push(botMsg);
-    else if(rmMsgs[curFSChat?.key])rmMsgs[curFSChat.key].push(botMsg);
-    renderFSMsgs();
-  },2200+Math.random()*1500);
-}
-
-// DM Fullscreen
-function openDMChat(name,ini,color,handle){
-  if(!U){showLogin();return;}
-  curFSChat={key:'dm_'+handle,name,sub:handle?'@'+handle:'',avContent:ini,avColor:color,isDM:true,dmTarget:{name,ini,color,handle}};
-  document.getElementById('fsch-name').textContent=name;
-  document.getElementById('fsch-sub').textContent=handle?'@'+handle:'● Online';
-  const av=document.getElementById('fsch-av');
-  av.textContent=ini;av.style.background=`linear-gradient(135deg,${color})`;av.style.borderRadius='50%';av.style.fontSize='15px';av.style.fontWeight='900';av.style.color='#fff';
-  const key='dm_'+handle;
-  if(!dmMsgs[key])dmMsgs[key]=[{n:name,t:'Hey! 👋 How are you?',ts:now(),other:true}];
-  renderDMFSMsgs(key);
-  document.getElementById('fschat').classList.add('show');
-  document.body.style.overflow='hidden';
-  setTimeout(()=>document.getElementById('fsch-inp').focus(),300);
-}
-
-function renderDMFSMsgs(key){
-  const c=document.getElementById('fsch-msgs');
-  const msgs=dmMsgs[key]||[];
-  c.innerHTML=msgs.map(m=>{
-    const me=!m.other;
-    const avBg=me?`background:linear-gradient(135deg,${U?.c||'#8B5CF6,#06B6D4'})`:`background:linear-gradient(135deg,${curFSChat?.dmTarget?.color||'#8B5CF6,#06B6D4'})`;
-    return `<div class="mrow ${me?'me':''}">
-      <div class="mav-sm" style="${avBg}">${me?(U?.i||'?'):(curFSChat?.dmTarget?.ini||'?')}</div>
-      <div class="mbub"><div class="mn">${me?(U?.n||'You'):esc(m.n)}</div>
-      <div class="mtxt">${esc(m.t)}</div><div class="mts">${m.ts}</div></div></div>`;
-  }).join('');
-  c.scrollTop=c.scrollHeight;
-}
-
-// Override sendFSMsg for DM
-const origSendFS=sendFSMsg;
-document.getElementById('fsch-inp').addEventListener('keydown',function(e){
-  if(e.key==='Enter'){e.preventDefault();
-    if(curFSChat?.isDM){
-      const txt=this.value.trim();if(!txt)return;
-      const key='dm_'+curFSChat.dmTarget.handle;
-      dmMsgs[key].push({n:U.n,t:txt,ts:now(),other:false});
-      this.value='';renderDMFSMsgs(key);
-      saveDMToSB(curFSChat.dmTarget.handle,txt);
-      const tyEl=document.getElementById('fsch-typing');
-      const tyNm=document.getElementById('fsch-typing-name');
-      setTimeout(()=>{tyEl.style.display='flex';tyNm.textContent=curFSChat.dmTarget.name+' is typing…';},600);
-      setTimeout(()=>{
-        tyEl.style.display='none';
-        dmMsgs[key].push({n:curFSChat.dmTarget.name,t:BOTS[Math.floor(Math.random()*BOTS.length)],ts:now(),other:true});
-        renderDMFSMsgs(key);
-      },2000+Math.random()*1500);
-    }
-  }
-});
-document.getElementById('fschat').querySelector('.csnd').addEventListener('click',function(){
-  if(curFSChat?.isDM){
-    const inp=document.getElementById('fsch-inp');
-    const txt=inp.value.trim();if(!txt)return;
-    const key='dm_'+curFSChat.dmTarget.handle;
-    dmMsgs[key].push({n:U.n,t:txt,ts:now(),other:false});
-    inp.value='';renderDMFSMsgs(key);
-    saveDMToSB(curFSChat.dmTarget.handle,txt);
-    setTimeout(()=>{
-      dmMsgs[key].push({n:curFSChat.dmTarget.name,t:BOTS[Math.floor(Math.random()*BOTS.length)],ts:now(),other:true});
-      renderDMFSMsgs(key);
-    },2000+Math.random()*1500);
-  }else{sendFSMsg();}
-});
-
-// ═══════════════════════════════════════
-// VIEW PROFILE
-// ═══════════════════════════════════════
-function openViewProf(userData){
-  viewProfUser=userData;
-  document.getElementById('vp-title').textContent=userData.n||'Profile';
-  const userPosts=posts.filter(p=>!p.anon&&p.u?.n===userData.n);
-  document.getElementById('vp-body').innerHTML=`
-    <div class="vp-hero">
-      <div class="vp-av" style="background:linear-gradient(135deg,${userData.c||'#8B5CF6,#06B6D4'});">${userData.i}</div>
-      <div class="vp-name">${esc(userData.n)} ${userData.v?'<span style="color:var(--g);font-size:18px;">✔</span>':''}</div>
-      <div class="vp-handle">@${esc(userData.h)}</div>
-      <div class="vp-bio">${esc(userData.bio||'Hey there! I am using Anonlogos 👋')}</div>
-      <div class="vp-stats">
-        <div class="pst"><div class="psn">${userPosts.length}</div><div class="psl">Posts</div></div>
-        <div class="pst"><div class="psn">${Math.floor(Math.random()*900)+50}</div><div class="psl">Followers</div></div>
-        <div class="pst"><div class="psn">${Math.floor(Math.random()*300)+10}</div><div class="psl">Following</div></div>
-      </div>
-      <div class="vp-btns">
-        ${U&&U.n!==userData.n?`<button class="vp-btn primary" onclick="openDMChat('${esc(userData.n)}','${userData.i}','${userData.c}','${esc(userData.h)}');closeViewProf();"><i class="fa fa-comment" style="margin-right:6px;"></i>Message</button>`:''}
-        ${U&&U.n!==userData.n?`<button class="vp-btn secondary" onclick="toast('Following ${esc(userData.n)}! ✅','ok')"><i class="fa fa-user-plus" style="margin-right:6px;"></i>Follow</button>`:''}
-        <button class="vp-btn copy" onclick="copyProfileLink()"><i class="fa fa-link"></i>Copy Link</button>
-      </div>
-    </div>
-    <div class="vp-posts">
-      <div class="sec-sm" style="padding-left:0;margin-bottom:10px;">Recent Posts</div>
-      ${userPosts.slice(0,5).map(p=>`
-        <div class="pc" style="margin:0 0 10px;" onclick="openCmts(${p.id})">
-          <div class="pb" style="padding:12px;font-size:13px;">${esc(p.txt.slice(0,100))}${p.txt.length>100?'…':''}</div>
-          <div class="pstats" style="border-bottom:none;"><span>${p.lk} reactions</span><span>•</span><span>${p.cmts.length} comments</span></div>
-        </div>`).join('')||'<div class="empty" style="padding:22px 0;"><p>No posts yet</p></div>'}
-    </div>`;
-  document.getElementById('view-prof').classList.add('show');
-  document.body.style.overflow='hidden';
-}
-
-function closeViewProf(){
-  document.getElementById('view-prof').classList.remove('show');
-  document.body.style.overflow='';
-  viewProfUser=null;
-}
-
-function copyProfileLink(){
-  const u=viewProfUser||U;
-  if(!u)return;
-  const link=`https://anonlogos.app/@${u.h}`;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(link).then(()=>toast('🔗 Profile link copied! Share with friends','ok')).catch(()=>{
-      prompt('Copy this link:',link);
-    });
-  }else{prompt('Copy this link:',link);}
-}
-
-// ═══════════════════════════════════════
+// ════════════════════════════════════════
 // STORIES
-// ═══════════════════════════════════════
-function buildStories(){
-  const c=document.getElementById('stories');
-  c.innerHTML=`<div class="stc st-add" onclick="openPost()"><div class="str"><div class="stri">+</div></div><div class="stl">Add Story</div></div>`;
-  USERS.forEach(u=>{
-    c.innerHTML+=`<div class="stc" onclick="openViewProf(${JSON.stringify(u).replace(/"/g,'&quot;')})">
+// ════════════════════════════════════════
+function buildStories() {
+  const c = document.getElementById('stories');
+  c.innerHTML = `<div class="stc st-add" onclick="openPost()">
+    <div class="str"><div class="stri"><i class="fas fa-plus"></i></div></div>
+    <div class="stl">${T('Add Story','স্টোরি যোগ করুন')}</div></div>`;
+  DEMO_USERS.forEach(u => {
+    c.innerHTML += `<div class="stc" onclick="toast('${u.n}\'s story','in')">
       <div class="str"><div class="stri" style="background:linear-gradient(135deg,${u.c});">${u.i}</div></div>
       <div class="stl">${u.n.split(' ')[0]}</div></div>`;
   });
 }
-
-// ═══════════════════════════════════════
+// ════════════════════════════════════════
 // FEED
-// ═══════════════════════════════════════
-function renderFeed(){
-  let fp=[...posts];
-  if(feedTab==='anon')fp=fp.filter(p=>p.anon);
-  else if(feedTab==='verified')fp=fp.filter(p=>!p.anon&&p.u?.v);
-  else if(feedTab==='following')fp=fp.filter(p=>!p.anon);
-  else if(feedTab==='trending')fp=[...fp].sort((a,b)=>b.lk-a.lk);
-  const f=document.getElementById('feed');
-  f.innerHTML=fp.length?fp.map(postHTML).join(''):'<div class="empty"><i class="fa fa-wind" style="font-size:36px;opacity:.3;"></i><p>No posts here</p></div>';
+// ════════════════════════════════════════
+function renderFeed() {
+  let fp = [...posts];
+  if (feedTab === 'anon') fp = fp.filter(p => p.anon);
+  else if (feedTab === 'verified') fp = fp.filter(p => !p.anon && p.u?.v);
+  else if (feedTab === 'following') fp = fp.filter(p => !p.anon);
+  else if (feedTab === 'trending') fp = [...fp].sort((a,b) => b.lk - a.lk);
+  const feed = document.getElementById('feed');
+  feed.innerHTML = fp.length ? fp.map(postHTML).join('') : '<div class="empty"><i class="fas fa-wind"></i><p>No posts here</p></div>';
 }
 
-function postHTML(p){
-  const lkd=liked.has(p.id);
-  const nm=p.anon?p.an:(p.u?.n||'User');
-  const avbg=p.anon?'background:linear-gradient(135deg,#374151,#4B5563)':`background:linear-gradient(135deg,${p.u?.c||'#8B5CF6,#06B6D4'})`;
-  const canClick=!p.anon&&p.u;
-  const nameClick=canClick?`onclick="openViewProf(${JSON.stringify(p.u||{}).replace(/"/g,'&quot;')})" style="cursor:pointer;" class="pn-link"`:'';
+function postHTML(p) {
+  const lkd = liked.has(p.id);
+  const nm = p.anon ? p.an : (p.u?.n || 'User');
+  const av = p.anon ? '🎭' : (p.u?.i || '?');
+  const avbg = p.anon ? 'background:linear-gradient(135deg,#374151,#4B5563)' : `background:linear-gradient(135deg,${p.u?.c||'#7C3AED,#06B6D4'})`;
   return `<div class="pc" id="pc${p.id}">
     <div class="pch">
-      <div class="pav" style="${avbg};cursor:${canClick?'pointer':'default'};" ${canClick?`onclick="openViewProf(${JSON.stringify(p.u||{}).replace(/"/g,'&quot;')})"`:''}>
-        ${p.anon?'🎭':(p.u?.i||'?')}
-      </div>
+      <div class="pav" style="${avbg}">${av}</div>
       <div class="pm">
-        <div class="pn"><span ${nameClick}>${esc(nm)}</span> ${p.u?.v&&!p.anon?'<span style="color:var(--g);font-size:12px;">✔</span>':''} ${p.anon?'<span class="abadge">ANON</span>':''}</div>
+        <div class="pn">${esc(nm)} ${p.u?.v&&!p.anon?'<i class="fas fa-check-circle vtick"></i>':''} ${p.anon?'<span class="abadge">ANON</span>':''}</div>
         <div class="pt">${p.t}</div>
       </div>
-      <button class="pmor" onclick="postOpts(${p.id})"><i class="fa fa-ellipsis-h"></i></button>
+      <button class="pmor" onclick="postOpts(${p.id})"><i class="fas fa-ellipsis-h"></i></button>
     </div>
     <div class="pb">${esc(p.txt)}</div>
-    <div class="pstats"><span>${p.lk+(lkd?1:0)} reactions</span><span>•</span><span>${p.cmts.length} comments</span></div>
+    <div class="pstats"><span>${p.lk+(lkd?1:0)} ${T('reactions','প্রতিক্রিয়া')}</span><span>•</span><span>${p.cmts.length} ${T('comments','মন্তব্য')}</span></div>
     <div class="pacts">
-      <button class="pa ${lkd?'lkd':''}" onclick="like(${p.id})"><i class="${lkd?'fa':'far'} fa-heart"></i>${lkd?'Liked':'Like'}</button>
-      <button class="pa" onclick="openCmts(${p.id})"><i class="far fa-comment"></i>Comment</button>
-      <button class="pa" onclick="sharePost()"><i class="fa fa-share"></i>Share</button>
+      <button class="pa ${lkd?'lkd':''}" onclick="like(${p.id})"><i class="${lkd?'fas':'far'} fa-heart"></i>${lkd?T('Liked','লাইক করা হয়েছে'):T('Like','লাইক')}</button>
+      <button class="pa" onclick="openCmts(${p.id})"><i class="far fa-comment"></i>${T('Comment','মন্তব্য')}</button>
+      <button class="pa" onclick="sharePost(${p.id})"><i class="fas fa-share"></i>${T('Share','শেয়ার')}</button>
     </div>
   </div>`;
 }
 
-function like(id){
-  if(!U){showLogin();toast('Login to like posts','er');return;}
-  liked.has(id)?liked.delete(id):liked.add(id);
+function like(id) {
+  if (!U) { showLogin(); toast(T('Login to like posts','পোস্ট লাইক করতে লগইন করুন'), 'er'); return; }
+  liked.has(id) ? liked.delete(id) : liked.add(id);
   renderFeed();
-  toast(liked.has(id)?'❤️ Liked!':'Unliked','ok');
-}
-function sharePost(){toast('🔗 Link copied!','ok');}
-function postOpts(id){
-  const p=posts.find(x=>x.id===id);
-  if(U&&p?.u?.n===U.n)toast('Edit / Delete (backend needed)','in');
-  else toast('Report / Hide (coming soon)','in');
-}
-function switchTab(el,t){
-  document.querySelectorAll('.ftab').forEach(x=>x.classList.remove('on'));
-  el.classList.add('on');feedTab=t;renderFeed();
+  toast(liked.has(id) ? T('❤️ Liked!','❤️ লাইক করা হয়েছে!') : T('Unliked','লাইক তুলে নেওয়া হয়েছে'), 'ok');
 }
 
-// ═══════════════════════════════════════
+function sharePost() { toast(T('🔗 Link copied!','🔗 লিংক কপি হয়েছে!'), 'ok'); }
+
+function postOpts(id) {
+  const p = posts.find(x => x.id === id);
+  if (U && p?.u?.n === U.n) toast(T('Edit / Delete options (backend needed)', 'সম্পাদনা/মুছুন বিকল্প (ব্যাকএন্ড প্রয়োজন)'), 'in');
+  else toast(T('Report / Hide (coming soon)', 'রিপোর্ট/লুকান (শীঘ্রই)'), 'in');
+}
+
+function switchTab(el, t) {
+  document.querySelectorAll('.ftab').forEach(x => x.classList.remove('on'));
+  el.classList.add('on');
+  feedTab = t;
+  renderFeed();
+}
+
+// ════════════════════════════════════════
 // SEARCH
-// ═══════════════════════════════════════
-function doSearch(q){
-  const c=document.getElementById('sres');
-  if(!q.trim()){c.innerHTML='<div class="empty"><i class="fa fa-search" style="font-size:36px;opacity:.3;"></i><p>Search for people, posts, rooms…</p></div>';return;}
-  const uR=USERS.filter(u=>u.n.toLowerCase().includes(q.toLowerCase())||u.h.toLowerCase().includes(q.toLowerCase()));
-  const pR=posts.filter(p=>p.txt.toLowerCase().includes(q.toLowerCase())&&!p.anon);
-  if(!uR.length&&!pR.length){c.innerHTML='<div class="empty"><p>No results found</p></div>';return;}
-  let html='';
-  if(uR.length){
-    html+='<div class="sec-sm">People</div><div class="sr-res">';
-    uR.forEach(u=>{html+=`<div class="sr-item" onclick="openViewProf(${JSON.stringify(u).replace(/"/g,'&quot;')})">
+// ════════════════════════════════════════
+function doSearch(q) {
+  const c = document.getElementById('srch-res');
+  if (!q.trim()) { c.innerHTML = '<div class="empty" style="padding:30px 18px;"><i class="fas fa-search"></i><p>Search for people, posts, rooms…</p></div>'; return; }
+  const uRes = DEMO_USERS.filter(u => u.n.toLowerCase().includes(q.toLowerCase()) || u.h.toLowerCase().includes(q.toLowerCase()));
+  const pRes = posts.filter(p => p.txt.toLowerCase().includes(q.toLowerCase()) && !p.anon);
+  if (!uRes.length && !pRes.length) { c.innerHTML = '<div class="empty" style="padding:30px 18px;"><i class="fas fa-search"></i><p>No results found</p></div>'; return; }
+  let html = '';
+  if (uRes.length) {
+    html += `<div class="sec-grp-label">${T('People','মানুষ')}</div><div class="sr-res">`;
+    uRes.forEach(u => { html += `<div class="sr-item">
       <div class="sr-av" style="background:linear-gradient(135deg,${u.c});">${u.i}</div>
-      <div class="sr-info"><div class="sr-name">${esc(u.n)} ${u.v?'<span style="color:var(--g);">✔</span>':''}</div><div class="sr-sub">@${u.h}</div></div>
-      <button class="sr-act" onclick="event.stopPropagation();openDMChat('${esc(u.n)}','${u.i}','${u.c}','${esc(u.h)}')">Message</button>
-    </div>`;});
-    html+='</div>';
+      <div class="sr-info"><div class="sr-name">${esc(u.n)} ${u.v?'<i class="fas fa-check-circle vtick" style="font-size:12px;"></i>':''}</div><div class="sr-sub">@${u.h}</div></div>
+      <button class="sr-act" onclick="startDM('${esc(u.n)}','${u.i}','${u.c}','${esc(u.h)}')">${T('Message','বার্তা')}</button>
+    </div>`; });
+    html += '</div>';
   }
-  if(pR.length){
-    html+='<div class="sec-sm" style="margin-top:10px;">Posts</div><div style="padding:0 14px;display:flex;flex-direction:column;gap:8px;">';
-    pR.forEach(p=>{html+=`<div class="pc" onclick="openCmts(${p.id})"><div class="pb" style="padding:12px;">${esc(p.txt.slice(0,100))}${p.txt.length>100?'…':''}</div></div>`;});
-    html+='</div>';
+  if (pRes.length) {
+    html += `<div class="sec-grp-label" style="margin-top:10px;">${T('Posts','পোস্ট')}</div><div style="padding:0 14px;display:flex;flex-direction:column;gap:8px;">`;
+    pRes.forEach(p => { html += `<div class="pc" onclick="openCmts(${p.id})"><div class="pb" style="padding:12px;">${esc(p.txt.slice(0,100))}${p.txt.length>100?'…':''}</div></div>`; });
+    html += '</div>';
   }
-  c.innerHTML=html;
+  c.innerHTML = html;
 }
 
-// ═══════════════════════════════════════
+// ════════════════════════════════════════
 // COMMENTS
-// ═══════════════════════════════════════
-function genCmts(n){
-  const s=['Great post! 👏','Agree 💯','So relatable!','Love this ❤️','Thanks 🙏'];
-  return Array.from({length:n},(_,i)=>({un:USERS[i%USERS.length].n,ui:USERS[i%USERS.length].i,uc:USERS[i%USERS.length].c,t:s[i%s.length]}));
+// ════════════════════════════════════════
+function genCmts(n) {
+  const s = ['Great post! 👏','Agree 💯','So relatable!','Love this ❤️','Thanks for sharing 🙏'];
+  return Array.from({length:n},(_,i) => ({un:DEMO_USERS[i%DEMO_USERS.length].n, ui:DEMO_USERS[i%DEMO_USERS.length].i, uc:DEMO_USERS[i%DEMO_USERS.length].c, t:s[i%s.length]}));
 }
-function openCmts(id){
-  curCmtPid=id;
-  const p=posts.find(x=>x.id===id);
-  const av=document.getElementById('cmt-myav');
-  av.textContent=U?U.i:'?';
-  av.style.background=U?`linear-gradient(135deg,${U.c})`:'var(--grd)';
-  renderCmts(p);open_ov('ov-cmt');
+
+function openCmts(id) {
+  curCmtPid = id;
+  const p = posts.find(x => x.id === id);
+  const myav = document.getElementById('cmt-myav');
+  myav.textContent = U ? U.i : '?';
+  myav.style.background = U ? `linear-gradient(135deg,${U.c})` : 'var(--grd)';
+  renderCmts(p);
+  open_ov('ov-cmt');
 }
-function renderCmts(p){
-  const c=document.getElementById('cmt-list');
-  c.innerHTML=p.cmts.length?p.cmts.map(cm=>`
+
+function renderCmts(p) {
+  const c = document.getElementById('cmt-list');
+  c.innerHTML = p.cmts.length ? p.cmts.map(cm => `
     <div style="display:flex;gap:9px;">
-      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,${cm.uc});display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;cursor:pointer;" onclick="openViewProf({n:'${esc(cm.un)}',h:'${cm.un.toLowerCase().replace(' ','_')}',i:'${cm.ui}',c:'${cm.uc}',v:false})">${cm.ui}</div>
-      <div style="flex:1;background:var(--s3);padding:9px 11px;border-radius:3px var(--r12) var(--r12) var(--r12);">
-        <div style="font-size:12px;font-weight:800;margin-bottom:3px;cursor:pointer;" onclick="openViewProf({n:'${esc(cm.un)}',h:'${cm.un.toLowerCase().replace(' ','_')}',i:'${cm.ui}',c:'${cm.uc}',v:false})">${esc(cm.un)}</div>
+      <div class="mav" style="width:34px;height:34px;border-radius:50%;font-size:13px;background:linear-gradient(135deg,${cm.uc});">${cm.ui}</div>
+      <div style="flex:1;background:var(--s3);padding:9px 11px;border-radius:3px var(--r10) var(--r10) var(--r10);">
+        <div style="font-size:12px;font-weight:800;margin-bottom:3px;">${esc(cm.un)}</div>
         <div style="font-size:12px;color:var(--t2);">${esc(cm.t)}</div>
       </div>
-    </div>`).join(''):'<div class="empty" style="padding:22px;"><p>No comments yet. Be first!</p></div>';
-}
-function sendCmt(){
-  if(!U){cls('ov-cmt');showLogin();toast('Login to comment','er');return;}
-  const inp=document.getElementById('cmt-inp');
-  const txt=inp.value.trim();if(!txt)return;
-  const p=posts.find(x=>x.id===curCmtPid);
-  if(p){p.cmts.unshift({un:U.n,ui:U.i,uc:U.c,t:txt});renderCmts(p);inp.value='';renderFeed();toast('💬 Comment posted!','ok');}
+    </div>`).join('') : `<div class="empty" style="padding:24px;"><i class="far fa-comment"></i><p>${T('No comments yet. Be first!','এখনও কোনো মন্তব্য নেই। প্রথম হও!')}</p></div>`;
 }
 
-// ═══════════════════════════════════════
-// CREATE POST
-// ═══════════════════════════════════════
-function openPost(){
-  genAnon();isAnon=!U;
-  document.getElementById('atog').classList.toggle('on',isAnon);
-  updateCompose();document.getElementById('cta').value='';
-  open_ov('ov-post');
-  setTimeout(()=>document.getElementById('cta').focus(),360);
+function sendCmt() {
+  if (!U) { cls('ov-cmt'); showLogin(); toast(T('Login to comment','মন্তব্য করতে লগইন করুন'), 'er'); return; }
+  const inp = document.getElementById('cmt-inp');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  const p = posts.find(x => x.id === curCmtPid);
+  if (p) { p.cmts.unshift({un:U.n, ui:U.i, uc:U.c, t:txt}); renderCmts(p); inp.value = ''; renderFeed(); toast(T('💬 Comment posted!','💬 মন্তব্য পোস্ট করা হয়েছে!'), 'ok'); }
 }
-function genAnon(){
-  anonName=ANON[Math.floor(Math.random()*ANON.length)]+(Math.floor(Math.random()*90)+10);
-  const el=document.getElementById('an-prev');
-  if(el)el.textContent='Will appear as: '+anonName;
+
+// ════════════════════════════════════════
+// CREATE POST
+// ════════════════════════════════════════
+function openPost() {
+  genAnon();
+  isAnon = !U;
+  document.getElementById('atog').classList.toggle('on', isAnon);
+  updateCompose();
+  document.getElementById('cta').value = '';
+  open_ov('ov-post');
+  setTimeout(() => document.getElementById('cta').focus(), 360);
+}
+
+function genAnon() {
+  anonName = ANON_NAMES[Math.floor(Math.random()*ANON_NAMES.length)] + (Math.floor(Math.random()*90)+10);
+  const el = document.getElementById('an-prev');
+  if (el) el.textContent = T('Will appear as: ','এভাবে দেখাবে: ') + anonName;
   return anonName;
 }
-function toggleAnon(){isAnon=!isAnon;document.getElementById('atog').classList.toggle('on',isAnon);updateCompose();}
-function updateCompose(){
-  const av=document.getElementById('c-av'),nm=document.getElementById('c-name'),md=document.getElementById('c-mode');
-  const qa=document.getElementById('qav');
-  if(isAnon||!U){
-    av.textContent='🎭';av.style.background='linear-gradient(135deg,#374151,#4B5563)';
-    nm.textContent=anonName;md.textContent='🎭 Anonymous post';
-  }else{
-    av.textContent=U.i;av.style.background=`linear-gradient(135deg,${U.c})`;
-    nm.textContent=U.n;md.textContent=U.v?'✔ Verified post':'Public post';
-    qa.textContent=U.i;qa.style.background=`linear-gradient(135deg,${U.c})`;
-  }
-}
-function submitPost(){
-  const txt=document.getElementById('cta').value.trim();
-  if(!txt){toast('Please write something!','er');return;}
-  const np={id:Date.now(),u:(isAnon||!U)?null:U,txt,t:'Just now',lk:0,anon:isAnon||!U,an:(isAnon||!U)?genAnon():null,cmts:[]};
-  posts.unshift(np);
-  savePostToSB(txt,isAnon||!U,(isAnon||!U)?np.an:null);
-  cls('ov-post');isAnon=false;document.getElementById('atog').classList.remove('on');
-  renderFeed();toast('✅ Post published!+(sbOnline?' & saved to DB':'')','ok');
+
+function toggleAnon() {
+  isAnon = !isAnon;
+  document.getElementById('atog').classList.toggle('on', isAnon);
+  updateCompose();
 }
 
-// ═══════════════════════════════════════
+function updateCompose() {
+  const av = document.getElementById('c-av');
+  const nm = document.getElementById('c-name');
+  const md = document.getElementById('c-mode');
+  const qa = document.getElementById('qav');
+  if (isAnon || !U) {
+    av.textContent = '🎭';
+    av.style.background = 'linear-gradient(135deg,#374151,#4B5563)';
+    nm.textContent = anonName;
+    md.textContent = T('🎭 Anonymous post','🎭 বেনামী পোস্ট');
+  } else {
+    av.textContent = U.i; av.style.background = `linear-gradient(135deg,${U.c})`;
+    nm.textContent = U.n;
+    md.textContent = U.v ? T('✔ Verified post','✔ যাচাইকৃত পোস্ট') : T('Public post','সর্বজনীন পোস্ট');
+    qa.textContent = U.i; qa.style.background = `linear-gradient(135deg,${U.c})`;
+  }
+}
+function submitPost() {
+  const txt = document.getElementById('cta').value.trim();
+  if (!txt) { toast(T('Please write something!','অনুগ্রহ করে কিছু লিখুন!'), 'er'); return; }
+  posts.unshift({id:Date.now(), u:(isAnon||!U)?null:U, txt, t:T('Just now','এইমাত্র'), lk:0, anon:isAnon||!U, an:(isAnon||!U)?genAnon():null, cmts:[]});
+  cls('ov-post');
+  isAnon = false;
+  document.getElementById('atog').classList.remove('on');
+  renderFeed();
+  toast(T('✅ Post published!','✅ পোস্ট প্রকাশিত হয়েছে!'), 'ok');
+}
+
+// ════════════════════════════════════════
+// GLOBAL CHAT
+// ════════════════════════════════════════
+function renderGlobal() {
+  const c = document.getElementById('gmsgs');
+  c.innerHTML = gMsgs.map(m => {
+    const me = U && m.n === U.n;
+    return `<div class="mrow ${me?'me':''}">
+      <div class="mav" style="background:${m.anon?'linear-gradient(135deg,#374151,#4B5563)':'var(--grd)'};">${m.anon?'🎭':m.n.charAt(0)}</div>
+      <div class="mbub"><div class="mn">${esc(m.n)} ${m.v?'<i class="fas fa-check-circle" style="color:var(--g);font-size:9px;"></i>':''}</div>
+      <div class="mtxt">${esc(m.t)}</div><div class="mts">${m.ts}</div></div></div>`;
+  }).join('');
+  c.scrollTop = c.scrollHeight;
+}
+
+function sendG() {
+  const inp = document.getElementById('ginp');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  gMsgs.push({n:U?U.n:(anonName||genAnon()), t:txt, ts:now(), v:U?.v, anon:!U});
+  inp.value = '';
+  renderGlobal();
+  setTimeout(() => {
+    gMsgs.push({n:ANON_NAMES[Math.floor(Math.random()*ANON_NAMES.length)]+(Math.floor(Math.random()*90)+10), t:BOTS[Math.floor(Math.random()*BOTS.length)], ts:now(), anon:true});
+    renderGlobal();
+  }, 1200 + Math.random() * 2000);
+}
+
+// ════════════════════════════════════════
 // ROOMS
-// ═══════════════════════════════════════
-function buildRooms(){
-  const ca=document.getElementById('crm-area');
-  ca.innerHTML=U?.v
-    ?`<button class="crbtn" onclick="toast('Room creator coming with full backend!','in')"><i class="fa fa-plus"></i> Create New Room</button>`
-    :`<div class="info-bar"><i class="fa fa-star"></i><span>Only ✔ Verified users can create rooms</span></div>`;
-  document.getElementById('rgrid').innerHTML=ROOMS_DATA.map(r=>`
-    <div class="rc" onclick="openFullChat(${r.id},'${r.ico} ${r.n}','${r.m} members','${r.ico}','${r.c}',false)">
+// ════════════════════════════════════════
+function buildRooms() {
+  const ca = document.getElementById('crm-area');
+  if (U?.v) {
+    ca.innerHTML = `<button class="crbtn" onclick="createRoomPrompt()"><i class="fas fa-plus"></i> ${T('Create New Room','নতুন রুম তৈরি করুন')}</button>`;
+  } else {
+    ca.innerHTML = `<div class="info-banner"><i class="fas fa-crown"></i><span>${T('Only ✔ Verified users can create rooms','শুধু ✔ যাচাইকৃত ব্যবহারকারীরা রুম তৈরি করতে পারবেন')}</span></div>`;
+  }
+  document.getElementById('rgrid').innerHTML = ROOMS_DATA.map(r => `
+    <div class="rc" onclick="openRoom(${r.id},'${r.n}')">
       <div class="rc-ico" style="background:linear-gradient(135deg,${r.c});">${r.ico}</div>
       <div class="rc-name">${r.n}</div>
-      <div class="rc-cnt">👥 ${r.m}</div>
-      <span class="rc-badge ${r.pub?'rc-pub':'rc-prv'}">${r.pub?'Public':'Private'}</span>
+      <div class="rc-cnt"><i class="fas fa-users" style="font-size:10px;margin-right:3px;"></i>${r.m}</div>
+      <span class="rc-badge ${r.pub?'rc-pub':'rc-prv'}">${r.pub?T('Public','পাবলিক'):T('Private','প্রাইভেট')}</span>
     </div>`).join('');
-}
-function buildGroups(){
-  const c=document.getElementById('grps');
-  if(!U){
-    c.innerHTML=`<div class="gate" style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r20);margin:0;"><div class="g-ico">👥</div><h3>Private Groups</h3><p>Login to join or create private groups.</p><button class="gate-btn" onclick="showLogin()">Login</button></div>`;
-    return;
-  }
-  c.innerHTML=GROUPS_DATA.map(g=>`
-    <div class="grp-card" onclick="openFullChat(${g.id},'${g.ico} ${g.n}','${g.m}/${g.max} members','${g.ico}',null,false)">
-      <div class="grp-ico">${g.ico}</div>
-      <div class="grp-info"><div class="grp-name">${esc(g.n)}</div><div class="grp-meta">${g.m}/${g.max} members • ${g.msgs>=1000?(g.msgs/1000).toFixed(1)+'K':g.msgs} msgs</div></div>
-      <span class="grp-role">${g.role}</span>
-    </div>`).join('');
-  c.innerHTML+=`<button onclick="toast('Create group — max 30 members (backend coming!)','in')" style="padding:11px;background:transparent;border:1.5px dashed var(--b2);border-radius:var(--r16);color:var(--t3);font-size:13px;font-weight:700;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;"><i class="fa fa-plus"></i> Create New Group</button>`;
 }
 
-// ═══════════════════════════════════════
-// MESSAGES
-// ═══════════════════════════════════════
-function buildMsgs(){
-  const da=document.getElementById('dmg-area'),dl=document.getElementById('dm-list');
-  if(!U){
-    da.innerHTML='';
-    dl.innerHTML=`<div class="gate"><div class="g-ico">🔒</div><h3>Private Messages</h3><p>Login to send and receive direct messages.</p><button class="gate-btn" onclick="showLogin()">Login / Sign Up</button></div>`;
+function openRoom(id, name) {
+  curRm = {id, name};
+  document.getElementById('rm-title').textContent = name;
+  if (!rmMsgs[id]) rmMsgs[id] = [{n:'System',t:`${T('Welcome to','স্বাগতম')} ${name}! 👋`,ts:now(),sys:true}];
+  renderRmMsgs(id);
+  open_ov('ov-room');
+}
+
+function renderRmMsgs(id) {
+  const c = document.getElementById('rm-msgs');
+  c.innerHTML = (rmMsgs[id]||[]).map(m => {
+    const me = U && m.n === U.n;
+    return `<div class="mrow ${me?'me':''}">
+      <div class="mav" style="${m.sys?'background:var(--s4);color:var(--t3);font-size:11px;':'background:var(--grd);'}">${m.sys?'<i class="fas fa-robot"></i>':m.n.charAt(0)}</div>
+      <div class="mbub"><div class="mn">${esc(m.n)}</div>
+      <div class="mtxt" style="${m.sys?'background:var(--s4);color:var(--t2);':''}">${esc(m.t)}</div>
+      <div class="mts">${m.ts}</div></div></div>`;
+  }).join('');
+  c.scrollTop = c.scrollHeight;
+}
+
+function sendRm() {
+  if (!curRm) return;
+  const inp = document.getElementById('ri');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  const nm = U ? U.n : (anonName||genAnon());
+  rmMsgs[curRm.id].push({n:nm, t:txt, ts:now()});
+  inp.value = '';
+  renderRmMsgs(curRm.id);
+  setTimeout(() => {
+    rmMsgs[curRm.id].push({n:ANON_NAMES[Math.floor(Math.random()*ANON_NAMES.length)]+'_bot', t:BOTS[Math.floor(Math.random()*BOTS.length)], ts:now()});
+    renderRmMsgs(curRm.id);
+  }, 1000 + Math.random()*2000);
+}
+
+function createRoomPrompt() {
+  toast(T('Room creator UI coming with Supabase backend!','সুপাবেস ব্যাকএন্ড সহ রুম ক্রিয়েটর আসছে!'), 'in');
+}
+
+// ════════════════════════════════════════
+// GROUPS
+// ════════════════════════════════════════
+function buildGroups() {
+  const c = document.getElementById('grps');
+  if (!U) {
+    c.innerHTML = `<div class="gate" style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r18);margin:0;"><i class="fas fa-users"></i><h3>${T('Private Groups','প্রাইভেট গ্রুপ')}</h3><p>${T('Login to join or create private groups (max 30 members).','প্রাইভেট গ্রুপে যোগ দিতে বা তৈরি করতে লগইন করুন।')}</p><button class="gate-btn" onclick="showLogin()">${T('Login','লগইন')}</button></div>`;
     return;
   }
-  da.innerHTML=`<button class="newmsg" onclick="openNewDM()"><i class="fa fa-pen" style="margin-right:7px;"></i>New Message</button>`;
-  dl.innerHTML=`<div class="msg-list">${USERS.filter(u=>u.n!==U.n).map(u=>`
-    <div class="ml-item" onclick="openDMChat('${esc(u.n)}','${u.i}','${u.c}','${esc(u.h)}')">
+  c.innerHTML = GROUPS_DATA.map(g => `
+    <div class="grp-card" onclick="openGrpSettings(${g.id},'${esc(g.n)}')">
+      <div class="grp-ico">${g.ico}</div>
+      <div class="grp-info"><div class="grp-name">${esc(g.n)}</div><div class="grp-meta">${g.m}/${g.max} ${T('members','সদস্য')} • ${g.msgs >= 1000 ? (g.msgs/1000).toFixed(1)+'K' : g.msgs} msgs</div></div>
+      <span class="grp-role">${g.role==='Admin'?T('Admin','অ্যাডমিন'):T('Member','সদস্য')}</span>
+    </div>`).join('');
+  c.innerHTML += `<button onclick="toast(T('Create group — max 30 members (backend coming!)','গ্রুপ তৈরি করুন — সর্বোচ্চ ৩০ সদস্য (ব্যাকএন্ড আসছে!)'),'in')" style="padding:11px;background:transparent;border:1.5px dashed var(--b2);border-radius:var(--r14);color:var(--t3);font-size:13px;font-weight:700;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;"><i class="fas fa-plus"></i>${T('Create New Group','নতুন গ্রুপ তৈরি করুন')}</button>`;
+}
+
+function openGrpSettings(id, name) {
+  const g = GROUPS_DATA.find(x => x.id === id);
+  const isAdmin = g?.role === 'Admin';
+  document.getElementById('gs-title').textContent = name + (LANG==='bn' ? ' সেটিংস' : ' Settings');
+  document.getElementById('gs-body').innerHTML = `
+    <div class="sg">
+      ${isAdmin ? `
+      <div class="si" onclick="toast(T('Invite link copied! 🔗','আমন্ত্রণ লিংক কপি হয়েছে! 🔗'),'ok')"><div class="si-ico" style="background:rgba(16,185,129,.15);color:var(--g);"><i class="fas fa-user-plus"></i></div><div class="si-txt">${T('Invite Members','সদস্য আমন্ত্রণ করুন')}</div><i class="fas fa-link si-r"></i></div>
+      <div class="si" onclick="toast('${g.m}/${g.max} ${T('members','সদস্য')}','in')"><div class="si-ico" style="background:rgba(124,58,237,.15);color:var(--pl);"><i class="fas fa-users"></i></div><div class="si-txt">${T('Members','সদস্য')} (${g.m}/${g.max})</div><i class="fas fa-chevron-right si-r"></i></div>
+      <div class="si" onclick="toast(T('Assign co-admin coming!','কো-অ্যাডমিন নির্ধারণ শীঘ্রই!'),'in')"><div class="si-ico" style="background:rgba(245,158,11,.15);color:var(--w);"><i class="fas fa-user-shield"></i></div><div class="si-txt">${T('Assign Co-Admin','কো-অ্যাডমিন নির্ধারণ করুন')}</div><i class="fas fa-chevron-right si-r"></i></div>
+      <div class="si" onclick="toast(T('Mute member coming!','সদস্য মিউট শীঘ্রই!'),'in')"><div class="si-ico" style="background:rgba(239,68,68,.15);color:var(--r);"><i class="fas fa-microphone-slash"></i></div><div class="si-txt">${T('Mute Members','সদস্য মিউট করুন')}</div><i class="fas fa-chevron-right si-r"></i></div>
+      <div class="si" onclick="toast(T('Remove member coming!','সদস্য অপসারণ শীঘ্রই!'),'in')"><div class="si-ico" style="background:rgba(239,68,68,.15);color:var(--r);"><i class="fas fa-user-minus"></i></div><div class="si-txt">${T('Remove Member','সদস্য অপসারণ করুন')}</div><i class="fas fa-chevron-right si-r"></i></div>
+      <div class="si" onclick="if(confirm(T('Delete this group?','এই গ্রুপটি মুছবেন?')))toast(T('Group deleted.','গ্রুপ মুছে ফেলা হয়েছে।'),'ok')"><div class="si-ico" style="background:rgba(239,68,68,.15);color:var(--r);"><i class="fas fa-trash"></i></div><div class="si-txt" style="color:var(--r);">${T('Delete Group','গ্রুপ মুছুন')}</div></div>`
+      : `<div class="si" onclick="toast(T('Left group','গ্রুপ ছেড়েছেন'),'ok')"><div class="si-ico" style="background:rgba(239,68,68,.15);color:var(--r);"><i class="fas fa-sign-out-alt"></i></div><div class="si-txt" style="color:var(--r);">${T('Leave Group','গ্রুপ ছেড়ে দিন')}</div></div>`}
+    </div>
+    <button class="subp" onclick="openRoom(${id},'${esc(name)}');cls('ov-grpset');" style="margin-top:8px;"><i class="fas fa-comment" style="margin-right:7px;"></i>${T('Open Group Chat','গ্রুপ চ্যাট খুলুন')}</button>`;
+  open_ov('ov-grpset');
+}
+
+// ════════════════════════════════════════
+// MESSAGES (DM)
+// ════════════════════════════════════════
+function buildMsgs() {
+  const da = document.getElementById('dmg-area');
+  const dl = document.getElementById('dm-list');
+  if (!U) {
+    da.innerHTML = '';
+    dl.innerHTML = `<div class="gate"><i class="fas fa-lock"></i><h3>${T('Private Messages','প্রাইভেট বার্তা')}</h3><p>${T('Login to send and receive direct messages.','সরাসরি বার্তা পাঠাতে ও পেতে লগইন করুন।')}</p><button class="gate-btn" onclick="showLogin()">${T('Login / Sign Up','লগইন / সাইন আপ')}</button></div>`;
+    return;
+  }
+  da.innerHTML = `<button class="dmg-create" onclick="openNewDM()"><i class="fas fa-pen-to-square"></i> ${T('New Message','নতুন বার্তা')}</button>`;
+  const others = DEMO_USERS.filter(u => u.n !== U.n);
+  dl.innerHTML = `<div class="msg-list">${others.map(u => `
+    <div class="ml-item" onclick="startDM('${esc(u.n)}','${u.i}','${u.c}','${esc(u.h)}')">
       <div class="ml-av" style="background:linear-gradient(135deg,${u.c});">${u.i}<div class="onl"></div></div>
       <div class="ml-info">
-        <div class="ml-name" style="cursor:pointer;" onclick="event.stopPropagation();openViewProf(${JSON.stringify(u).replace(/"/g,'&quot;')})">${esc(u.n)} ${u.v?'<span style="color:var(--g);font-size:11px;">✔</span>':''}</div>
-        <div class="ml-prev">${dmMsgs['dm_'+u.h]?dmMsgs['dm_'+u.h].slice(-1)[0].t:'Tap to start chatting 💬'}</div>
+        <div class="ml-name">${esc(u.n)} ${u.v?'<i class="fas fa-check-circle vtick" style="font-size:11px;"></i>':''}</div>
+        <div class="ml-prev">${T('Tap to start chatting 💬','চ্যাট শুরু করতে ট্যাপ করুন 💬')}</div>
       </div>
-      <div class="unrd">1</div>
-    </div>`).join('')}</div>`;
+      <div class="ml-time">${T('Now','এখন')}</div>
+    </div>`).join('')}
+  </div>`;
 }
-function openNewDM(){
-  document.getElementById('newdm-list').innerHTML=USERS.filter(u=>U&&u.n!==U.n).map(u=>`
-    <div class="ml-item" onclick="openDMChat('${esc(u.n)}','${u.i}','${u.c}','${esc(u.h)}');cls('ov-newdm')">
+
+function openNewDM() {
+  const c = document.getElementById('newdm-list');
+  const others = DEMO_USERS.filter(u => U && u.n !== U.n);
+  c.innerHTML = others.map(u => `
+    <div class="ml-item" onclick="startDM('${esc(u.n)}','${u.i}','${u.c}','${esc(u.h)}');cls('ov-newdm')">
       <div class="ml-av" style="background:linear-gradient(135deg,${u.c});">${u.i}</div>
-      <div class="ml-info"><div class="ml-name">${esc(u.n)} ${u.v?'<span style="color:var(--g);">✔</span>':''}</div><div class="ml-prev">@${u.h}</div></div>
+      <div class="ml-info"><div class="ml-name">${esc(u.n)} ${u.v?'<i class="fas fa-check-circle vtick"></i>':''}</div><div class="ml-prev">@${u.h}</div></div>
     </div>`).join('');
   open_ov('ov-newdm');
 }
 
-// ═══════════════════════════════════════
+function startDM(name, initial, color, handle) {
+  if (!U) { showLogin(); return; }
+  curDM = {name, initial, color, handle};
+  const av = document.getElementById('dm-av');
+  av.textContent = initial; av.style.background = `linear-gradient(135deg,${color})`;
+  document.getElementById('dm-title').textContent = name;
+  if (!dmMsgs[name]) dmMsgs[name] = [{n:name, t:T('Hey! 👋 How are you?','হ্যালো! 👋 কেমন আছো?'), ts:now(), other:true}];
+  renderDMmsgs(name);
+  open_ov('ov-dm');
+}
+
+function renderDMmsgs(name) {
+  const c = document.getElementById('dm-msgs');
+  c.innerHTML = (dmMsgs[name]||[]).map(m => {
+    const me = !m.other;
+    return `<div class="mrow ${me?'me':''}">
+      <div class="mav" style="background:${me?`linear-gradient(135deg,${U?.c||'var(--grd)'})`:`linear-gradient(135deg,${curDM?.color||'#7C3AED,#06B6D4'})`};">${me?(U?.i||'?'):(curDM?.initial||'?')}</div>
+      <div class="mbub"><div class="mn">${me?(U?.n||'You'):esc(name)}</div>
+      <div class="mtxt">${esc(m.t)}</div><div class="mts">${m.ts}</div></div></div>`;
+  }).join('');
+  c.scrollTop = c.scrollHeight;
+}
+
+function sendDM() {
+  if (!curDM) return;
+  const inp = document.getElementById('dmi');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  dmMsgs[curDM.name].push({n:U.n, t:txt, ts:now(), other:false});
+  inp.value = '';
+  renderDMmsgs(curDM.name);
+  setTimeout(() => {
+    dmMsgs[curDM.name].push({n:curDM.name, t:BOTS[Math.floor(Math.random()*BOTS.length)], ts:now(), other:true});
+    renderDMmsgs(curDM.name);
+  }, 1000 + Math.random()*2000);
+}
+// ════════════════════════════════════════
 // PROFILE
-// ═══════════════════════════════════════
-function buildProfile(){
-  const c=document.getElementById('prof-body');
-  if(!U){
-    c.innerHTML=`<div style="padding:36px 18px;text-align:center;">
+// ════════════════════════════════════════
+function buildProfile() {
+  const c = document.getElementById('prof-body');
+  if (!U) {
+    c.innerHTML = `<div style="padding:36px 18px;text-align:center;">
       <div style="font-size:66px;margin-bottom:16px;">🎭</div>
-      <h2 style="font-size:21px;font-weight:900;margin-bottom:7px;">Join Anonlogos</h2>
-      <p style="color:var(--t2);font-size:13px;line-height:1.6;margin-bottom:20px;">Create account to unlock DMs, groups, verified badge & more!</p>
-      <button class="abtn" style="max-width:250px;margin:0 auto 10px;display:block;" onclick="showSignup()"><i class="fa fa-user-plus" style="margin-right:6px;"></i>Create Account</button><br>
-      <button style="background:transparent;border:1.5px solid var(--pl);border-radius:var(--r99);padding:10px 26px;color:var(--pl);font-size:13px;font-weight:800;" onclick="showLogin()">Already have account? Login</button>
+      <h2 style="font-size:21px;font-weight:900;margin-bottom:7px;">${T('Join Anonlogos','Anonlogos-এ যোগ দিন')}</h2>
+      <p style="color:var(--t2);font-size:13px;line-height:1.6;margin-bottom:20px;">${T('Create account to unlock DMs, groups, verified badge & more!','ডিএম, গ্রুপ, যাচাইকৃত ব্যাজ এবং আরও আনলক করতে অ্যাকাউন্ট তৈরি করুন!')}</p>
+      <button class="abtn" style="max-width:250px;margin:0 auto 10px;display:block;" onclick="showSignup()"><i class="fas fa-user-plus" style="margin-right:6px;"></i>${T('Create Account','অ্যাকাউন্ট তৈরি করুন')}</button>
+      <br>
+      <button style="background:transparent;border:1.5px solid var(--pl);border-radius:var(--r99);padding:10px 26px;color:var(--pl);font-size:13px;font-weight:800;" onclick="showLogin()">${T('Already have account? Login','অ্যাকাউন্ট আছে? লগইন করুন')}</button>
     </div>`;
     return;
   }
-  const myP=posts.filter(p=>!p.anon&&p.u?.n===U.n).length;
-  c.innerHTML=`
+  const myPosts = posts.filter(p => !p.anon && p.u?.n === U.n).length;
+  c.innerHTML = `
     <div class="prof-hdr">
       <div class="prof-av" style="background:linear-gradient(135deg,${U.c});">${U.i}
-        <div class="prof-cam" onclick="toast('Photo upload (backend needed)','in')"><i class="fa fa-camera" style="font-size:11px;"></i></div>
+        <div class="prof-cam" onclick="toast(T('Photo upload (backend needed)','ফটো আপলোড (ব্যাকএন্ড প্রয়োজন)'),'in')"><i class="fas fa-camera"></i></div>
       </div>
-      <div class="prof-name">${esc(U.n)} ${U.v?'<span style="color:var(--g);font-size:18px;">✔</span>':''}</div>
+      <div class="prof-name">${esc(U.n)} ${U.v?'<i class="fas fa-check-circle" style="color:var(--g);font-size:18px;"></i>':''}</div>
       <div class="prof-handle">@${esc(U.h)}</div>
-      <div class="prof-bio">${esc(U.bio||"Hey! I'm using Anonlogos 👋")}</div>
+      <div class="prof-bio">${esc(U.bio || T('Hey! I\'m using Anonlogos 👋','হ্যালো! আমি Anonlogos ব্যবহার করছি 👋'))}</div>
       <div class="prof-stats">
-        <div class="pst"><div class="psn">${myP}</div><div class="psl">Posts</div></div>
-        <div class="pst"><div class="psn">0</div><div class="psl">Followers</div></div>
-        <div class="pst"><div class="psn">0</div><div class="psl">Following</div></div>
+        <div class="pst"><div class="psn">${myPosts}</div><div class="psl">${T('Posts','পোস্ট')}</div></div>
+        <div class="pst"><div class="psn">0</div><div class="psl">${T('Followers','ফলোয়ার')}</div></div>
+        <div class="pst"><div class="psn">0</div><div class="psl">${T('Following','ফলোইং')}</div></div>
       </div>
-      <div style="display:flex;gap:10px;justify-content:center;">
-        <button class="edt-btn" onclick="toast('Edit profile (backend needed)','in')"><i class="fa fa-pen" style="margin-right:5px;font-size:11px;"></i>Edit Profile</button>
-        <button class="edt-btn" onclick="copyProfileLink()" style="border-color:var(--a);color:var(--a);"><i class="fa fa-link" style="margin-right:5px;font-size:11px;"></i>Copy Link</button>
-      </div>
+      <button class="prof-edt" onclick="toast(T('Edit profile (backend needed)','প্রোফাইল সম্পাদনা (ব্যাকএন্ড প্রয়োজন)'),'in')"><i class="fas fa-pen" style="margin-right:5px;font-size:11px;"></i>${T('Edit Profile','প্রোফাইল সম্পাদনা')}</button>
     </div>
-    <div style="padding:4px 14px 14px;">
-      <div class="sec-sm" style="padding-left:0;">My Posts</div>
-      ${posts.filter(p=>!p.anon&&p.u?.n===U.n).slice(0,3).map(p=>`<div class="pc" style="margin:0 0 9px;" onclick="openCmts(${p.id})"><div class="pb" style="padding:12px;font-size:12px;color:var(--t2);">${esc(p.txt.slice(0,80))}${p.txt.length>80?'…':''}</div></div>`).join('')||'<div class="empty" style="padding:22px 0;"><p>No posts yet. Share something!</p></div>'}
+    <div style="padding:0 14px 14px;">
+      <div class="sec-grp-label" style="padding-left:0;">${T('Recent Posts','সাম্প্রতিক পোস্ট')}</div>
+      ${posts.filter(p=>!p.anon&&p.u?.n===U.n).slice(0,3).map(p=>`<div class="pc" style="margin:0 0 10px;" onclick="openCmts(${p.id})"><div class="pb" style="padding:12px;">${esc(p.txt.slice(0,80))}${p.txt.length>80?'…':''}</div></div>`).join('') || `<div class="empty" style="padding:24px 0;"><i class="fas fa-feather-alt"></i><p>${T('No posts yet. Share something!','এখনও কোনো পোস্ট নেই। কিছু শেয়ার করুন!')}</p></div>`}
     </div>`;
 }
-// ═══════════════════════════════════════
+
+// ════════════════════════════════════════
 // SETTINGS
-// ═══════════════════════════════════════
-function buildSettings(){
-  const c=document.getElementById('sets-body');
-  c.innerHTML=`<div class="sets">
-    <div class="sec-sm">Account</div>
-    <div class="sg">
-      <div class="si" onclick="${U?`toast('Edit profile coming!','in')`:'showLogin()'}">
-        <div class="si-ico" style="background:rgba(139,92,246,.15);">👤</div><div class="si-txt">${U?'Edit Profile':'Login / Sign Up'}</div><span class="si-r">›</span>
+// ════════════════════════════════════════
+function buildSettings() {
+  const c = document.getElementById('sets-body');
+  c.innerHTML = `
+    <div class="sets">
+      <!-- Account -->
+      <div class="sec-grp-label">${T('Account','অ্যাকাউন্ট')}</div>
+      <div class="sg">
+        <div class="si" onclick="${U?`toast(T('Edit profile coming!','প্রোফাইল সম্পাদনা শীঘ্রই!'),'in')`:'showLogin()'}">
+          <div class="si-ico" style="background:rgba(124,58,237,.15);color:var(--pl);"><i class="fas fa-user-circle"></i></div>
+          <div class="si-txt">${U?T('Edit Profile','প্রোফাইল সম্পাদনা'):T('Login / Sign Up','লগইন / সাইন আপ')}</div>
+          <i class="fas fa-chevron-right si-r"></i>
+        </div>
+        ${U?`<div class="si" onclick="toast(T('Verified badge application coming!','যাচাইকৃত ব্যাজ আবেদন শীঘ্রই!'),'in')">
+          <div class="si-ico" style="background:rgba(16,185,129,.15);color:var(--g);"><i class="fas fa-check-circle"></i></div>
+          <div class="si-txt">${T('Get Verified ✔','যাচাইকৃত হন ✔')}</div>
+          <i class="fas fa-chevron-right si-r"></i>
+        </div>`:''}
       </div>
-      ${U?`<div class="si" onclick="copyProfileLink()"><div class="si-ico" style="background:rgba(6,182,212,.15);">🔗</div><div class="si-txt">My Profile Link</div><span class="si-r">Copy</span></div>`:''}
-      ${U?`<div class="si" onclick="toast('Verified badge application coming!','in')"><div class="si-ico" style="background:rgba(16,185,129,.15);">✔</div><div class="si-txt">Get Verified ✔</div><span class="si-r">›</span></div>`:''}
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Appearance</div>
-    <div class="sg">
-      <div class="si"><div class="si-ico" style="background:rgba(139,92,246,.15);">🌙</div><div class="si-txt">Dark Mode</div><div class="tsw on" onclick="toast('Dark mode always on 🌙','in')"></div></div>
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Language</div>
-    <div class="sg">
-      <div class="si"><div class="si-ico" style="background:rgba(6,182,212,.15);">🌐</div><div class="si-txt">App Language</div>
-        <div class="lang-row"><button class="lbtn on" onclick="toast('English active ✓','ok')">EN</button><button class="lbtn" onclick="toast('বাংলা সাপোর্ট শীঘ্রই!','ok')">বাং</button></div>
+      <!-- Appearance -->
+      <div class="sec-grp-label">${T('Appearance','চেহারা')}</div>
+      <div class="sg">
+        <div class="si">
+          <div class="si-ico" style="background:rgba(124,58,237,.15);color:var(--pl);"><i class="fas fa-moon"></i></div>
+          <div class="si-txt">${T('Dark Mode','ডার্ক মোড')}</div>
+          <div class="tsw on" id="dark-sw" onclick="toggleDark()"></div>
+        </div>
       </div>
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Database</div>
-    <div class="sg">
-      <div class="si" onclick="checkSBConnection()"><div class="si-ico" style="background:rgba(16,185,129,.15);">🗄️</div><div class="si-txt">Supabase Connection</div><span class="si-r" id="sb-status-btn">${sbOnline?'✅ Live':'⚡ Check'}</span></div>
-      <div class="si" onclick="loadPostsFromSB()"><div class="si-ico" style="background:rgba(139,92,246,.15);">🔄</div><div class="si-txt">Sync Posts from DB</div><span class="si-r">Sync</span></div>
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Privacy</div>
-    <div class="sg">
-      <div class="si" onclick="toast('Profile visibility settings coming!','in')"><div class="si-ico" style="background:rgba(16,185,129,.15);">🔒</div><div class="si-txt">Profile Visibility</div><span class="si-r">Public</span></div>
-      <div class="si"><div class="si-ico" style="background:rgba(139,92,246,.15);">🎭</div><div class="si-txt">Anonymous Posting</div><div class="tsw on"></div></div>
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Notifications</div>
-    <div class="sg">
-      <div class="si"><div class="si-ico" style="background:rgba(251,191,36,.15);">🔔</div><div class="si-txt">Push Notifications</div><div class="tsw on"></div></div>
-      <div class="si"><div class="si-ico" style="background:rgba(248,113,113,.15);">❤️</div><div class="si-txt">Like Notifications</div><div class="tsw on"></div></div>
-    </div>
-    <div class="sec-sm" style="margin-top:6px;">Support</div>
-    <div class="sg">
-      <div class="si" onclick="toast('Report sent! Thank you 🛡️','ok')"><div class="si-ico" style="background:rgba(248,113,113,.15);">🚩</div><div class="si-txt">Report a Problem</div><span class="si-r">›</span></div>
-      <div class="si" onclick="toast('Anonlogos v8.0 — Made with 💜 in Bangladesh','in')"><div class="si-ico" style="background:rgba(139,92,246,.15);">ℹ️</div><div class="si-txt">About Anonlogos</div><span class="si-r">v8.0</span></div>
-      ${U?`<div class="si" onclick="logout()"><div class="si-ico" style="background:rgba(248,113,113,.15);">🚪</div><div class="si-txt" style="color:var(--r);">Log Out</div></div>`:''}
-    </div>
-    <div style="text-align:center;padding:18px 0 6px;color:var(--t3);font-size:11px;">Anonlogos v8.0 • Supabase Connected • 💜 Bangladesh</div>
-  </div>`;
+      <!-- Language -->
+      <div class="sec-grp-label">${T('Language','ভাষা')}</div>
+      <div class="sg">
+        <div class="si">
+          <div class="si-ico" style="background:rgba(6,182,212,.15);color:var(--a);"><i class="fas fa-globe"></i></div>
+          <div class="si-txt">${T('App Language','অ্যাপ ভাষা')}</div>
+          <div class="lang-btn">
+            <button class="lbtn on" data-lang="en" onclick="setLang('en')">EN</button>
+            <button class="lbtn" data-lang="bn" onclick="setLang('bn')">বাং</button>
+          </div>
+        </div>
+      </div>
+      <!-- Privacy -->
+      <div class="sec-grp-label">${T('Privacy','গোপনীয়তা')}</div>
+      <div class="sg">
+        <div class="si" onclick="toast(T('Profile visibility settings coming!','প্রোফাইল দৃশ্যমানতা সেটিংস শীঘ্রই!'),'in')">
+          <div class="si-ico" style="background:rgba(16,185,129,.15);color:var(--g);"><i class="fas fa-user-lock"></i></div>
+          <div class="si-txt">${T('Profile Visibility','প্রোফাইল দৃশ্যমানতা')}</div>
+          <span class="si-r">${T('Public','সর্বজনীন')}</span>
+        </div>
+        <div class="si" onclick="toast(T('Anonymous post settings coming!','বেনামী পোস্ট সেটিংস শীঘ্রই!'),'in')">
+          <div class="si-ico" style="background:rgba(124,58,237,.15);color:var(--pl);"><i class="fas fa-mask"></i></div>
+          <div class="si-txt">${T('Anonymous Posting','বেনামী পোস্টিং')}</div>
+          <div class="tsw on"></div>
+        </div>
+        <div class="si" onclick="toast(T('Block list coming!','ব্লক তালিকা শীঘ্রই!'),'in')">
+          <div class="si-ico" style="background:rgba(239,68,68,.15);color:var(--r);"><i class="fas fa-ban"></i></div>
+          <div class="si-txt">${T('Blocked Users','ব্লক করা ব্যবহারকারী')}</div>
+          <i class="fas fa-chevron-right si-r"></i>
+        </div>
+      </div>
+      <!-- Notifications -->
+      <div class="sec-grp-label">${T('Notifications','বিজ্ঞপ্তি')}</div>
+      <div class="sg">
+        <div class="si">
+          <div class="si-ico" style="background:rgba(245,158,11,.15);color:var(--w);"><i class="fas fa-bell"></i></div>
+          <div class="si-txt">${T('Push Notifications','পুশ বিজ্ঞপ্তি')}</div>
+          <div class="tsw on"></div>
+        </div>
+        <div class="si">
+          <div class="si-ico" style="background:rgba(245,158,11,.15);color:var(--w);"><i class="fas fa-heart"></i></div>
+          <div class="si-txt">${T('Like Notifications','লাইক বিজ্ঞপ্তি')}</div>
+          <div class="tsw on"></div>
+        </div>
+        <div class="si">
+          <div class="si-ico" style="background:rgba(245,158,11,.15);color:var(--w);"><i class="fas fa-comment"></i></div>
+          <div class="si-txt">${T('Comment Notifications','মন্তব্য বিজ্ঞপ্তি')}</div>
+          <div class="tsw on"></div>
+        </div>
+      </div>
+      <!-- Support -->
+      <div class="sec-grp-label">${T('Support','সহায়তা')}</div>
+      <div class="sg">
+        <div class="si" onclick="toast(T('Report sent! Thank you 🛡️','রিপোর্ট পাঠানো হয়েছে! ধন্যবাদ 🛡️'),'ok')">
+          <div class="si-ico" style="background:rgba(239,68,68,.15);color:var(--r);"><i class="fas fa-flag"></i></div>
+          <div class="si-txt">${T('Report a Problem','সমস্যা রিপোর্ট করুন')}</div>
+          <i class="fas fa-chevron-right si-r"></i>
+        </div>
+        <div class="si" onclick="toast('Anonlogos v6.0 — Made with 💜','in')">
+          <div class="si-ico" style="background:rgba(124,58,237,.15);color:var(--pl);"><i class="fas fa-info-circle"></i></div>
+          <div class="si-txt">${T('About Anonlogos','Anonlogos সম্পর্কে')}</div>
+          <span class="si-r">v6.0</span>
+        </div>
+        ${U?`<div class="si" onclick="logout()">
+          <div class="si-ico" style="background:rgba(239,68,68,.15);color:var(--r);"><i class="fas fa-sign-out-alt"></i></div>
+          <div class="si-txt" style="color:var(--r);">${T('Log Out','লগআউট')}</div>
+        </div>`:''}
+      </div>
+      <div style="text-align:center;padding:18px 0 6px;color:var(--t3);font-size:11px;">Anonlogos v6.0 • Made with 💜 in Bangladesh</div>
+    </div>`;
+}
+function toggleDark() {
+  darkMode = !darkMode;
+  document.getElementById('dark-sw').classList.toggle('on', darkMode);
+  toast(darkMode ? T('Dark mode on 🌙','ডার্ক মোড চালু 🌙') : T('Light mode on ☀️','লাইট মোড চালু ☀️'), 'in');
 }
 
-// ═══════════════════════════════════════
-// AUTH (Supabase)
-// ═══════════════════════════════════════
-function showLogin(){
-  document.getElementById('auth-cnt').innerHTML=`
-    <div class="al-hdr"><div class="al-logo grd">Anonlogos</div><div class="al-sub">Welcome back! Sign in to continue.</div></div>
+function setLang(lang) {
+  LANG = lang;
+  applyLang();
+  buildStories();
+  renderFeed();
+  buildRooms();
+  buildGroups();
+  buildMsgs();
+  buildProfile();
+  buildSettings();
+  updateHdrBtn();
+  updateCompose();
+  toast(lang === 'bn' ? '🇧🇩 বাংলা ভাষা সক্রিয় হয়েছে!' : '🇬🇧 English language activated!', 'ok');
+}
+
+// ════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════
+function showLogin() {
+  document.getElementById('auth-cnt').innerHTML = `
+    <div class="al-hdr"><div class="al-logo grd-text">Anonlogos</div><div class="al-sub">${T('Welcome back! Sign in to continue.','স্বাগতম! চালিয়ে যেতে সাইন ইন করুন।')}</div></div>
     <div class="mb" style="padding-top:0;">
-      <div class="fg"><div class="fl">Email</div><input class="fi" id="le" type="email" placeholder="your@email.com"></div>
-      <div class="fg"><div class="fl">Password</div><input class="fi" id="lp" type="password" placeholder="Enter password"></div>
-      <button class="abtn" onclick="doLogin()"><i class="fa fa-sign-in-alt" style="margin-right:7px;"></i>Sign In</button>
-      <div class="or-div">or</div>
+      <div class="fg"><div class="fl">${T('Email or Username','ইমেইল বা ইউজারনেম')}</div><input class="fi" id="le" placeholder="${T('your@email.com','your@email.com')}"></div>
+      <div class="fg"><div class="fl">${T('Password','পাসওয়ার্ড')}</div><input class="fi" id="lp" type="password" placeholder="${T('Enter password','পাসওয়ার্ড দিন')}"></div>
+      <button class="abtn" onclick="doLogin()"><i class="fas fa-sign-in-alt" style="margin-right:6px;"></i>${T('Sign In','সাইন ইন')}</button>
+      <div class="or">${T('or sign in with','অথবা দিয়ে সাইন ইন করুন')}</div>
       <div class="srow">
-        <button class="sbtn" onclick="toast('Google Sign-In coming!','in')">🌐 Google</button>
-        <button class="sbtn" onclick="toast('Apple Sign-In coming!','in')">🍎 Apple</button>
+        <button class="sbtn" onclick="toast(T('Google Sign-In coming!','গুগল সাইন-ইন শীঘ্রই!'),'in')"><i class="fab fa-google" style="color:#EA4335;"></i>Google</button>
+        <button class="sbtn" onclick="toast(T('Apple Sign-In coming!','অ্যাপল সাইন-ইন শীঘ্রই!'),'in')"><i class="fab fa-apple"></i>Apple</button>
       </div>
-      <div class="aswitch">Don't have an account? <a onclick="showSignup()">Sign Up</a></div>
+      <div class="aswitch">${T("Don't have an account?","অ্যাকাউন্ট নেই?")} <a onclick="showSignup()">${T('Sign Up','সাইন আপ')}</a></div>
     </div>`;
   open_ov('ov-auth');
 }
-function showSignup(){
-  document.getElementById('auth-cnt').innerHTML=`
-    <div class="al-hdr"><div class="al-logo grd">Anonlogos</div><div class="al-sub">Create your free account today.</div></div>
+
+function showSignup() {
+  document.getElementById('auth-cnt').innerHTML = `
+    <div class="al-hdr"><div class="al-logo grd-text">Anonlogos</div><div class="al-sub">${T('Create your free account today.','আজই তোমার বিনামূল্যে অ্যাকাউন্ট তৈরি করো।')}</div></div>
     <div class="mb" style="padding-top:0;">
       <div class="frow">
-        <div class="fg"><div class="fl">First Name</div><input class="fi" id="sf" placeholder="First"></div>
-        <div class="fg"><div class="fl">Last Name</div><input class="fi" id="sl" placeholder="Last"></div>
+        <div class="fg"><div class="fl">${T('First Name','নাম')}</div><input class="fi" id="sf" placeholder="${T('First','প্রথম')}"></div>
+        <div class="fg"><div class="fl">${T('Last Name','পদবি')}</div><input class="fi" id="sl" placeholder="${T('Last','শেষ')}"></div>
       </div>
-      <div class="fg"><div class="fl">Username</div><input class="fi" id="su" placeholder="@username"></div>
-      <div class="fg"><div class="fl">Email</div><input class="fi" id="se" type="email" placeholder="your@email.com"></div>
-      <div class="fg"><div class="fl">Password</div><input class="fi" id="sp" type="password" placeholder="Min. 6 characters"></div>
-      <button class="abtn" onclick="doSignup()"><i class="fa fa-user-plus" style="margin-right:7px;"></i>Create Account</button>
-      <div class="aswitch">Already have account? <a onclick="showLogin()">Sign In</a></div>
+      <div class="fg"><div class="fl">${T('Username','ইউজারনেম')}</div><input class="fi" id="su" placeholder="@username"></div>
+      <div class="fg"><div class="fl">${T('Email','ইমেইল')}</div><input class="fi" id="se" type="email" placeholder="your@email.com"></div>
+      <div class="fg"><div class="fl">${T('Password','পাসওয়ার্ড')}</div><input class="fi" id="sp" type="password" placeholder="${T('Min. 6 characters','কমপক্ষে ৬ অক্ষর')}"></div>
+      <button class="abtn" onclick="doSignup()"><i class="fas fa-user-plus" style="margin-right:6px;"></i>${T('Create Account','অ্যাকাউন্ট তৈরি করুন')}</button>
+      <div class="or">${T('or sign up with','অথবা দিয়ে সাইন আপ করুন')}</div>
+      <div class="srow">
+        <button class="sbtn" onclick="toast(T('Google coming!','গুগল শীঘ্রই!'),'in')"><i class="fab fa-google" style="color:#EA4335;"></i>Google</button>
+        <button class="sbtn" onclick="toast(T('Apple coming!','অ্যাপল শীঘ্রই!'),'in')"><i class="fab fa-apple"></i>Apple</button>
+      </div>
+      <div class="aswitch">${T('Already have account?','অ্যাকাউন্ট আছে?')} <a onclick="showLogin()">${T('Sign In','সাইন ইন')}</a></div>
     </div>`;
   open_ov('ov-auth');
 }
 
-async function doLogin(){
-  const e=document.getElementById('le')?.value.trim();
-  const p=document.getElementById('lp')?.value.trim();
-  if(!e||!p){toast('Fill all fields','er');return;}
-  const btn=document.querySelector('#auth-cnt .abtn');
-  if(btn){btn.textContent='Signing in…';btn.disabled=true;}
-  try{
-    if(sbOnline){
-      const d=await sbAuth(e,p,false);
-      const prof=await sbFetch(`profiles?id=eq.${d.user.id}&limit=1`);
-      const pr=prof[0]||{};
-      U={n:pr.display_name||e.split('@')[0],h:pr.username||e.split('@')[0],i:(pr.display_name||e)[0].toUpperCase(),v:pr.is_verified||false,bio:pr.bio||'',c:pr.avatar_color||'#8B5CF6,#06B6D4',sbId:d.user.id};
-      toast(`Welcome back, ${U.n}! 🎉 (Supabase Auth)`,'ok');
-    }else{throw new Error('offline');}
-  }catch(err){
-    // Fallback local auth
-    const c=COLORS[Math.floor(Math.random()*COLORS.length)];
-    U={n:e.split('@')[0],h:e.split('@')[0].toLowerCase(),i:(e[0]||'U').toUpperCase(),v:false,bio:'',c};
-    toast(`Welcome, ${U.n}! (Local mode — DB offline)`,'ok');
-  }
+function doLogin() {
+  const e = document.getElementById('le')?.value.trim();
+  const p = document.getElementById('lp')?.value.trim();
+  if (!e || !p) { toast(T('Fill all fields','সব ক্ষেত্র পূরণ করুন'), 'er'); return; }
+  if (p.length < 4) { toast(T('Password too short','পাসওয়ার্ড খুব ছোট'), 'er'); return; }
+  const c = COLORS[Math.floor(Math.random()*COLORS.length)];
+  U = {n:e.includes('@')?e.split('@')[0]:e, h:(e.includes('@')?e.split('@')[0]:e).toLowerCase(), i:(e[0]||'U').toUpperCase(), v:false, bio:'', c};
   afterAuth();
 }
 
-async function doSignup(){
-  const f=document.getElementById('sf')?.value.trim();
-  const l=document.getElementById('sl')?.value.trim();
-  const u=document.getElementById('su')?.value.trim().replace('@','');
-  const e=document.getElementById('se')?.value.trim();
-  const p=document.getElementById('sp')?.value.trim();
-  if(!f||!e||!p){toast('Fill required fields','er');return;}
-  if(p.length<6){toast('Password min 6 chars','er');return;}
-  const btn=document.querySelector('#auth-cnt .abtn');
-  if(btn){btn.textContent='Creating account…';btn.disabled=true;}
-  const c=COLORS[Math.floor(Math.random()*COLORS.length)];
-  const dispName=(f+' '+l).trim();
-  try{
-    if(sbOnline){
-      const d=await sbAuth(e,p,true,{display_name:dispName,username:u||f.toLowerCase()});
-      // Create profile
-      try{await sbFetch('profiles',{method:'POST',body:JSON.stringify({id:d.user?.id||d.id,username:u||f.toLowerCase(),display_name:dispName,email:e,avatar_color:c,is_verified:false})});}catch(pe){}
-      U={n:dispName,h:u||f.toLowerCase(),i:f[0].toUpperCase(),v:false,bio:'',c,sbId:d.user?.id};
-      toast(`Account created! Welcome ${U.n} 🎉 (Supabase)`,'ok');
-    }else{throw new Error('offline');}
-  }catch(err){
-    U={n:dispName,h:(u||f).toLowerCase(),i:f[0].toUpperCase(),v:false,bio:'',c};
-    toast(`Account created! Welcome ${U.n} 🎉 (Local mode)`,'ok');
-  }
+function doSignup() {
+  const f = document.getElementById('sf')?.value.trim();
+  const l = document.getElementById('sl')?.value.trim();
+  const u = document.getElementById('su')?.value.trim().replace('@','');
+  const e = document.getElementById('se')?.value.trim();
+  const p = document.getElementById('sp')?.value.trim();
+  if (!f || !e || !p) { toast(T('Fill required fields','প্রয়োজনীয় ক্ষেত্র পূরণ করুন'), 'er'); return; }
+  if (p.length < 6) { toast(T('Password min 6 chars','পাসওয়ার্ড কমপক্ষে ৬ অক্ষর'), 'er'); return; }
+  const c = COLORS[Math.floor(Math.random()*COLORS.length)];
+  U = {n:(f+' '+l).trim(), h:(u||f).toLowerCase(), i:f[0].toUpperCase(), v:false, bio:'', c};
   afterAuth();
 }
 
-function afterAuth(){
-  cls('ov-auth');updateHdrBtn();updateCompose();
-  buildMsgs();buildGroups();buildProfile();buildSettings();buildRooms();renderFeed();
+function afterAuth() {
+  cls('ov-auth');
+  updateHdrBtn();
+  updateCompose();
+  buildMsgs();
+  buildGroups();
+  buildProfile();
+  buildSettings();
+  renderFeed();
+  toast(T(`Welcome, ${U.n}! 🎉`,`স্বাগতম, ${U.n}! 🎉`), 'ok');
 }
-function logout(){
-  U=null;liked.clear();updateHdrBtn();updateCompose();
-  buildMsgs();buildGroups();buildProfile();buildSettings();buildRooms();renderFeed();
-  go('home',document.getElementById('nb-home'));
-  toast('Logged out successfully','in');
+
+function logout() {
+  U = null;
+  liked.clear();
+  updateHdrBtn();
+  updateCompose();
+  buildMsgs();
+  buildGroups();
+  buildProfile();
+  buildSettings();
+  renderFeed();
+  go('home', document.getElementById('nb-home'));
+  toast(T('Logged out successfully','সফলভাবে লগআউট হয়েছে'), 'in');
 }
-function updateHdrBtn(){
-  const btn=document.getElementById('hbtn-auth');
-  if(U){
-    btn.innerHTML=`<span style="font-size:11px;font-weight:900;">${U.i}</span>`;
-    btn.style.background=`linear-gradient(135deg,${U.c})`;
-    btn.style.color='#fff';btn.style.border='none';
-    btn.onclick=hdrAuth;
-  }else{
-    btn.innerHTML='<i class="fa fa-user"></i>';
-    btn.style.background='';btn.style.color='';btn.style.border='';
-    btn.onclick=hdrAuth;
+
+function updateHdrBtn() {
+  const btn = document.getElementById('hbtn-auth');
+  if (U) {
+    btn.innerHTML = `<span style="font-size:11px;font-weight:900;">${U.i}</span>`;
+    btn.style.background = `linear-gradient(135deg,${U.c})`;
+    btn.style.color = '#fff';
+    btn.style.border = 'none';
+    btn.onclick = hdrAuth;
+  } else {
+    btn.innerHTML = '<i class="fas fa-user"></i>';
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.style.border = '';
+    btn.onclick = hdrAuth;
   }
 }
 
-// ═══════════════════════════════════════
+// ════════════════════════════════════════
 // MODAL HELPERS
-// ═══════════════════════════════════════
-function open_ov(id){document.getElementById(id).classList.add('show');document.body.style.overflow='hidden';}
-function cls(id){document.getElementById(id).classList.remove('show');document.body.style.overflow='';}
-function bgC(e,id){if(e.target.id===id)cls(id);}
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){
-    if(document.getElementById('view-prof').classList.contains('show')){closeViewProf();return;}
-    if(document.getElementById('fschat').classList.contains('show')){closeFullChat();return;}
-    document.querySelectorAll('.ovl.show').forEach(o=>{o.classList.remove('show');document.body.style.overflow='';});
+// ════════════════════════════════════════
+function open_ov(id) {
+  document.getElementById(id).classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function cls(id) {
+  document.getElementById(id).classList.remove('show');
+  document.body.style.overflow = '';
+}
+function bgC(e, id) { if (e.target.id === id) cls(id); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.ovl.show').forEach(o => { o.classList.remove('show'); document.body.style.overflow = ''; });
   }
 });
 
-// ═══════════════════════════════════════
+// ════════════════════════════════════════
 // TOAST
-// ═══════════════════════════════════════
-function toast(msg,type='in'){
-  const ic={ok:'tok',er:'ter',in:'tin'};
-  const em={ok:'✓',er:'✕',in:'i'};
-  const w=document.getElementById('tw');
-  const el=document.createElement('div');
-  el.className=`t ${type}`;
-  el.innerHTML=`<span class="${ic[type]}" style="font-weight:900;font-size:14px;">${em[type]}</span><span>${msg}</span>`;
+// ════════════════════════════════════════
+function toast(msg, type = 'in') {
+  const icons = {ok:'fa-check-circle', er:'fa-exclamation-circle', in:'fa-info-circle'};
+  const w = document.getElementById('tw');
+  const el = document.createElement('div');
+  el.className = `t ${type}`;
+  el.innerHTML = `<i class="fas ${icons[type]}"></i><span>${msg}</span>`;
   w.appendChild(el);
-  setTimeout(()=>el.remove(),3200);
+  setTimeout(() => el.remove(), 3200);
 }
 
-// ═══════════════════════════════════════
+// ════════════════════════════════════════
 // UTILS
-// ═══════════════════════════════════════
-function now(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
-function fmtTime(ts){if(!ts)return now();const d=new Date(ts);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
-function timeAgo(ts){if(!ts)return'Just now';const s=Math.floor((Date.now()-new Date(ts))/1000);if(s<60)return s+'s ago';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
-function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// ════════════════════════════════════════
+function now() {
+  const d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 </body>
 </html>
